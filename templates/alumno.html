@@ -67,7 +67,7 @@
         <div class="container">
             <span class="navbar-brand fw-bold">👶 {{ nombre }}</span>
             
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Salir</a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm">Salir</a>
         </div>
     </nav>
 
@@ -148,7 +148,7 @@
                         {% endif %}
 
                         <div class="d-flex flex-wrap gap-2">
-                            <a href="{{ url_for('ver_incidencia', id_incidencia=inc.id) }}"
+                            <a href="{{ url_for('alumno.ver_incidencia', id_incidencia=inc.id) }}"
                                 class="btn btn-sm btn-outline-primary">📄 Ver detalle</a>
                         </div>
                     </div>

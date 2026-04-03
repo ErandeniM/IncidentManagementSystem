@@ -10,12 +10,12 @@
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
             <span class="navbar-brand">Administrador </span>
-            <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">Salir</a>
-            <a href="{{ url_for('admin_accesos') }}" class="btn btn-outline-light btn-sm me-2">
+            <a href="{{ url_for('admin.admin_logout') }}" class="btn btn-outline-light btn-sm">Salir</a>
+            <a href="{{ url_for('admin.admin_accesos') }}" class="btn btn-outline-light btn-sm me-2">
                 📋 Accesos
             </a>
         </div>
-        <a href="{{ url_for('admin_avisos') }}" class="btn btn-warning btn-sm me-2">
+        <a href="{{ url_for('admin.admin_avisos') }}" class="btn btn-warning btn-sm me-2">
             📢 Avisos
         </a>
 
@@ -37,7 +37,7 @@
                         <h5>Registrar nuevo alumno</h5>
                     </div>
                     <div class="card-body">
-                        <form action="{{ url_for('nuevo_alumno') }}" method="POST">
+                        <form action="{{ url_for('admin.nuevo_alumno') }}" method="POST">
                             <div class="mb-3">
                                 <label class="form-label">CURP (10 dígitos)</label>
                                 <input type="text" name="curp" class="form-control" pattern="[A-Z0-9]{10}"
@@ -74,7 +74,7 @@
                     <div class="card-body">
                         <div class="list-group">
                             {% for alumno in alumnos %}
-                            <a href="{{ url_for('admin_expediente', id_alumno=alumno.id) }}"
+                            <a href="{{ url_for('admin.admin_expediente', id_alumno=alumno.id) }}"
                                 class="list-group-item list-group-item-action d-flex justify-content-between">
                                 <span>{{ alumno.nombre }}</span>
                                 <small class="text-muted">{{ alumno.curp }}</small>

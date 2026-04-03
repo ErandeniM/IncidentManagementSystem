@@ -90,8 +90,8 @@
         <div class="subtitle">Visibles para todos los padres</div>
     </div>
     <div>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn-nav">← Volver</a>
-        <a href="{{ url_for('admin_logout') }}" class="btn-nav">Salir</a>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn-nav">← Volver</a>
+        <a href="{{ url_for('admin.admin_logout') }}" class="btn-nav">Salir</a>
     </div>
 </div>
 
@@ -110,7 +110,7 @@
             <div class="card">
                 <div class="card-header">+ Nuevo aviso</div>
                 <div class="card-body">
-                    <form action="{{ url_for('nuevo_aviso') }}" method="POST">
+                    <form action="{{ url_for('admin.nuevo_aviso') }}" method="POST">
                         <label class="form-label">Título</label>
                         <input type="text" name="titulo" class="form-control"
                                placeholder="Ej: Reunión de padres" required>
@@ -143,7 +143,7 @@
                             </div>
                         </div>
                         {% if av.activo %}
-                        <a href="{{ url_for('desactivar_aviso', id_aviso=av.id) }}"
+                        <a href="{{ url_for('admin.desactivar_aviso', id_aviso=av.id) }}"
                            class="btn-desactivar">Desactivar</a>
                         {% endif %}
                     </div>

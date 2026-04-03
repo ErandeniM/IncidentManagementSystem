@@ -137,7 +137,7 @@ def admin_expediente(id_alumno):
 @admin_bp.route('/nueva_incidencia/<int:id_alumno>', methods=['POST'])
 def nueva_incidencia(id_alumno):
     if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
+        return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-incidencias')
 
     tipo        = request.form['tipo']
     descripcion = request.form['descripcion'].strip()
@@ -175,6 +175,7 @@ def nueva_incidencia(id_alumno):
         enviar_correo(alumno['correo_padre'], asunto, cuerpo)
 
     flash('Incidencia registrada ✓')
+   
     return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
 
 
@@ -196,7 +197,7 @@ def nueva_calificacion(id_alumno):
     conn.commit()
     conn.close()
     flash('Calificación guardada ✓')
-    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
+    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-calificaciones')
 
 
 # ── Guardar perfil de personalidad ──
@@ -228,8 +229,7 @@ def guardar_perfil(id_alumno):
     conn.commit()
     conn.close()
     flash('Perfil actualizado ✓')
-    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
-
+    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-perfil')
 
 # ── Nueva actividad recomendada ──
 
@@ -247,7 +247,7 @@ def nueva_actividad(id_alumno):
     conn.commit()
     conn.close()
     flash('Actividad agregada ✓')
-    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
+    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-actividades')
 
 
 # ── Avisos ──

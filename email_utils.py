@@ -14,7 +14,8 @@ def enviar_correo(destinatario, asunto, cuerpo_html):
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
             smtp.login(CORREO_REMITENTE, CORREO_CLAVE)
             smtp.sendmail(CORREO_REMITENTE, destinatario, msg.as_string())
+        print("CORREO ENVIADO OK")
         return True
     except Exception as e:
-        print(f"Error al enviar correo: {e}")
+        print(f"ERROR CORREO: {e}")
         return False

@@ -241,7 +241,7 @@
         <div class="topbar-title">Detalle de incidencia</div>
         <div class="topbar-sub">{{ inc.tipo or 'Incidencia' }} · {{ inc.fecha[:10] if inc.fecha else '' }}</div>
     </div>
-    <a href="{{ url_for('panel_alumno') }}" class="btn-volver">← Volver</a>
+    <a href="{{ url_for('alumno.panel_alumno') }}" class="btn-volver">← Volver</a>
 </div>
 
 <div class="container">
@@ -326,7 +326,7 @@
                     Al escribir tu respuesta y firmar, confirmas que has sido notificado de esta incidencia y que tomarás las acciones correspondientes en casa.
                 </div>
 
-                <form action="{{ url_for('comentar', id_incidencia=inc.id) }}" method="POST">
+                <form action="{{ url_for('alumno.comentar', id_incidencia=inc.id) }}" method="POST">
                     <label class="firma-label">
                         Atención del padre / tutor de familia *
                     </label>
