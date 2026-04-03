@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Panel — {{ nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+
+<body class="bg-light">
+
+    <!-- Avisos popup -->
+    {% if avisos %}
+    <div id="avisos-modal" style="
+    position:fixed; inset:0; background:rgba(0,0,0,.5);
+    display:flex; align-items:center; justify-content:center;
+    z-index:9999; padding:1rem;">
+        <div style="
+        background:#fff; border-radius:20px; max-width:480px; width:100%;
+        box-shadow:0 8px 40px rgba(0,0,0,.2); overflow:hidden;">
+            <div style="
+            background:linear-gradient(135deg,#ff8c42,#ff6b6b);
+            padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-weight:800; color:#fff; font-size:1rem;">📢 Avisos importantes</div>
+                    <div style="font-size:.75rem; color:rgba(255,255,255,.8);">De parte de la maestra</div>
+                </div>
+                <button onclick="cerrarAvisos()" style="
+                background:rgba(255,255,255,.2); border:none; border-radius:8px;
+                color:#fff; font-size:1.1rem; cursor:pointer; padding:.25rem .6rem;">✕</button>
+            </div>
+            <div style="padding:1.25rem; max-height:60vh; overflow-y:auto;">
+                {% for av in avisos %}
+                <div style="
+                border-left:4px solid #ff8c42; border-radius:0 10px 10px 0;
+                padding:.75rem 1rem; margin-bottom:.75rem; background:#fff8f0;">
+                    <div style="font-weight:800; font-size:.9rem; color:#2d3436; margin-bottom:.25rem;">
+                        {{ av.titulo }}
+                    </div>
+                    <div style="font-size:.85rem; color:#636e72; line-height:1.5;">
+                        {{ av.contenido }}
+                    </div>
+                    <div style="font-size:.72rem; color:#b2bec3; margin-top:.35rem;">
+                        {{ av.fecha[:16] }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="padding:1rem 1.25rem; border-top:1px solid #f0f0f0;">
+                <button onclick="cerrarAvisos()" style="
+                width:100%; padding:.75rem;
+                background:linear-gradient(135deg,#ff8c42,#ff6b6b);
+                border:none; border-radius:12px; color:#fff;
+                font-family:'Nunito',sans-serif; font-size:.95rem; font-weight:800;
+                cursor:pointer;">Entendido ✓</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-light bg-white border-bottom">
+        <div class="container">
+            <span class="navbar-brand fw-bold">👶 {{ nombre }}</span>
+            
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Salir</a>
+        </div>
+    </nav>
+
+    <!-- Avisos fijos arriba -->
+    {% if avisos %}
+    <div style="background:#fff; border-bottom:2px solid #fff3cd; padding:.75rem 1.5rem;">
+        {% for av in avisos %}
+        <div style="
+        display:flex; align-items:flex-start; gap:.75rem;
+        padding:.5rem 0; border-bottom:1px solid #f5f5f5;">
+            <span style="font-size:1.1rem; flex-shrink:0;">📢</span>
+            <div>
+                <div style="font-weight:800; font-size:.88rem; color:#2d3436;">{{ av.titulo }}</div>
+                <div style="font-size:.82rem; color:#636e72;">{{ av.contenido }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="container mt-4">
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-success alert-dismissible">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Pestañas -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#tab-incidencias">⚠️ Incidencias</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-calificaciones">📊 Calificaciones</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-perfil">🧠 Perfil</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-actividades">🎯 Actividades</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+
+            <!-- ─── INCIDENCIAS ─── -->
+            <div class="tab-pane fade show active" id="tab-incidencias">
+                {% if incidencias %}
+                {% for inc in incidencias %}
+                <div class="card mb-3 shadow-sm {% if inc.enterado %}border-success{% endif %}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>Incidencia #{{ inc.numero }} — {{ inc.tipo or 'Incidencia' }}</strong>
+                            <small class="text-muted ms-2">{{ inc.fecha[:10] if inc.fecha else '' }}</small>
+                        </span>
+                        <div>
+                            <span class="badge {% if inc.visto %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ 'Visto ✓' if inc.visto else 'No visto' }}
+                            </span>
+                            <span
+                                class="badge {% if inc.enterado %}bg-success{% else %}bg-warning text-dark{% endif %} ms-1">
+                                {{ 'Enterado ✓' if inc.enterado else 'Pendiente' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        {% if inc.comentario_padre %}
+                        <div class="alert alert-info py-2 mb-3">
+                            <small>💬 <strong>Tu comentario:</strong> {{ inc.comentario_padre }}</small>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ url_for('ver_incidencia', id_incidencia=inc.id) }}"
+                                class="btn btn-sm btn-outline-primary">📄 Ver detalle</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="alert alert-secondary">No hay incidencias registradas aún.</div>
+                {% endif %}
+            </div>
+
+
+            <!-- ─── CALIFICACIONES ─── -->
+            <div class="tab-pane fade" id="tab-calificaciones">
+                {% if calificaciones %}
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Materia</th>
+                                    <th>Período</th>
+                                    <th class="text-center">Calificación</th>
+                                    <th>Observación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cal in calificaciones %}
+                                <tr>
+                                    <td>{{ cal.materia }}</td>
+                                    <td>{{ cal.periodo }}</td>
+                                    <td class="text-center fw-bold
+                                    {% if cal.calificacion >= 9 %}text-success
+                                    {% elif cal.calificacion >= 7 %}text-primary
+                                    {% elif cal.calificacion >= 6 %}text-warning
+                                    {% else %}text-danger{% endif %}">
+                                        {{ cal.calificacion }}
+                                    </td>
+                                    <td><small class="text-muted">{{ cal.comentario or '—' }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-secondary">Sin calificaciones registradas aún.</div>
+                {% endif %}
+            </div>
+
+
+            <!-- ─── PERFIL ─── -->
+            <div class="tab-pane fade" id="tab-perfil">
+                {% if perfil %}
+                <div class="row justify-content-center">
+                    <div class="col-md-7">
+                        <div class="card shadow-sm">
+                            <div class="card-header fw-bold">Perfil de {{ nombre }}</div>
+                            <div class="card-body text-center">
+                                <canvas id="radarPadre" style="max-height:360px"></canvas>
+                                {% if perfil.nota %}
+                                <div class="alert alert-light border mt-3 text-start">
+                                    <small>📝 <strong>Observación de la maestra:</strong><br>{{ perfil.nota }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-secondary">El perfil aún no ha sido registrado por la maestra.</div>
+                {% endif %}
+            </div>
+
+
+            <!-- ─── ACTIVIDADES ─── -->
+            <div class="tab-pane fade" id="tab-actividades">
+                {% if actividades %}
+                {% for act in actividades %}
+                <div class="card mb-2 shadow-sm">
+                    <div class="card-body py-2 d-flex align-items-center gap-3">
+                        <span class="badge
+                            {% if act.categoria == 'Académica' %}bg-primary
+                            {% elif act.categoria == 'Física' %}bg-success
+                            {% elif act.categoria == 'Artística' %}bg-warning text-dark
+                            {% elif act.categoria == 'Social' %}bg-info text-dark
+                            {% else %}bg-secondary{% endif %}">
+                            {{ act.categoria }}
+                        </span>
+                        <span>{{ act.actividad }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="alert alert-secondary">Sin actividades recomendadas aún.</div>
+                {% endif %}
+            </div>
+
+        </div><!-- /tab-content -->
+    </div><!-- /container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% if perfil %}
+    <script>
+        new Chart(document.getElementById('radarPadre'), {
+            type: 'radar',
+            data: {
+                labels: ['Lógico-Mat.', 'Físico', 'Artístico', 'Social', 'Lenguaje'],
+                datasets: [{
+                    label: '{{ nombre }}',
+                    data: [
+                        {{ perfil.logico }},
+                {{ perfil.fisico }},
+                    {{ perfil.artistico }},
+            {{ perfil.social }},
+            {{ perfil.lenguaje }}
+                ],
+            backgroundColor: 'rgba(13, 110, 253, 0.15)',
+            borderColor: 'rgba(13, 110, 253, 0.8)',
+            pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+            borderWidth: 2
+            }]
+        },
+            options: {
+            scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } }
+        }
+    });
+    </script>
+    {% endif %}
+
+    <script>
+        function toggleComentario(id) {
+            var f = document.getElementById('form-' + id);
+            f.style.display = f.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+<script>
+function cerrarAvisos() {
+    document.getElementById('avisos-modal').style.display = 'none';
+    localStorage.setItem('avisos_vistos', '{{ avisos|map(attribute="id")|list|join(",") }}');
+}
+
+// Al cargar la página, verificar si ya vio estos avisos
+window.addEventListener('load', function() {
+    var modal = document.getElementById('avisos-modal');
+    if (!modal) return;
+    var idsActuales = '{{ avisos|map(attribute="id")|list|join(",") }}';
+    var idsVistos = localStorage.getItem('avisos_vistos');
+    if (idsVistos === idsActuales) {
+        modal.style.display = 'none';
+    }
+});
+</script>
+</body>
+
+</html>

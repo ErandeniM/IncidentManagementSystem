@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expediente — {{ alumno.nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+        }
+
+        body {
+            background: #eef2f7;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .navbar-custom {
+            background: var(--primary);
+            padding: .75rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+        }
+
+        .navbar-custom .nombre-alumno {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .navbar-custom .subtitle {
+            font-size: .75rem;
+            color: rgba(255, 255, 255, .55);
+        }
+
+        .nav-tabs-custom {
+            border-bottom: 2px solid #dee2e6;
+            gap: .25rem;
+        }
+
+        .nav-tabs-custom .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #6c757d;
+            font-weight: 500;
+            padding: .6rem 1.1rem;
+            border-radius: 0;
+            transition: color .2s, border-color .2s;
+        }
+
+        .nav-tabs-custom .nav-link:hover {
+            color: var(--accent);
+        }
+
+        .nav-tabs-custom .nav-link.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: transparent;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+        }
+
+        .card-header-custom {
+            background: var(--primary);
+            color: #fff;
+            border-radius: 12px 12px 0 0 !important;
+            padding: .75rem 1.25rem;
+            font-weight: 600;
+            font-size: .95rem;
+        }
+
+        /* Incidencias */
+        .inc-item {
+            border-left: 4px solid #dee2e6;
+            padding: .75rem 1rem;
+            margin-bottom: .75rem;
+            background: #fff;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .inc-item.Ca\00EDda {
+            border-color: var(--danger);
+        }
+
+        .inc-item.Llanto {
+            border-color: var(--warning);
+        }
+
+        .inc-item.Logro {
+            border-color: var(--success);
+        }
+
+        .inc-item.Comentario {
+            border-color: var(--accent);
+        }
+
+        .inc-item.Otro {
+            border-color: #adb5bd;
+        }
+
+        .badge-tipo {
+            font-size: .72rem;
+            padding: .3em .65em;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-Ca\00EDda {
+            background: #fde8e8;
+            color: #c0392b;
+        }
+
+        .badge-Llanto {
+            background: #fef3cd;
+            color: #856404;
+        }
+
+        .badge-Logro {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-Comentario {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .badge-Otro {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .comentario-padre {
+            background: #e8f4fd;
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            padding: .4rem .75rem;
+            font-size: .85rem;
+            margin-top: .5rem;
+        }
+
+        /* Calificaciones */
+        .cal-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .6rem 1rem;
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: .5rem;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+        }
+
+        .cal-score {
+            font-size: 1.4rem;
+            font-weight: 700;
+            min-width: 52px;
+            text-align: center;
+        }
+
+        .cal-score.high {
+            color: var(--success);
+        }
+
+        .cal-score.mid {
+            color: var(--warning);
+        }
+
+        .cal-score.low {
+            color: var(--danger);
+        }
+
+        /* Perfil */
+        .perfil-item {
+            margin-bottom: 1rem;
+        }
+
+        .perfil-label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+            margin-bottom: .3rem;
+            font-size: .9rem;
+        }
+
+        .perfil-val {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        /* Actividades */
+        .act-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .6rem 1rem;
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: .5rem;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+        }
+
+        .act-cat {
+            font-size: .7rem;
+            padding: .25em .6em;
+            border-radius: 20px;
+            background: #e9ecef;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .form-label {
+            font-weight: 500;
+            font-size: .88rem;
+            color: #495057;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 8px;
+            border-color: #dee2e6;
+            font-size: .9rem;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: .45rem 1.2rem;
+            color: #fff;
+        }
+
+        .btn-save:hover {
+            background: #2980b9;
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #adb5bd;
+            font-size: .9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar-custom d-flex align-items-center justify-content-between">
+        <div>
+            <div class="nombre-alumno">{{ alumno.nombre }}</div>
+            <div class="subtitle">CURP {{ alumno.curp }}</div>
+            <div class="subtitle">Correo: {{ alumno.correo_padre }}</div>
+
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-outline-light">← Volver</a>
+            <a href="{{ url_for('admin.expediente_pdf', id_alumno=id_alumno) }}" class="btn btn-sm btn-outline-light">
+                📄 Descargar PDF
+            </a>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-sm btn-outline-light">Salir</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4 pb-5">
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- TABS -->
+        <ul class="nav nav-tabs-custom mb-4" id="expTabs">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-incidencias">📋
+                    Incidencias</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-calificaciones">📊
+                    Calificaciones</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-perfil">🧠 Perfil</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-actividades">🎯 Actividades</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+
+            <!-- TAB INCIDENCIAS -->
+            <div class="tab-pane fade show active" id="tab-incidencias">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header-custom">+ Nueva incidencia</div>
+                            <div class="card-body">
+                                <form action="{{ url_for('nueva_incidencia', id_alumno=id_alumno) }}" method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tipo</label>
+                                        <select name="tipo" class="form-select">
+                                            <option value="Caída">🤕 Caída</option>
+                                            <option value="Llanto">😢 Llanto</option>
+                                            <option value="Logro">⭐ Logro</option>
+                                            <option value="Comentario">💬 Comentario</option>
+                                            <option value="Otro">📌 Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Descripción</label>
+                                        <textarea name="descripcion" class="form-control" rows="4"
+                                            placeholder="Describe lo que ocurrió..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-save w-100">Registrar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header-custom">Historial</div>
+                            <div class="card-body" style="max-height:520px;overflow-y:auto;">
+                                {% if incidencias %}
+                                {% for inc in incidencias %}
+                                <div class="inc-item {{ inc.tipo }}">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="badge-tipo badge-{{ inc.tipo }}">Incidencia #{{ inc.numero }} — {{
+                                            inc.tipo or 'Incidencia' }}</span>
+                                        <small class="text-muted">{{ inc.fecha[:16] }}</small>
+                                    </div>
+                                    <p class="mb-2" style="font-size:.9rem;">{{ inc.descripcion }}</p>
+                                    <div class="d-flex gap-2">
+                                        <span
+                                            class="badge {% if inc.visto %}bg-success{% else %}bg-secondary{% endif %}"
+                                            style="font-size:.7rem;">
+                                            {% if inc.visto %}✅ Visto{% else %}⏳ Sin ver{% endif %}
+                                        </span>
+                                        <span
+                                            class="badge {% if inc.enterado %}bg-success{% else %}bg-secondary{% endif %}"
+                                            style="font-size:.7rem;">
+                                            {% if inc.enterado %}✅ Enterado{% else %}⏳ Pendiente{% endif %}
+                                        </span>
+                                    </div>
+                                    {% if inc.comentario_padre %}
+                                    <div class="comentario-padre">
+                                        <strong>Comentario del padre:</strong> {{ inc.comentario_padre }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="empty-state">No hay incidencias registradas aún.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CALIFICACIONES -->
+            <div class="tab-pane fade" id="tab-calificaciones">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header-custom">+ Nueva calificación</div>
+                            <div class="card-body">
+                                <form action="{{ url_for('nueva_calificacion', id_alumno=id_alumno) }}" method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label">Materia / Área</label>
+                                        <input type="text" name="materia" class="form-control"
+                                            placeholder="Ej: Matemáticas" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Periodo</label>
+                                        <input type="text" name="periodo" class="form-control"
+                                            placeholder="Ej: 1er bimestre">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Calificación (0–10)</label>
+                                        <input type="number" name="calificacion" class="form-control" min="0" max="10"
+                                            step="0.1" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Comentario (opcional)</label>
+                                        <textarea name="comentario" class="form-control" rows="2"
+                                            placeholder="Observaciones..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-save w-100">Guardar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header-custom">Registro de calificaciones</div>
+                            <div class="card-body">
+                                {% if calificaciones %}
+                                {% for cal in calificaciones %}
+                                <div class="cal-row">
+                                    <div>
+                                        <div style="font-weight:600;font-size:.9rem;">{{ cal.materia }}</div>
+                                        <small class="text-muted">{{ cal.periodo or '' }}</small>
+                                        {% if cal.comentario %}
+                                        <div style="font-size:.78rem;color:#6c757d;">{{ cal.comentario }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div
+                                        class="cal-score {% if cal.calificacion >= 8 %}high{% elif cal.calificacion >= 6 %}mid{% else %}low{% endif %}">
+                                        {{ cal.calificacion }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="empty-state">No hay calificaciones registradas aún.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB PERFIL -->
+            <div class="tab-pane fade" id="tab-perfil">
+                <div class="row g-4">
+                    <div class="col-md-5">
+                        <div class="card">
+                            <div class="card-header-custom">Editar perfil</div>
+                            <div class="card-body">
+                                <form action="{{ url_for('guardar_perfil', id_alumno=id_alumno) }}" method="POST">
+
+                                    {% set dims = [
+                                    ('logico', '🧮 Lógico / Matemático'),
+                                    ('fisico', '⚽ Físico / Motor'),
+                                    ('artistico', '🎨 Artístico / Creativo'),
+                                    ('social', '🤝 Social / Empático'),
+                                    ('lenguaje', '📖 Lenguaje / Comunicación')
+                                    ] %}
+
+                                    {% for campo, etiqueta in dims %}
+                                    <div class="perfil-item">
+                                        <div class="perfil-label">
+                                            <span>{{ etiqueta }}</span>
+                                            <span class="perfil-val" id="val-{{ campo }}">{{ perfil[campo] if perfil
+                                                else 0 }}</span>
+                                        </div>
+                                        <input type="range" name="{{ campo }}" min="0" max="100"
+                                            value="{{ perfil[campo] if perfil else 0 }}"
+                                            oninput="document.getElementById('val-{{ campo }}').textContent=this.value">
+                                    </div>
+                                    {% endfor %}
+
+                                    <div class="mb-3 mt-2">
+                                        <label class="form-label">Nota de la maestra</label>
+                                        <textarea name="nota" class="form-control" rows="3"
+                                            placeholder="Observaciones generales...">{{ perfil.nota if perfil else '' }}</textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-save w-100">Guardar perfil</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="card">
+                            <div class="card-header-custom">Vista previa</div>
+                            <div class="card-body">
+                                {% if perfil %}
+                                {% for campo, label, val in [
+                                ('logico', '🧮 Lógico', perfil.logico),
+                                ('fisico', '⚽ Físico', perfil.fisico),
+                                ('artistico', '🎨 Artístico', perfil.artistico),
+                                ('social', '🤝 Social', perfil.social),
+                                ('lenguaje', '📖 Lenguaje', perfil.lenguaje)
+                                ] %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
+                                        <span>{{ label }}</span>
+                                        <span style="font-weight:700;color:var(--accent);">{{ val }}%</span>
+                                    </div>
+                                    <div style="background:#e9ecef;border-radius:20px;height:10px;overflow:hidden;">
+                                        <div
+                                            style="height:100%;width:{{ val }}%;background:var(--accent);border-radius:20px;">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% if perfil.nota %}
+                                <div class="alert alert-info mt-3" style="font-size:.85rem;">
+                                    <strong>Nota:</strong> {{ perfil.nota }}
+                                </div>
+                                {% endif %}
+                                {% if perfil.actualizado %}
+                                <small class="text-muted">Actualizado: {{ perfil.actualizado[:16] }}</small>
+                                {% endif %}
+                                {% else %}
+                                <div class="empty-state">Usa el formulario para guardar el perfil.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB ACTIVIDADES -->
+            <div class="tab-pane fade" id="tab-actividades">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header-custom">+ Nueva actividad</div>
+                            <div class="card-body">
+                                <form action="{{ url_for('nueva_actividad', id_alumno=id_alumno) }}" method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label">Actividad recomendada</label>
+                                        <textarea name="actividad" class="form-control" rows="3"
+                                            placeholder="Describe la actividad..." required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Categoría</label>
+                                        <select name="categoria" class="form-select">
+                                            <option value="Cognitiva">🧠 Cognitiva</option>
+                                            <option value="Física">⚽ Física</option>
+                                            <option value="Artística">🎨 Artística</option>
+                                            <option value="Social">🤝 Social</option>
+                                            <option value="Lenguaje">📖 Lenguaje</option>
+                                            <option value="General">📌 General</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-save w-100">Agregar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header-custom">Actividades recomendadas</div>
+                            <div class="card-body">
+                                {% if actividades %}
+                                {% for act in actividades %}
+                                <div class="act-item {% if act.completada %}opacity-50{% endif %}">
+                                    <span style="font-size:1.2rem;">{% if act.completada %}✅{% else %}🎯{% endif
+                                        %}</span>
+                                    <div style="flex:1;">
+                                        <div
+                                            style="font-size:.9rem;{% if act.completada %}text-decoration:line-through;{% endif %}">
+                                            {{ act.actividad }}
+                                        </div>
+                                        <small class="text-muted">{{ act.categoria }} · {{ act.fecha[:10] if act.fecha
+                                            else '' }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="empty-state">No hay actividades registradas aún.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

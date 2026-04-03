@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Panel de Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">Administrador </span>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">Salir</a>
+            <a href="{{ url_for('admin_accesos') }}" class="btn btn-outline-light btn-sm me-2">
+                📋 Accesos
+            </a>
+        </div>
+        <a href="{{ url_for('admin_avisos') }}" class="btn btn-warning btn-sm me-2">
+            📢 Avisos
+        </a>
+
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-success">{{ msg }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Registrar nuevo alumno</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('nuevo_alumno') }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">CURP (10 dígitos)</label>
+                                <input type="text" name="curp" class="form-control" pattern="[A-Z0-9]{10}"
+                                    maxlength="10" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nombre corto</label>
+                                <input type="text" name="nombre" class="form-control" placeholder="Ej: Juan P."
+                                    required>
+                                <small class="text-muted">Solo nombre e inicial</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Contraseña</label>
+                                <input type="text" name="password" class="form-control" value="alumno2024" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Correo del padre</label>
+                                <input type="email" name="correo_padre" class="form-control"
+                                    placeholder="papa@gmail.com" required>
+                                <small class="text-muted">Para notificaciones automáticas</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Registrar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5>Alumnos registrados</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for alumno in alumnos %}
+                            <a href="{{ url_for('admin_expediente', id_alumno=alumno.id) }}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between">
+                                <span>{{ alumno.nombre }}</span>
+                                <small class="text-muted">{{ alumno.curp }}</small>
+                            </a>
+                            {% else %}
+                            <div class="alert alert-warning">No hay alumnos registrados</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

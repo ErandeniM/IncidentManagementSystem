@@ -1,0 +1,26 @@
+# Base de datos — contiene datos reales
+incidencias.db
+
+# Configuración con claves privadas
+config.py
+
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

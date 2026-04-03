@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Expediente — {{ alumno.nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand">📋 {{ alumno.nombre }}</span>
+        <div>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light btn-sm me-2">← Volver</a>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <!-- Mensajes flash -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-success alert-dismissible">
+                    {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Pestañas -->
+    <ul class="nav nav-tabs mb-4" id="expedienteTabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#incidencias-tab">
+                ⚠️ Incidencias
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#calificaciones-tab">
+                📊 Calificaciones
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#perfil-tab">
+                🧠 Perfil
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#actividades-tab">
+                🎯 Actividades
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- ─── TAB INCIDENCIAS ─── -->
+        <div class="tab-pane fade show active" id="incidencias-tab">
+            <div class="row">
+
+                <!-- Formulario nueva incidencia -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-warning text-dark fw-bold">
+                            Nueva incidencia
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('nueva_incidencia', id_alumno=id_alumno) }}" method="POST">
+                                <div class="mb-3">
+                                    <label class="form-label">Tipo</label>
+                                    <select name="tipo" class="form-select">
+                                        <option value="Caída">Caída</option>
+                                        <option value="Llanto">Llanto</option>
+                                        <option value="Comentario">Comentario</option>
+                                        <option value="Logro">Logro</option>
+                                        <option value="Conducta">Conducta</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Descripción</label>
+                                    <textarea name="descripcion" class="form-control" rows="4" required
+                                              placeholder="Describe lo que ocurrió..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-warning w-100">Registrar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial -->
+                <div class="col-md-8">
+                    {% if incidencias %}
+                        {% for inc in incidencias %}
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <span class="badge
+                                        {% if inc.tipo == 'Logro' %}bg-success
+                                        {% elif inc.tipo == 'Caída' %}bg-danger
+                                        {% elif inc.tipo == 'Llanto' %}bg-info text-dark
+                                        {% else %}bg-secondary{% endif %}
+                                        fs-6">
+                                        {{ inc.tipo or 'Incidencia' }}
+                                    </span>
+                                    <small class="text-muted">{{ inc.fecha[:16] }}</small>
+                                </div>
+                                <p class="mt-2 mb-2">{{ inc.descripcion }}</p>
+                                <div class="d-flex gap-2">
+                                    <span class="badge {% if inc.visto %}bg-success{% else %}bg-secondary{% endif %}">
+                                        Visto: {{ '✅' if inc.visto else '⏳' }}
+                                    </span>
+                                    <span class="badge {% if inc.enterado %}bg-success{% else %}bg-secondary{% endif %}">
+                                        Enterado: {{ '✅' if inc.enterado else '⏳' }}
+                                    </span>
+                                </div>
+                                {% if inc.comentario_padre %}
+                                <div class="alert alert-info mt-2 mb-0 py-2">
+                                    <small>💬 <strong>Comentario del padre:</strong> {{ inc.comentario_padre }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-secondary">Sin incidencias registradas.</div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div><!-- /tab incidencias -->
+
+
+        <!-- ─── TAB CALIFICACIONES ─── -->
+        <div class="tab-pane fade" id="calificaciones-tab">
+            <div class="row">
+
+                <!-- Formulario nueva calificación -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white fw-bold">
+                            Agregar calificación
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('nueva_calificacion', id_alumno=id_alumno) }}" method="POST">
+                                <div class="mb-2">
+                                    <label class="form-label">Materia</label>
+                                    <input type="text" name="materia" class="form-control"
+                                           placeholder="Ej: Matemáticas" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Período</label>
+                                    <select name="periodo" class="form-select">
+                                        <option>Bimestre 1</option>
+                                        <option>Bimestre 2</option>
+                                        <option>Bimestre 3</option>
+                                        <option>Bimestre 4</option>
+                                        <option>Bimestre 5</option>
+                                        <option>Final</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Calificación (0–10)</label>
+                                    <input type="number" name="calificacion" class="form-control"
+                                           min="0" max="10" step="0.1" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Comentario (opcional)</label>
+                                    <input type="text" name="comentario" class="form-control"
+                                           placeholder="Área de oportunidad, logro...">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Guardar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de calificaciones -->
+                <div class="col-md-8">
+                    {% if calificaciones %}
+                    <div class="card shadow-sm">
+                        <div class="card-body p-0">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Materia</th>
+                                        <th>Período</th>
+                                        <th class="text-center">Cal.</th>
+                                        <th>Comentario</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cal in calificaciones %}
+                                    <tr>
+                                        <td>{{ cal.materia }}</td>
+                                        <td>{{ cal.periodo }}</td>
+                                        <td class="text-center fw-bold
+                                            {% if cal.calificacion >= 9 %}text-success
+                                            {% elif cal.calificacion >= 7 %}text-primary
+                                            {% elif cal.calificacion >= 6 %}text-warning
+                                            {% else %}text-danger{% endif %}">
+                                            {{ cal.calificacion }}
+                                        </td>
+                                        <td><small class="text-muted">{{ cal.comentario or '—' }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% else %}
+                        <div class="alert alert-secondary">Sin calificaciones registradas.</div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div><!-- /tab calificaciones -->
+
+
+        <!-- ─── TAB PERFIL ─── -->
+        <div class="tab-pane fade" id="perfil-tab">
+            <div class="row">
+
+                <!-- Formulario perfil -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white fw-bold">
+                            Editar perfil de personalidad
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('guardar_perfil', id_alumno=id_alumno) }}" method="POST">
+                                <p class="text-muted small">Asigna un valor del 0 al 100 según qué tan marcada es cada área en el niño.</p>
+                                {% for area, label in [('logico','🔢 Lógico-Matemático'),
+                                                       ('fisico','⚽ Físico-Deportivo'),
+                                                       ('artistico','🎨 Artístico-Creativo'),
+                                                       ('social','🤝 Social-Comunicativo'),
+                                                       ('lenguaje','📚 Lenguaje-Lector')] %}
+                                <div class="mb-3">
+                                    <label class="form-label">{{ label }}</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" name="{{ area }}" class="form-range flex-grow-1"
+                                               min="0" max="100" step="5"
+                                               value="{{ perfil[area] if perfil else 0 }}"
+                                               oninput="this.nextElementSibling.textContent = this.value">
+                                        <span class="badge bg-secondary" style="min-width:40px">
+                                            {{ perfil[area] if perfil else 0 }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                <div class="mb-3">
+                                    <label class="form-label">Observación de la maestra</label>
+                                    <textarea name="nota" class="form-control" rows="3"
+                                              placeholder="Describe la personalidad del alumno...">{{ perfil.nota if perfil else '' }}</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Guardar perfil</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfica radar -->
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header fw-bold">Visualización del perfil</div>
+                        <div class="card-body text-center">
+                            {% if perfil %}
+                            <canvas id="radarChart" style="max-height:380px"></canvas>
+                            {% if perfil.nota %}
+                            <div class="alert alert-light border mt-3 text-start">
+                                <small>📝 <strong>Observación:</strong> {{ perfil.nota }}</small>
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <div class="alert alert-secondary mt-3">
+                                Aún no hay perfil registrado para este alumno.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div><!-- /tab perfil -->
+
+
+        <!-- ─── TAB ACTIVIDADES ─── -->
+        <div class="tab-pane fade" id="actividades-tab">
+            <div class="row">
+
+                <!-- Formulario nueva actividad -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-dark fw-bold">
+                            Agregar actividad
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('nueva_actividad', id_alumno=id_alumno) }}" method="POST">
+                                <div class="mb-3">
+                                    <label class="form-label">Actividad</label>
+                                    <input type="text" name="actividad" class="form-control"
+                                           placeholder="Ej: Practicar suma con objetos" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Categoría</label>
+                                    <select name="categoria" class="form-select">
+                                        <option value="Académica">📖 Académica</option>
+                                        <option value="Física">⚽ Física</option>
+                                        <option value="Artística">🎨 Artística</option>
+                                        <option value="Social">🤝 Social</option>
+                                        <option value="General">📌 General</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-info w-100">Agregar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de actividades -->
+                <div class="col-md-8">
+                    {% if actividades %}
+                        {% for act in actividades %}
+                        <div class="card mb-2 shadow-sm {% if act.completada %}border-success opacity-75{% endif %}">
+                            <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge
+                                        {% if act.categoria == 'Académica' %}bg-primary
+                                        {% elif act.categoria == 'Física' %}bg-success
+                                        {% elif act.categoria == 'Artística' %}bg-warning text-dark
+                                        {% elif act.categoria == 'Social' %}bg-info text-dark
+                                        {% else %}bg-secondary{% endif %}
+                                        me-2">
+                                        {{ act.categoria }}
+                                    </span>
+                                    <span {% if act.completada %}class="text-muted text-decoration-line-through"{% endif %}>
+                                        {{ act.actividad }}
+                                    </span>
+                                </div>
+                                <small class="text-muted">{{ act.fecha[:10] }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-secondary">Sin actividades registradas.</div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div><!-- /tab actividades -->
+
+    </div><!-- /tab-content -->
+</div><!-- /container -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Gráfica radar con Chart.js -->
+{% if perfil %}
+<script>
+    const ctx = document.getElementById('radarChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Lógico-Mat.', 'Físico', 'Artístico', 'Social', 'Lenguaje'],
+                datasets: [{
+                    label: '{{ alumno.nombre }}',
+                    data: [
+                        {{ perfil.logico }},
+                        {{ perfil.fisico }},
+                        {{ perfil.artistico }},
+                        {{ perfil.social }},
+                        {{ perfil.lenguaje }}
+                    ],
+                    backgroundColor: 'rgba(99, 153, 34, 0.25)',
+                    borderColor:     'rgba(99, 153, 34, 0.9)',
+                    pointBackgroundColor: 'rgba(99, 153, 34, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 100,
+                        ticks: { stepSize: 20 }
+                    }
+                },
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
+
+</body>
+</html>

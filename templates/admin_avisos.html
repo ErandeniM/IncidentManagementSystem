@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avisos generales</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Nunito', sans-serif; background: #eef2f7; min-height: 100vh; }
+
+        .navbar-custom {
+            background: #2c3e50;
+            padding: .75rem 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,.2);
+        }
+        .navbar-custom .title   { font-size: 1.1rem; font-weight: 800; color: #fff; }
+        .navbar-custom .subtitle{ font-size: .73rem; color: rgba(255,255,255,.55); }
+        .btn-nav {
+            background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.3);
+            color: #fff; border-radius: 10px; padding: .35rem .9rem;
+            font-family: 'Nunito', sans-serif; font-size: .85rem; font-weight: 700;
+            text-decoration: none; transition: background .2s; margin-left: .5rem;
+        }
+        .btn-nav:hover { background: rgba(255,255,255,.3); color: #fff; }
+
+        .container { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+        .card {
+            background: #fff; border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.07); overflow: hidden; margin-bottom: 1.25rem;
+        }
+        .card-header {
+            background: #2c3e50; color: #fff;
+            padding: .85rem 1.25rem; font-weight: 800; font-size: .95rem;
+        }
+        .card-body { padding: 1.25rem; }
+
+        .form-label { font-weight: 700; font-size: .88rem; color: #495057; margin-bottom: .4rem; display: block; }
+        .form-control {
+            width: 100%; padding: .7rem 1rem;
+            border: 2px solid #e9ecef; border-radius: 10px;
+            font-family: 'Nunito', sans-serif; font-size: .9rem;
+            outline: none; transition: border-color .2s;
+            margin-bottom: 1rem;
+        }
+        .form-control:focus { border-color: #3498db; }
+        .btn-publish {
+            background: #2c3e50; border: none; border-radius: 10px;
+            color: #fff; font-family: 'Nunito', sans-serif;
+            font-size: .9rem; font-weight: 800; padding: .6rem 1.5rem;
+            cursor: pointer; transition: background .2s;
+        }
+        .btn-publish:hover { background: #34495e; }
+
+        .aviso-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            gap: 1rem;
+        }
+        .aviso-item:last-child { border-bottom: none; }
+        .aviso-titulo { font-weight: 800; font-size: .95rem; color: #2d3436; margin-bottom: .25rem; }
+        .aviso-contenido { font-size: .85rem; color: #636e72; line-height: 1.5; margin-bottom: .35rem; }
+        .aviso-fecha { font-size: .75rem; color: #b2bec3; }
+        .badge-activo    { background: #d4f5d4; color: #1a6b1a; font-size: .72rem; font-weight: 700; padding: .2em .65em; border-radius: 20px; }
+        .badge-inactivo  { background: #f0f0f0; color: #adb5bd; font-size: .72rem; font-weight: 700; padding: .2em .65em; border-radius: 20px; }
+
+        .btn-desactivar {
+            background: #fff; border: 1.5px solid #ff6b6b; color: #ff6b6b;
+            border-radius: 8px; font-family: 'Nunito', sans-serif;
+            font-size: .75rem; font-weight: 700; padding: .3rem .75rem;
+            text-decoration: none; white-space: nowrap; transition: background .2s, color .2s;
+        }
+        .btn-desactivar:hover { background: #ff6b6b; color: #fff; }
+
+        .flash-ok {
+            background: #d4f5d4; border: 1.5px solid #6bcb77; border-radius: 12px;
+            padding: .65rem 1rem; font-size: .85rem; color: #1a6b1a; margin-bottom: 1rem;
+        }
+        .empty-msg { text-align: center; padding: 2rem; color: #b2bec3; font-size: .9rem; }
+    </style>
+</head>
+<body>
+
+<div class="navbar-custom">
+    <div>
+        <div class="title">📢 Avisos generales</div>
+        <div class="subtitle">Visibles para todos los padres</div>
+    </div>
+    <div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-nav">← Volver</a>
+        <a href="{{ url_for('admin_logout') }}" class="btn-nav">Salir</a>
+    </div>
+</div>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}
+            <div class="flash-ok">✅ {{ msg }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="row" style="display:flex; gap:1.25rem; align-items:flex-start;">
+
+        <!-- Formulario -->
+        <div style="flex:0 0 300px;">
+            <div class="card">
+                <div class="card-header">+ Nuevo aviso</div>
+                <div class="card-body">
+                    <form action="{{ url_for('nuevo_aviso') }}" method="POST">
+                        <label class="form-label">Título</label>
+                        <input type="text" name="titulo" class="form-control"
+                               placeholder="Ej: Reunión de padres" required>
+                        <label class="form-label">Mensaje</label>
+                        <textarea name="contenido" class="form-control" rows="4"
+                                  placeholder="Escribe el aviso aquí..." required></textarea>
+                        <button type="submit" class="btn-publish w-100">📢 Publicar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de avisos -->
+        <div style="flex:1;">
+            <div class="card">
+                <div class="card-header">Avisos publicados</div>
+                {% if avisos %}
+                    {% for av in avisos %}
+                    <div class="aviso-item">
+                        <div style="flex:1;">
+                            <div class="aviso-titulo">{{ av.titulo }}</div>
+                            <div class="aviso-contenido">{{ av.contenido }}</div>
+                            <div class="aviso-fecha">
+                                {{ av.fecha[:16] }}
+                                {% if av.activo %}
+                                    <span class="badge-activo ms-2">Activo</span>
+                                {% else %}
+                                    <span class="badge-inactivo ms-2">Desactivado</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if av.activo %}
+                        <a href="{{ url_for('desactivar_aviso', id_aviso=av.id) }}"
+                           class="btn-desactivar">Desactivar</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-msg">No hay avisos publicados aún.</div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
