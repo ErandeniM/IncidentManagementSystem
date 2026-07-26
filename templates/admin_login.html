@@ -1,33 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Acceso Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>body { background: #f0f2f5; }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso maestra — Mi Salón</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
+        body{background:#fefcf5;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:#3c3c3c;position:relative;overflow-x:hidden;}
+
+        /* Decoración de fondo */
+        body::before{content:"";position:absolute;top:-150px;right:-100px;width:300px;height:300px;background:rgba(28,176,246,.08);border-radius:50%;}
+        body::after{content:"";position:absolute;bottom:-100px;left:-100px;width:250px;height:250px;background:rgba(88,204,2,.08);border-radius:50%;}
+
+        .login-container{max-width:420px;width:100%;position:relative;z-index:1;}
+
+        /* Header con logo */
+        .brand-block{text-align:center;margin-bottom:24px;}
+        .brand-icon-big{width:88px;height:88px;background:linear-gradient(135deg,#1cb0f6,#0f8fd6);border-radius:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 6px 0 #0f8fd6;}
+        .brand-name{font-size:28px;font-weight:900;color:#3c3c3c;letter-spacing:-.5px;}
+        .brand-sub{font-size:13px;font-weight:700;color:#777;margin-top:4px;}
+
+        /* Card */
+        .card{background:#fff;border:2px solid #e5e5e5;border-radius:24px;padding:28px 24px;box-shadow:0 4px 0 #e5e5e5;}
+        .card-header{text-align:center;margin-bottom:20px;padding-bottom:20px;border-bottom:2px solid #f0eee5;}
+        .card-title{font-size:18px;font-weight:900;color:#3c3c3c;display:flex;align-items:center;justify-content:center;gap:8px;}
+        .card-title i{color:#1cb0f6;font-size:22px;}
+        .card-sub{font-size:12px;font-weight:700;color:#777;margin-top:6px;}
+
+        /* Form */
+        .form-label{font-size:11px;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block;}
+        .form-input-wrap{position:relative;margin-bottom:16px;}
+        .form-input{width:100%;padding:14px 14px 14px 46px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;font-family:inherit;font-size:15px;font-weight:800;color:#3c3c3c;outline:none;}
+        .form-input:focus{border-color:#1cb0f6;background:#fff;}
+        .form-input::placeholder{color:#c4c4c4;font-weight:600;}
+        .input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#afafaf;font-size:20px;}
+        .form-input:focus + .input-icon,.input-icon.active{color:#1cb0f6;}
+
+        /* Botón */
+        .btn-login{width:100%;padding:16px;background:#1cb0f6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #0f8fd6;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:transform .1s;}
+        .btn-login:hover{background:#0f8fd6;}
+        .btn-login:active{transform:translateY(2px);box-shadow:0 2px 0 #0f8fd6;}
+
+        /* Footer */
+        .card-footer{text-align:center;padding-top:20px;margin-top:20px;border-top:2px solid #f0eee5;}
+        .footer-link{font-size:12px;font-weight:800;color:#777;text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:12px;background:#f7f7f7;}
+        .footer-link:hover{background:#fefcf5;color:#0f8fd6;}
+        .footer-link i{font-size:14px;}
+
+        /* Flash / errores */
+        .flash{margin-bottom:16px;padding:12px 14px;border-radius:12px;font-size:13px;font-weight:800;background:#ffe0d0;border:2px solid #ff9600;color:#cc5028;box-shadow:0 3px 0 #ff6b35;display:flex;align-items:center;gap:8px;}
+        .flash i{font-size:16px;flex-shrink:0;}
+
+        /* Bottom info */
+        .info-block{margin-top:20px;padding:14px 16px;background:#dcf4ff;border:2px solid #7dd3fc;border-radius:14px;font-size:12px;font-weight:700;color:#0a3a6b;line-height:1.5;box-shadow:0 3px 0 #1cb0f6;display:flex;gap:10px;}
+        .info-block i{color:#1cb0f6;font-size:18px;flex-shrink:0;}
+    </style>
 </head>
 <body>
-<div class="container" style="max-width:400px; margin:100px auto;">
-    <div class="card">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0">Acceso Maestra</h5>
+
+<div class="login-container">
+
+    <div class="brand-block">
+        <div class="brand-icon-big">
+            <i class="ti ti-school" style="color:#fff;font-size:44px;"></i>
         </div>
-        <div class="card-body">
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for msg in messages %}
-                        <div class="alert alert-danger">{{ msg }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Contraseña</label>
-                    <input type="password" name="password" class="form-control" required>
+        <div class="brand-name">Mi Salón</div>
+        <div class="brand-sub">Panel de la maestra</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="ti ti-lock"></i> Acceso seguro
+            </div>
+            <div class="card-sub">Ingresa tu contraseña para continuar</div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}{% for msg in messages %}
+                <div class="flash">
+                    <i class="ti ti-alert-circle"></i>
+                    {{ msg }}
                 </div>
-                <button type="submit" class="btn btn-dark w-100">Entrar</button>
-            </form>
+            {% endfor %}{% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <label class="form-label">Contraseña</label>
+            <div class="form-input-wrap">
+                <input type="password" name="password" class="form-input" required autofocus placeholder="••••••••">
+                <i class="ti ti-key input-icon"></i>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="ti ti-login" style="font-size:20px;"></i> Entrar al panel
+            </button>
+        </form>
+
+        <div class="card-footer">
+            <a href="{{ url_for('auth.login') }}" class="footer-link">
+                <i class="ti ti-arrow-left"></i> Ir al portal de padres
+            </a>
         </div>
     </div>
+
+    <div class="info-block">
+        <i class="ti ti-shield-check"></i>
+        <div>Este panel es exclusivo para la docente. Todos los accesos quedan registrados con fecha y hora.</div>
+    </div>
+
 </div>
+
 </body>
 </html>

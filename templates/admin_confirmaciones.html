@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmaciones del aviso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
+        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
+        .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+        .sidebar{background:#fff;border-right:3px solid #f0eee5;padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+        .sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;border-bottom:3px solid #f0eee5;margin-bottom:12px;}
+        .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#1cb0f6,#0f8fd6);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #0f8fd6;flex-shrink:0;}
+        .brand-title{font-size:16px;font-weight:900;color:#3c3c3c;}
+        .brand-sub{font-size:11px;font-weight:700;color:#777;}
+        .sidebar-section{margin-bottom:16px;}
+        .sidebar-label{font-size:10px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px 6px;}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#777;text-decoration:none;margin-bottom:2px;}
+        .nav-item:hover{background:#fefcf5;color:#3c3c3c;}
+        .nav-item.active{background:#dcf4ff;color:#0f8fd6;}
+        .nav-item.active .nav-icon{color:#1cb0f6;}
+        .nav-icon{font-size:22px;color:#afafaf;flex-shrink:0;}
+        .sidebar-footer{margin-top:auto;padding-top:12px;border-top:3px solid #f0eee5;}
+
+        .main{padding:24px 32px 60px;max-width:900px;margin:0 auto;width:100%;}
+        .topbar{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+        .back-btn{width:44px;height:44px;background:#fff;border:2px solid #e5e5e5;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;box-shadow:0 3px 0 #e5e5e5;flex-shrink:0;}
+        .page-title{font-size:22px;font-weight:900;color:#3c3c3c;}
+        .page-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
+
+        /* Aviso resumen */
+        .aviso-box{background:#dcf4ff;border:2px solid #7dd3fc;border-radius:18px;padding:16px 18px;box-shadow:0 3px 0 #1cb0f6;margin-bottom:20px;}
+        .aviso-edit-badge{background:#ffc107;color:#8a5a00;font-size:10px;font-weight:900;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 2px 0 #e0a800;}
+        .aviso-titulo{font-size:17px;font-weight:900;color:#0a3a6b;}
+        .aviso-contenido{font-size:13px;font-weight:700;color:#3c5570;line-height:1.4;margin-top:6px;}
+        .aviso-fecha{font-size:11px;font-weight:800;color:#0f8fd6;margin-top:8px;display:flex;align-items:center;gap:5px;}
+
+        /* Barra de progreso */
+        .progress-card{background:#fff;border:2px solid #e5e5e5;border-radius:18px;padding:16px 18px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:20px;}
+        .progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+        .progress-label{font-size:13px;font-weight:900;color:#3c3c3c;}
+        .progress-num{font-size:13px;font-weight:900;color:#58cc02;}
+        .progress-bg{background:#f0eee5;height:14px;border-radius:20px;overflow:hidden;border:1px solid #e5e5e5;}
+        .progress-fill{height:100%;background:linear-gradient(90deg,#89e219,#58cc02);border-radius:20px;}
+
+        /* Columnas */
+        .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        .card{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:18px;box-shadow:0 3px 0 #e5e5e5;}
+        .card.ok{border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
+        .card.pend{border-color:#ffc107;box-shadow:0 3px 0 #e0a800;}
+        .card-title{font-size:14px;font-weight:900;color:#3c3c3c;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+        .chip{font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px;color:#fff;}
+        .chip-ok{background:#58cc02;box-shadow:0 2px 0 #43a800;}
+        .chip-pend{background:#ffc107;color:#8a5a00;box-shadow:0 2px 0 #e0a800;}
+
+        .persona{display:flex;align-items:center;gap:10px;padding:10px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;margin-bottom:8px;}
+        .persona.ok{background:#f4fce4;border-color:#89e219;}
+        .persona.pend{background:#fffbf0;border-color:#ffc107;}
+        .persona-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:13px;flex-shrink:0;border:2px solid rgba(0,0,0,.08);}
+        .av-1{background:linear-gradient(135deg,#ff9600,#ff6b35);}
+        .av-2{background:linear-gradient(135deg,#58cc02,#43a800);}
+        .av-3{background:linear-gradient(135deg,#a855f7,#7c3aed);}
+        .av-4{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);}
+        .av-5{background:linear-gradient(135deg,#ffc107,#e0a800);}
+        .av-6{background:linear-gradient(135deg,#ff4b4b,#d33);}
+        .persona-info{flex:1;min-width:0;}
+        .persona-nombre{font-size:13px;font-weight:900;color:#3c3c3c;}
+        .persona-sub{font-size:10px;font-weight:800;color:#777;font-family:monospace;margin-top:1px;}
+        .persona-fecha{font-size:10px;font-weight:800;color:#58a002;flex-shrink:0;text-align:right;}
+
+        .empty-mini{text-align:center;padding:30px 16px;color:#afafaf;}
+        .empty-mini i{font-size:36px;margin-bottom:6px;}
+        .empty-mini-title{font-size:13px;font-weight:800;color:#777;}
+
+        @media (max-width:900px){
+            .layout{grid-template-columns:1fr;}
+            .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;padding:8px;border-right:none;border-top:3px solid #f0eee5;overflow-x:auto;z-index:50;}
+            .sidebar-brand,.sidebar-label,.sidebar-footer{display:none;}
+            .sidebar-section{margin:0;display:flex;gap:2px;}
+            .nav-item{flex-direction:column;padding:8px 12px;font-size:9px;gap:2px;min-width:64px;text-align:center;}
+            .nav-item span:not(.nav-icon){display:none;}
+            .main{padding:16px;padding-bottom:100px;}
+            .cols{grid-template-columns:1fr;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
+            <div>
+                <div class="brand-title">Panel docente</div>
+                <div class="brand-sub">Maestra Erandeni</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Grupo</div>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item"><i class="ti ti-home nav-icon"></i><span>Inicio</span></a>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item"><i class="ti ti-users nav-icon"></i><span>Alumnos</span></a>
+            <a href="#" class="nav-item"><i class="ti ti-chart-bar nav-icon"></i><span>Calificaciones</span></a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Comunicación</div>
+            <a href="{{ url_for('admin.admin_mensajes') }}" class="nav-item"><i class="ti ti-messages nav-icon"></i><span>Mensajes de padres</span></a>
+            <a href="{{ url_for('admin.admin_avisos_padres') }}" class="nav-item"><i class="ti ti-notes nav-icon"></i><span>Avisos de padres</span></a>
+            <a href="{{ url_for('admin.admin_avisos') }}" class="nav-item active"><i class="ti ti-speakerphone nav-icon"></i><span>Publicar aviso</span></a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Registros</div>
+            <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="nav-item"><i class="ti ti-alert-triangle nav-icon"></i><span>Todas las incidencias</span></a>
+            <a href="{{ url_for('admin.admin_accesos') }}" class="nav-item"><i class="ti ti-login nav-icon"></i><span>Accesos al sistema</span></a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('admin.admin_logout') }}" class="nav-item" style="color:#ff4b4b;"><i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span></a>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <a href="{{ url_for('admin.admin_avisos') }}" class="back-btn">
+                <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+            </a>
+            <div>
+                <div class="page-title">Confirmaciones</div>
+                <div class="page-sub">Quién ya leyó y confirmó este aviso</div>
+            </div>
+        </div>
+
+        <div class="aviso-box">
+            {% if aviso.fecha_actualizado %}
+            <div class="aviso-edit-badge"><i class="ti ti-refresh" style="font-size:10px;"></i> Editado</div>
+            {% endif %}
+            <div class="aviso-titulo">{{ aviso.titulo }}</div>
+            <div class="aviso-contenido">{{ aviso.contenido }}</div>
+            <div class="aviso-fecha">
+                <i class="ti ti-calendar" style="font-size:12px;"></i>
+                Publicado {{ aviso.fecha[:16] if aviso.fecha else '' }}
+                {% if aviso.fecha_actualizado %} · Editado {{ aviso.fecha_actualizado[:16] }}{% endif %}
+            </div>
+        </div>
+
+        {% set total = (confirmados | length) + (pendientes | length) %}
+        <div class="progress-card">
+            <div class="progress-top">
+                <div class="progress-label">Progreso de confirmaciones</div>
+                <div class="progress-num">{{ confirmados | length }} de {{ total }}</div>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-fill" style="width:{% if total > 0 %}{{ (confirmados | length) * 100 // total }}{% else %}0{% endif %}%"></div>
+            </div>
+        </div>
+
+        <div class="cols">
+
+            <div class="card ok">
+                <div class="card-title">
+                    Confirmaron
+                    <span class="chip chip-ok">{{ confirmados | length }}</span>
+                </div>
+                {% if confirmados %}
+                    {% for p in confirmados %}
+                    <div class="persona ok">
+                        <div class="persona-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ p.nombre[:2] | upper }}</div>
+                        <div class="persona-info">
+                            <div class="persona-nombre">{{ p.nombre }}</div>
+                            <div class="persona-sub">{{ p.curp }}</div>
+                        </div>
+                        <div class="persona-fecha">
+                            <i class="ti ti-check" style="font-size:11px;"></i><br>
+                            {{ p.fecha_confirmado[:16] if p.fecha_confirmado else '' }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-mini">
+                        <i class="ti ti-clock"></i>
+                        <div class="empty-mini-title">Nadie ha confirmado aún</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="card pend">
+                <div class="card-title">
+                    Pendientes
+                    <span class="chip chip-pend">{{ pendientes | length }}</span>
+                </div>
+                {% if pendientes %}
+                    {% for p in pendientes %}
+                    <div class="persona pend">
+                        <div class="persona-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ p.nombre[:2] | upper }}</div>
+                        <div class="persona-info">
+                            <div class="persona-nombre">{{ p.nombre }}</div>
+                            <div class="persona-sub">{{ p.curp }}</div>
+                        </div>
+                        <i class="ti ti-clock" style="font-size:16px;color:#e0a800;"></i>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-mini">
+                        <i class="ti ti-checks" style="color:#58cc02;"></i>
+                        <div class="empty-mini-title">Todos confirmaron ✓</div>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>

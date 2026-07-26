@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de {{ nombre }} — Mi Salón</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
+        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
+        .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+        /* Sidebar */
+        .sidebar{background:#fff;border-right:3px solid #f0eee5;padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+        .sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;border-bottom:3px solid #f0eee5;margin-bottom:12px;}
+        .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #cc5028;flex-shrink:0;}
+        .brand-title{font-size:16px;font-weight:900;color:#3c3c3c;}
+        .brand-sub{font-size:11px;font-weight:700;color:#777;}
+        .sidebar-section{margin-bottom:16px;}
+        .sidebar-label{font-size:10px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px 6px;}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#777;text-decoration:none;margin-bottom:2px;}
+        .nav-item:hover{background:#fefcf5;color:#3c3c3c;}
+        .nav-item.active{background:#dcf4ff;color:#0f8fd6;}
+        .nav-item.active .nav-icon{color:#1cb0f6;}
+        .nav-icon{font-size:22px;color:#afafaf;flex-shrink:0;}
+        .sidebar-footer{margin-top:auto;padding-top:12px;border-top:3px solid #f0eee5;}
+
+        /* Main */
+        .main{padding:24px 32px 60px;max-width:760px;margin:0 auto;width:100%;}
+
+        /* Hero del alumno */
+        .hero{background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:24px;padding:24px;color:#fff;margin-bottom:20px;box-shadow:0 4px 0 #cc5028;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;}
+        .hero::before{content:"";position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:rgba(255,255,255,.1);border-radius:50%;}
+        .hero-avatar{width:76px;height:76px;border-radius:24px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;flex-shrink:0;border:3px solid rgba(255,255,255,.4);position:relative;z-index:1;}
+        .hero-info{position:relative;z-index:1;}
+        .hero-name{font-size:24px;font-weight:900;line-height:1.1;}
+        .hero-meta{font-size:12px;font-weight:700;opacity:.9;margin-top:4px;font-family:monospace;}
+
+        /* Stats */
+        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+        .stat{background:#fff;border:2px solid #e5e5e5;border-radius:18px;padding:16px 12px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
+        .stat.green{background:#e8f9d5;border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
+        .stat.blue{background:#dcf4ff;border-color:#7dd3fc;box-shadow:0 3px 0 #1cb0f6;}
+        .stat-icon{width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;margin:0 auto 8px;}
+        .ic-green{background:linear-gradient(135deg,#89e219,#58cc02);box-shadow:0 3px 0 #43a800;}
+        .ic-orange{background:linear-gradient(135deg,#ff9600,#ff6b35);box-shadow:0 3px 0 #cc5028;}
+        .ic-blue{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);box-shadow:0 3px 0 #0f8fd6;}
+        .stat-num{font-size:26px;font-weight:900;color:#3c3c3c;line-height:1;}
+        .stat-label{font-size:10px;font-weight:900;color:#777;text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
+
+        /* Card */
+        .card{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:20px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:16px;}
+        .card-title{font-size:14px;font-weight:900;color:#3c3c3c;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+        .card-title i{color:#ff9600;font-size:18px;}
+        .count-chip{margin-left:auto;background:#ff9600;color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px;box-shadow:0 2px 0 #cc5028;}
+
+        /* Calificaciones */
+        .cal-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;margin-bottom:8px;box-shadow:0 2px 0 #e5e5e5;}
+        .cal-materia{font-size:14px;font-weight:900;color:#3c3c3c;}
+        .cal-periodo{font-size:11px;font-weight:700;color:#777;margin-top:2px;}
+        .cal-num{font-size:24px;font-weight:900;min-width:48px;text-align:center;}
+        .num-high{color:#58cc02;}
+        .num-mid{color:#ff9600;}
+        .num-low{color:#ff4b4b;}
+
+        /* Perfil barras */
+        .bar-row{margin-bottom:14px;}
+        .bar-label{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:#3c3c3c;margin-bottom:6px;}
+        .bar-val{color:#ff6b35;font-weight:900;}
+        .bar-bg{background:#f0eee5;height:12px;border-radius:20px;overflow:hidden;border:1px solid #e5e5e5;}
+        .bar-fill{height:100%;background:linear-gradient(90deg,#ff9600,#ff6b35);border-radius:20px;}
+        .nota-box{background:#dcf4ff;border-left:4px solid #1cb0f6;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:700;color:#0a3a6b;line-height:1.4;margin-top:14px;}
+        .nota-label{font-size:10px;font-weight:900;color:#0f8fd6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+
+        /* Actividades */
+        .act-item{background:#fff8e5;border:2px solid #ffc107;border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:0 2px 0 #e0a800;}
+        .act-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+        .act-chip{font-size:10px;font-weight:900;padding:3px 9px;border-radius:20px;background:#ffc107;color:#8a5a00;text-transform:uppercase;letter-spacing:.03em;box-shadow:0 2px 0 #e0a800;}
+        .act-date{font-size:10px;font-weight:800;color:#afafaf;margin-left:auto;}
+        .act-text{font-size:13px;font-weight:700;color:#5c4a20;line-height:1.4;}
+
+        /* Empty */
+        .empty-mini{text-align:center;padding:30px 16px;color:#afafaf;}
+        .empty-mini i{font-size:38px;margin-bottom:8px;}
+        .empty-mini-title{font-size:13px;font-weight:800;color:#777;}
+
+        @media (max-width:900px){
+            .layout{grid-template-columns:1fr;}
+            .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;padding:8px;border-right:none;border-top:3px solid #f0eee5;overflow-x:auto;z-index:50;}
+            .sidebar-brand,.sidebar-label,.sidebar-footer{display:none;}
+            .sidebar-section{margin:0;display:flex;gap:2px;}
+            .nav-item{flex-direction:column;padding:8px 12px;font-size:9px;gap:2px;min-width:64px;text-align:center;}
+            .nav-item span:not(.nav-icon){display:none;}
+            .main{padding:16px;padding-bottom:100px;}
+            .hero{flex-direction:column;text-align:center;}
+            .hero-name{font-size:20px;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
+            <div>
+                <div class="brand-title">Mi Salón</div>
+                <div class="brand-sub">Grupo 3° A</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Contenido</div>
+            <a href="{{ url_for('alumno.panel_alumno') }}" class="nav-item"><i class="ti ti-home nav-icon"></i><span>Inicio</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=avisos" class="nav-item"><i class="ti ti-speakerphone nav-icon"></i><span>Avisos generales</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=tareas" class="nav-item"><i class="ti ti-bulb nav-icon"></i><span>Tareas</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=incidencias" class="nav-item"><i class="ti ti-alert-triangle nav-icon"></i><span>Incidencias</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=logros" class="nav-item"><i class="ti ti-star nav-icon"></i><span>Logros</span></a>
+            <a href="#" class="nav-item"><i class="ti ti-photo nav-icon"></i><span>Álbumes</span></a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Comunicación</div>
+            <a href="{{ url_for('alumno.chat_maestra') }}" class="nav-item"><i class="ti ti-message-circle nav-icon"></i><span>Preguntar a la maestra</span></a>
+            <a href="{{ url_for('alumno.avisar_maestra') }}" class="nav-item"><i class="ti ti-notes nav-icon"></i><span>Avisar a la maestra</span></a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-label">Personal</div>
+            <a href="{{ url_for('alumno.mi_perfil') }}" class="nav-item active"><i class="ti ti-user nav-icon"></i><span>Mi perfil</span></a>
+            <a href="#" class="nav-item"><i class="ti ti-settings nav-icon"></i><span>Configuración</span></a>
+            <a href="{{ url_for('auth.logout') }}" class="nav-item" style="color:#ff4b4b;"><i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span></a>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="hero">
+            <div class="hero-avatar">{{ nombre[:2] | upper }}</div>
+            <div class="hero-info">
+                <div class="hero-name">{{ nombre }}</div>
+                <div class="hero-meta">{{ alumno.curp }}</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat green">
+                <div class="stat-icon ic-green"><i class="ti ti-chart-bar" style="font-size:20px;"></i></div>
+                <div class="stat-num">{{ promedio if promedio else '—' }}</div>
+                <div class="stat-label">Promedio</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon ic-orange"><i class="ti ti-trophy" style="font-size:20px;"></i></div>
+                <div class="stat-num">{{ total_logros }}</div>
+                <div class="stat-label">Logros</div>
+            </div>
+            <div class="stat blue">
+                <div class="stat-icon ic-blue"><i class="ti ti-check" style="font-size:20px;"></i></div>
+                <div class="stat-num">{{ total_firmadas }}</div>
+                <div class="stat-label">Firmadas</div>
+            </div>
+        </div>
+
+        <!-- Calificaciones -->
+        <div class="card">
+            <div class="card-title">
+                <i class="ti ti-chart-bar"></i> Calificaciones
+                <span class="count-chip">{{ calificaciones | length }}</span>
+            </div>
+            {% if calificaciones %}
+                {% for cal in calificaciones %}
+                <div class="cal-row">
+                    <div>
+                        <div class="cal-materia">{{ cal.materia }}</div>
+                        <div class="cal-periodo">{{ cal.periodo or '—' }}{% if cal.comentario %} · {{ cal.comentario }}{% endif %}</div>
+                    </div>
+                    <div class="cal-num {% if cal.calificacion >= 8 %}num-high{% elif cal.calificacion >= 6 %}num-mid{% else %}num-low{% endif %}">
+                        {{ cal.calificacion }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-mini">
+                    <i class="ti ti-chart-bar-off"></i>
+                    <div class="empty-mini-title">Aún no hay calificaciones</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Perfil de habilidades -->
+        <div class="card">
+            <div class="card-title"><i class="ti ti-brain"></i> Perfil de habilidades</div>
+            {% if perfil %}
+                {% for campo, label in [('logico','Lógico-matemático'),('fisico','Físico-deportivo'),('artistico','Artístico'),('social','Social'),('lenguaje','Lenguaje')] %}
+                <div class="bar-row">
+                    <div class="bar-label">
+                        <span>{{ label }}</span>
+                        <span class="bar-val">{{ perfil[campo] }}%</span>
+                    </div>
+                    <div class="bar-bg"><div class="bar-fill" style="width:{{ perfil[campo] }}%"></div></div>
+                </div>
+                {% endfor %}
+                {% if perfil.nota %}
+                <div class="nota-box">
+                    <div class="nota-label">Observación de la maestra</div>
+                    {{ perfil.nota }}
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-mini">
+                    <i class="ti ti-brain"></i>
+                    <div class="empty-mini-title">La maestra aún no registra el perfil</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Actividades -->
+        <div class="card">
+            <div class="card-title">
+                <i class="ti ti-bulb"></i> Actividades sugeridas
+                <span class="count-chip">{{ actividades | length }}</span>
+            </div>
+            {% if actividades %}
+                {% for act in actividades %}
+                <div class="act-item">
+                    <div class="act-top">
+                        <span class="act-chip">{{ act.categoria or 'General' }}</span>
+                        <span class="act-date">{{ act.fecha[:10] if act.fecha else '' }}</span>
+                    </div>
+                    <div class="act-text">{{ act.actividad }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-mini">
+                    <i class="ti ti-bulb-off"></i>
+                    <div class="empty-mini-title">Sin actividades sugeridas</div>
+                </div>
+            {% endif %}
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajes de padres</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
+        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
+
+        .container{max-width:720px;margin:0 auto;padding:20px 16px 60px;}
+
+        /* Header */
+        .header{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 0 #e5e5e5;}
+        .back-btn{width:44px;height:44px;background:#f2f2f2;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
+        .header-title{flex:1;}
+        .header-name{font-size:18px;font-weight:900;color:#3c3c3c;}
+        .header-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
+        .header-icon{width:44px;height:44px;background:linear-gradient(135deg,#1cb0f6,#0f8fd6);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 0 #0f8fd6;}
+
+        /* Lista de conversaciones */
+        .conv-list{display:flex;flex-direction:column;gap:10px;}
+        .conv{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;cursor:pointer;text-decoration:none;color:inherit;transition:transform .1s;}
+        .conv:hover{background:#fefcf5;}
+        .conv.unread{background:#dcf4ff;border-color:#7dd3fc;box-shadow:0 3px 0 #1cb0f6;}
+
+        .conv-avatar{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#ff9600,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;border:3px solid rgba(0,0,0,.08);flex-shrink:0;}
+        .conv.unread .conv-avatar{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);}
+
+        .conv-body{flex:1;min-width:0;}
+        .conv-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;}
+        .conv-name{font-size:15px;font-weight:900;color:#3c3c3c;}
+        .conv-time{font-size:11px;font-weight:800;color:#777;flex-shrink:0;}
+        .conv.unread .conv-time{color:#0f8fd6;}
+        .conv-preview{font-size:13px;font-weight:700;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px;}
+        .conv.unread .conv-preview{color:#3c3c3c;font-weight:800;}
+        .preview-sender{color:#afafaf;font-weight:700;}
+
+        .conv-badge{background:#ff4b4b;color:#fff;font-size:11px;font-weight:900;padding:3px 9px;border-radius:20px;box-shadow:0 2px 0 #d33;flex-shrink:0;min-width:24px;text-align:center;}
+
+        /* Empty state */
+        .empty{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:60px 20px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
+        .empty-icon{width:80px;height:80px;background:#f7f7f7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#afafaf;}
+        .empty-icon i{font-size:40px;}
+        .empty-title{font-size:16px;font-weight:900;color:#3c3c3c;margin-bottom:4px;}
+        .empty-text{font-size:13px;font-weight:700;color:#777;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
+            <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+        </a>
+        <div class="header-title">
+            <div class="header-name">Mensajes de padres</div>
+            <div class="header-sub">
+                {% set total_no_leidos = conversaciones | selectattr('no_leidos') | list | length %}
+                {% if total_no_leidos > 0 %}
+                    Tienes {{ total_no_leidos }} conversación(es) con mensajes nuevos
+                {% else %}
+                    Todos los mensajes revisados
+                {% endif %}
+            </div>
+        </div>
+        <div class="header-icon">
+            <i class="ti ti-messages" style="font-size:22px;"></i>
+        </div>
+    </div>
+
+    {% if conversaciones %}
+    <div class="conv-list">
+        {% for conv in conversaciones %}
+        <a href="{{ url_for('admin.admin_chat', id_alumno=conv.id) }}"
+           class="conv {% if conv.no_leidos and conv.no_leidos > 0 %}unread{% endif %}">
+            <div class="conv-avatar">{{ conv.nombre[:2] | upper }}</div>
+            <div class="conv-body">
+                <div class="conv-top">
+                    <div class="conv-name">{{ conv.nombre }}</div>
+                    <div class="conv-time">{{ conv.ultima_fecha[:16] if conv.ultima_fecha else '' }}</div>
+                </div>
+                <div class="conv-preview">
+                    {% if conv.ultimo_remitente == 'maestra' %}
+                    <span class="preview-sender">Tú:</span>
+                    {% endif %}
+                    {{ conv.ultimo_mensaje }}
+                </div>
+            </div>
+            {% if conv.no_leidos and conv.no_leidos > 0 %}
+            <div class="conv-badge">{{ conv.no_leidos }}</div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon"><i class="ti ti-message-off"></i></div>
+        <div class="empty-title">No hay mensajes todavía</div>
+        <div class="empty-text">Cuando algún padre te escriba aparecerá aquí.</div>
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

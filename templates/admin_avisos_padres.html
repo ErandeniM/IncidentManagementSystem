@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avisos de padres</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
+        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
+
+        .container{max-width:720px;margin:0 auto;padding:20px 16px 60px;}
+
+        /* Header */
+        .header{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 0 #e5e5e5;}
+        .back-btn{width:44px;height:44px;background:#f2f2f2;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
+        .back-btn:hover{background:#e5e5e5;}
+        .header-title{flex:1;}
+        .header-name{font-size:18px;font-weight:900;color:#3c3c3c;}
+        .header-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
+        .header-icon{width:44px;height:44px;background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 0 #cc5028;}
+
+        /* Filtros */
+        .filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:16px;}
+        .filter-chip{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:800;color:#777;white-space:nowrap;cursor:pointer;box-shadow:0 2px 0 #e5e5e5;display:flex;align-items:center;gap:5px;}
+        .filter-chip.active{background:#ff9600;color:#fff;border-color:#cc5028;box-shadow:0 2px 0 #cc5028;}
+
+        /* Section title */
+        .section-title{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 4px 10px;}
+
+        /* Lista de avisos */
+        .avisos-list{display:flex;flex-direction:column;gap:10px;}
+        .aviso-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;box-shadow:0 3px 0 #e5e5e5;}
+
+        .aviso-header-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+        .aviso-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#ff9600,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;border:2px solid rgba(0,0,0,.08);flex-shrink:0;}
+        .aviso-info{flex:1;min-width:0;}
+        .aviso-alumno{font-size:15px;font-weight:900;color:#3c3c3c;}
+        .aviso-time{font-size:11px;font-weight:700;color:#777;margin-top:1px;}
+
+        .aviso-tipo-chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.03em;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 0 rgba(0,0,0,.15);}
+        .chip-temprano{background:#1cb0f6;box-shadow:0 2px 0 #0f8fd6;}
+        .chip-noasiste{background:#ff4b4b;box-shadow:0 2px 0 #d33;}
+        .chip-tarde{background:#e0a800;box-shadow:0 2px 0 #b08800;color:#3c3c3c;}
+        .chip-tutor{background:#a855f7;box-shadow:0 2px 0 #7c3aed;}
+        .chip-salud{background:#58cc02;box-shadow:0 2px 0 #43a800;}
+        .chip-otro{background:#777;box-shadow:0 2px 0 #555;}
+
+        .aviso-datos{background:#f7f7f7;border-radius:12px;padding:10px 12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:14px;font-size:12px;font-weight:800;color:#3c3c3c;}
+        .aviso-dato{display:flex;align-items:center;gap:5px;}
+        .aviso-dato i{color:#1cb0f6;font-size:14px;}
+
+        .aviso-detalle{margin-top:10px;padding:10px 12px;background:#fefcf5;border-left:3px solid #ff9600;border-radius:8px;font-size:13px;font-weight:700;color:#555;line-height:1.4;}
+
+        /* Empty */
+        .empty{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:60px 20px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
+        .empty-icon{width:80px;height:80px;background:#f7f7f7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#afafaf;}
+        .empty-icon i{font-size:40px;}
+        .empty-title{font-size:16px;font-weight:900;color:#3c3c3c;margin-bottom:4px;}
+        .empty-text{font-size:13px;font-weight:700;color:#777;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
+            <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+        </a>
+        <div class="header-title">
+            <div class="header-name">Avisos de padres</div>
+            <div class="header-sub">{{ avisos | length }} aviso(s) recibido(s)</div>
+        </div>
+        <div class="header-icon">
+            <i class="ti ti-notes" style="font-size:22px;"></i>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-chip active" onclick="filtrar('todo')">
+            <i class="ti ti-list" style="font-size:12px;"></i> Todos
+        </div>
+        <div class="filter-chip" onclick="filtrar('temprano')">
+            <i class="ti ti-clock-hour-4" style="font-size:12px;"></i> Paso temprano
+        </div>
+        <div class="filter-chip" onclick="filtrar('noasiste')">
+            <i class="ti ti-user-off" style="font-size:12px;"></i> No asistirá
+        </div>
+        <div class="filter-chip" onclick="filtrar('tarde')">
+            <i class="ti ti-clock-play" style="font-size:12px;"></i> Llegará tarde
+        </div>
+        <div class="filter-chip" onclick="filtrar('tutor')">
+            <i class="ti ti-users" style="font-size:12px;"></i> Cambio de tutor
+        </div>
+        <div class="filter-chip" onclick="filtrar('salud')">
+            <i class="ti ti-heart" style="font-size:12px;"></i> Salud
+        </div>
+    </div>
+
+    {% if avisos %}
+    <div class="section-title">Historial reciente</div>
+    <div class="avisos-list" id="avisosList">
+        {% for av in avisos %}
+        <div class="aviso-card" data-tipo="{{ av.tipo }}">
+            <div class="aviso-header-row">
+                <div class="aviso-avatar">{{ av.nombre_alumno[:2] | upper }}</div>
+                <div class="aviso-info">
+                    <div class="aviso-alumno">{{ av.nombre_alumno }}</div>
+                    <div class="aviso-time">
+                        <i class="ti ti-clock" style="font-size:10px;vertical-align:-1px;"></i>
+                        Enviado {{ av.fecha_creado[:16] if av.fecha_creado else '' }}
+                    </div>
+                </div>
+                <span class="aviso-tipo-chip chip-{{ av.tipo }}">
+                    {% if av.tipo == 'temprano' %}<i class="ti ti-clock-hour-4" style="font-size:11px;"></i> Paso temprano
+                    {% elif av.tipo == 'noasiste' %}<i class="ti ti-user-off" style="font-size:11px;"></i> No asistirá
+                    {% elif av.tipo == 'tarde' %}<i class="ti ti-clock-play" style="font-size:11px;"></i> Llegará tarde
+                    {% elif av.tipo == 'tutor' %}<i class="ti ti-users" style="font-size:11px;"></i> Cambio tutor
+                    {% elif av.tipo == 'salud' %}<i class="ti ti-heart" style="font-size:11px;"></i> Salud
+                    {% else %}<i class="ti ti-message" style="font-size:11px;"></i> Otro{% endif %}
+                </span>
+            </div>
+
+            {% if av.fecha_aplica or av.hora_aplica %}
+            <div class="aviso-datos">
+                {% if av.fecha_aplica %}
+                <div class="aviso-dato">
+                    <i class="ti ti-calendar"></i>
+                    {{ av.fecha_aplica }}
+                </div>
+                {% endif %}
+                {% if av.hora_aplica %}
+                <div class="aviso-dato">
+                    <i class="ti ti-clock"></i>
+                    {{ av.hora_aplica }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if av.detalle %}
+            <div class="aviso-detalle">{{ av.detalle }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon"><i class="ti ti-mail-off"></i></div>
+        <div class="empty-title">No hay avisos todavía</div>
+        <div class="empty-text">Cuando algún padre te envíe un aviso aparecerá aquí.</div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    function filtrar(tipo) {
+        // Actualizar chips activos
+        document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
+        event.target.closest('.filter-chip').classList.add('active');
+
+        // Filtrar tarjetas
+        document.querySelectorAll('.aviso-card').forEach(card => {
+            if (tipo === 'todo' || card.dataset.tipo === tipo) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

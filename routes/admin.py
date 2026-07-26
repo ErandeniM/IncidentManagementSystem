@@ -38,10 +38,38 @@ def admin_logout():
 def admin_dashboard():
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
-    conn    = get_db()
-    alumnos = conn.execute('SELECT id, nombre, curp FROM alumnos ORDER BY nombre').fetchall()
+
+    conn = get_db()
+
+    alumnos = conn.execute(
+        'SELECT id, nombre, curp FROM alumnos ORDER BY nombre'
+    ).fetchall()
+
+    # Mensajes de padres no vistos
+    mensajes_pendientes = conn.execute('''
+        SELECT COUNT(*) AS n FROM mensajes
+        WHERE remitente = 'padre' AND visto = 0
+    ''').fetchone()['n']
+
+    # Avisos de padres no vistos
+    avisos_pendientes = conn.execute('''
+        SELECT COUNT(*) AS n FROM avisos_padre
+        WHERE visto_maestra = 0
+    ''').fetchone()['n']
+
+    # Incidencias sin firmar
+    incidencias_sin_firmar = conn.execute('''
+        SELECT COUNT(*) AS n FROM incidencias i
+        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
+        WHERE s.enterado IS NULL OR s.enterado = 0
+    ''').fetchone()['n']
+
     conn.close()
-    return render_template('admin_dashboard.html', alumnos=alumnos)
+    return render_template('admin_dashboard.html',
+                           alumnos                = alumnos,
+                           mensajes_pendientes    = mensajes_pendientes,
+                           avisos_pendientes      = avisos_pendientes,
+                           incidencias_sin_firmar = incidencias_sin_firmar)
 
 
 @admin_bp.route('/nuevo_alumno', methods=['POST'])
@@ -266,28 +294,83 @@ def admin_avisos():
 def nuevo_aviso():
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
-    titulo    = request.form['titulo'].strip()
-    contenido = request.form['contenido'].strip()
+    titulo    = request.form['titulo']
+    contenido = request.form['contenido']
     conn      = get_db()
-    conn.execute('INSERT INTO avisos (titulo, contenido) VALUES (?, ?)', (titulo, contenido))
+    conn.execute(
+        'INSERT INTO avisos (titulo, contenido) VALUES (?, ?)',
+        (titulo, contenido)
+    )
     conn.commit()
     conn.close()
     flash('Aviso publicado ✓')
     return redirect(url_for('admin.admin_avisos'))
 
-
-@admin_bp.route('/desactivar_aviso/<int:id_aviso>')
-def desactivar_aviso(id_aviso):
+# ═══════════ EDITAR AVISO ═══════════
+@admin_bp.route('/aviso/editar/<int:id_aviso>', methods=['POST'])
+def editar_aviso(id_aviso):
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
-    conn = get_db()
-    conn.execute('UPDATE avisos SET activo = 0 WHERE id = ?', (id_aviso,))
+    titulo    = request.form['titulo']
+    contenido = request.form['contenido']
+    conn      = get_db()
+    conn.execute('''
+        UPDATE avisos
+        SET titulo = ?, contenido = ?, fecha_actualizado = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (titulo, contenido, id_aviso))
+    # Reset de confirmaciones: los padres deben volver a confirmar
+    conn.execute('DELETE FROM avisos_confirmaciones WHERE id_aviso = ?', (id_aviso,))
     conn.commit()
     conn.close()
-    flash('Aviso desactivado ✓')
+    flash('Aviso actualizado. Los padres deberán confirmar nuevamente.')
     return redirect(url_for('admin.admin_avisos'))
 
 
+# ═══════════ ELIMINAR AVISO ═══════════
+@admin_bp.route('/aviso/eliminar/<int:id_aviso>', methods=['POST'])
+def eliminar_aviso(id_aviso):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+    conn = get_db()
+    conn.execute('DELETE FROM avisos_confirmaciones WHERE id_aviso = ?', (id_aviso,))
+    conn.execute('DELETE FROM avisos WHERE id = ?', (id_aviso,))
+    conn.commit()
+    conn.close()
+    flash('Aviso eliminado')
+    return redirect(url_for('admin.admin_avisos'))
+
+
+# ═══════════ VER CONFIRMACIONES DE UN AVISO ═══════════
+@admin_bp.route('/aviso/confirmaciones/<int:id_aviso>')
+def ver_confirmaciones(id_aviso):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+    conn = get_db()
+    aviso = conn.execute('SELECT * FROM avisos WHERE id = ?', (id_aviso,)).fetchone()
+
+    confirmados = conn.execute('''
+        SELECT a.id, a.nombre, a.curp, c.fecha_confirmado
+        FROM alumnos a
+        JOIN avisos_confirmaciones c ON c.id_alumno = a.id
+        WHERE c.id_aviso = ?
+        ORDER BY c.fecha_confirmado DESC
+    ''', (id_aviso,)).fetchall()
+
+    pendientes = conn.execute('''
+        SELECT a.id, a.nombre, a.curp
+        FROM alumnos a
+        WHERE a.id NOT IN (
+            SELECT id_alumno FROM avisos_confirmaciones WHERE id_aviso = ?
+        )
+        ORDER BY a.nombre
+    ''', (id_aviso,)).fetchall()
+
+    conn.close()
+    return render_template('admin_confirmaciones.html',
+                           aviso       = aviso,
+                           confirmados = confirmados,
+                           pendientes  = pendientes)
 # ── Generar PDF del expediente ──
 @admin_bp.route('/alumno/<int:id_alumno>/pdf')
 def expediente_pdf(id_alumno):
@@ -403,4 +486,129 @@ def expediente_pdf(id_alumno):
     response.headers['Content-Disposition'] = f'attachment; filename=expediente_{alumno["curp"]}.pdf'
     return response
 
+# ═══════════ MENSAJES DE PADRES ═══════════
 
+@admin_bp.route('/mensajes')
+def admin_mensajes():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    conn = get_db()
+
+    # Listar alumnos con mensajes, con conteo de no leídos por la maestra
+    conversaciones = conn.execute('''
+        SELECT a.id, a.nombre, a.curp,
+               MAX(m.fecha) AS ultima_fecha,
+               (SELECT contenido FROM mensajes
+                WHERE id_alumno = a.id
+                ORDER BY fecha DESC LIMIT 1) AS ultimo_mensaje,
+               (SELECT remitente FROM mensajes
+                WHERE id_alumno = a.id
+                ORDER BY fecha DESC LIMIT 1) AS ultimo_remitente,
+               SUM(CASE WHEN m.remitente = 'padre' AND m.visto = 0 THEN 1 ELSE 0 END) AS no_leidos
+        FROM alumnos a
+        INNER JOIN mensajes m ON m.id_alumno = a.id
+        GROUP BY a.id
+        ORDER BY ultima_fecha DESC
+    ''').fetchall()
+
+    conn.close()
+    return render_template('admin_mensajes.html', conversaciones=conversaciones)
+
+
+@admin_bp.route('/mensajes/<int:id_alumno>', methods=['GET', 'POST'])
+def admin_chat(id_alumno):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    conn = get_db()
+
+    if request.method == 'POST':
+        contenido = request.form.get('contenido', '').strip()
+        if contenido:
+            conn.execute('''
+                INSERT INTO mensajes (id_alumno, remitente, contenido)
+                VALUES (?, 'maestra', ?)
+            ''', (id_alumno, contenido))
+            conn.commit()
+        conn.close()
+        return redirect(url_for('admin.admin_chat', id_alumno=id_alumno))
+
+    # Marcar mensajes del padre como vistos por la maestra
+    conn.execute('''
+        UPDATE mensajes SET visto = 1, fecha_visto = CURRENT_TIMESTAMP
+        WHERE id_alumno = ? AND remitente = 'padre' AND visto = 0
+    ''', (id_alumno,))
+    conn.commit()
+
+    alumno = conn.execute(
+        'SELECT * FROM alumnos WHERE id = ?', (id_alumno,)
+    ).fetchone()
+
+    mensajes = conn.execute('''
+        SELECT * FROM mensajes
+        WHERE id_alumno = ?
+        ORDER BY fecha ASC
+    ''', (id_alumno,)).fetchall()
+
+    conn.close()
+    return render_template('admin_chat.html',
+                           alumno   = alumno,
+                           mensajes = mensajes)
+
+# ═══════════ AVISOS DE PADRES ═══════════
+
+@admin_bp.route('/avisos-padres')
+def admin_avisos_padres():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    conn = get_db()
+
+    # Marcar como vistos al entrar
+    conn.execute('''
+        UPDATE avisos_padre SET visto_maestra = 1, fecha_visto = CURRENT_TIMESTAMP
+        WHERE visto_maestra = 0
+    ''')
+    conn.commit()
+
+    avisos = conn.execute('''
+        SELECT ap.*, a.nombre AS nombre_alumno
+        FROM avisos_padre ap
+        JOIN alumnos a ON ap.id_alumno = a.id
+        ORDER BY ap.fecha_creado DESC
+        LIMIT 100
+    ''').fetchall()
+
+    conn.close()
+    return render_template('admin_avisos_padres.html', avisos=avisos)
+
+# ═══════════ TODAS LAS INCIDENCIAS DEL GRUPO ═══════════
+
+@admin_bp.route('/incidencias')
+def admin_todas_incidencias():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    filtro = request.args.get('filtro', 'todo')
+    conn   = get_db()
+
+    incidencias = conn.execute('''
+        SELECT i.*, a.nombre AS nombre_alumno, a.curp,
+               s.visto, s.fecha_visto, s.enterado, s.fecha_enterado,
+               s.comentario_padre
+        FROM incidencias i
+        JOIN alumnos a ON i.id_alumno = a.id
+        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
+        ORDER BY i.fecha DESC
+    ''').fetchall()
+
+    if filtro == 'pendientes':
+        incidencias = [i for i in incidencias if not i['enterado']]
+    elif filtro == 'firmadas':
+        incidencias = [i for i in incidencias if i['enterado']]
+
+    conn.close()
+    return render_template('admin_todas_incidencias.html',
+                           incidencias = incidencias,
+                           filtro      = filtro)

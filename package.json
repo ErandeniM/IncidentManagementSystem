@@ -1,0 +1,23 @@
+{
+  "name": "appincidencias",
+  "version": "1.0.0",
+  "description": "> Portal digital de comunicación trazable entre docentes y padres de familia, diseñado desde la experiencia real del aula.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ErandeniM/IncidentManagementSystem.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ErandeniM/IncidentManagementSystem/issues"
+  },
+  "homepage": "https://github.com/ErandeniM/IncidentManagementSystem#readme",
+  "dependencies": {
+    "docx": "^9.7.1"
+  }
+}

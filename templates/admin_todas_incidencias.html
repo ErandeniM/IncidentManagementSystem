@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todas las incidencias</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
+        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
+
+        .container{max-width:720px;margin:0 auto;padding:20px 16px 60px;}
+
+        /* Header */
+        .header{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 0 #e5e5e5;}
+        .back-btn{width:44px;height:44px;background:#f2f2f2;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
+        .back-btn:hover{background:#e5e5e5;}
+        .header-title{flex:1;}
+        .header-name{font-size:18px;font-weight:900;color:#3c3c3c;}
+        .header-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
+        .header-icon{width:44px;height:44px;background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 0 #cc5028;}
+
+        /* Filtros */
+        .filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:16px;}
+        .filter-chip{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:800;color:#777;white-space:nowrap;cursor:pointer;box-shadow:0 2px 0 #e5e5e5;display:flex;align-items:center;gap:5px;text-decoration:none;}
+        .filter-chip.active{background:#ff9600;color:#fff;border-color:#cc5028;box-shadow:0 2px 0 #cc5028;}
+        .filter-chip .chip-count{background:rgba(255,255,255,.25);padding:1px 8px;border-radius:20px;font-size:11px;margin-left:4px;}
+        .filter-chip:not(.active) .chip-count{background:#f2f2f2;color:#777;}
+
+        /* Section title */
+        .section-title{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 4px 10px;}
+
+        /* Lista de incidencias */
+        .inc-list{display:flex;flex-direction:column;gap:10px;}
+        .inc-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;box-shadow:0 3px 0 #e5e5e5;text-decoration:none;color:inherit;display:block;transition:background .15s;}
+        .inc-card:hover{background:#fefcf5;}
+        .inc-card.pendiente{border-color:#ffc107;box-shadow:0 3px 0 #e0a800;background:#fffbf0;}
+        .inc-card.firmada{border-color:#89e219;box-shadow:0 3px 0 #58cc02;background:#f4fce4;}
+
+        .inc-header-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+        .inc-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#ff9600,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;border:2px solid rgba(0,0,0,.08);flex-shrink:0;}
+        .av-1{background:linear-gradient(135deg,#ff9600,#ff6b35);}
+        .av-2{background:linear-gradient(135deg,#58cc02,#43a800);}
+        .av-3{background:linear-gradient(135deg,#a855f7,#7c3aed);}
+        .av-4{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);}
+        .av-5{background:linear-gradient(135deg,#ffc107,#e0a800);}
+        .av-6{background:linear-gradient(135deg,#ff4b4b,#d33);}
+
+        .inc-info{flex:1;min-width:0;}
+        .inc-alumno{font-size:15px;font-weight:900;color:#3c3c3c;}
+        .inc-time{font-size:11px;font-weight:700;color:#777;margin-top:1px;display:flex;align-items:center;gap:4px;}
+
+        .inc-tipo-chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 0 rgba(0,0,0,.15);color:#fff;}
+        .chip-caida{background:#ff4b4b;box-shadow:0 2px 0 #d33;}
+        .chip-llanto{background:#ffc107;box-shadow:0 2px 0 #b08800;color:#3c3c3c;}
+        .chip-logro{background:#58cc02;box-shadow:0 2px 0 #43a800;}
+        .chip-comentario{background:#1cb0f6;box-shadow:0 2px 0 #0f8fd6;}
+        .chip-otro{background:#777;box-shadow:0 2px 0 #555;}
+
+        .inc-desc{background:#fff;border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;color:#3c3c3c;line-height:1.4;margin-top:6px;border:2px solid #e5e5e5;}
+
+        .inc-estados{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+        .estado-badge{font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;}
+        .badge-ok{background:#e8f9d5;color:#58a002;border:1.5px solid #89e219;}
+        .badge-pend{background:#f2f2f2;color:#777;border:1.5px solid #e5e5e5;}
+        .badge-alert{background:#fff4e5;color:#e07800;border:1.5px solid #ffc107;}
+
+        .inc-comentario-padre{background:#dcf4ff;border-left:3px solid #1cb0f6;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;font-weight:700;color:#0a3a6b;}
+        .inc-comentario-label{font-size:10px;font-weight:900;color:#0f8fd6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+
+        /* Empty */
+        .empty{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:60px 20px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
+        .empty-icon{width:80px;height:80px;background:#f7f7f7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#afafaf;}
+        .empty-icon i{font-size:40px;}
+        .empty-title{font-size:16px;font-weight:900;color:#3c3c3c;margin-bottom:4px;}
+        .empty-text{font-size:13px;font-weight:700;color:#777;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
+            <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+        </a>
+        <div class="header-title">
+            <div class="header-name">Todas las incidencias</div>
+            <div class="header-sub">{{ incidencias | length }} incidencia(s)</div>
+        </div>
+        <div class="header-icon">
+            <i class="ti ti-alert-triangle" style="font-size:22px;"></i>
+        </div>
+    </div>
+
+    <div class="filters">
+        <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="filter-chip {% if filtro == 'todo' %}active{% endif %}">
+            <i class="ti ti-list" style="font-size:14px;"></i> Todas
+        </a>
+        <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes" class="filter-chip {% if filtro == 'pendientes' %}active{% endif %}">
+            <i class="ti ti-clock" style="font-size:14px;"></i> Sin firmar
+        </a>
+        <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=firmadas" class="filter-chip {% if filtro == 'firmadas' %}active{% endif %}">
+            <i class="ti ti-check" style="font-size:14px;"></i> Firmadas
+        </a>
+    </div>
+
+    {% if incidencias %}
+    <div class="section-title">
+        {% if filtro == 'pendientes' %}Incidencias sin firmar
+        {% elif filtro == 'firmadas' %}Incidencias firmadas
+        {% else %}Historial completo{% endif %}
+    </div>
+    <div class="inc-list">
+        {% for inc in incidencias %}
+        <a href="{{ url_for('admin.admin_expediente', id_alumno=inc.id_alumno) }}"
+           class="inc-card {% if not inc.enterado %}pendiente{% else %}firmada{% endif %}">
+            <div class="inc-header-row">
+                <div class="inc-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ inc.nombre_alumno[:2] | upper }}</div>
+                <div class="inc-info">
+                    <div class="inc-alumno">{{ inc.nombre_alumno }}</div>
+                    <div class="inc-time">
+                        <i class="ti ti-clock" style="font-size:11px;"></i>
+                        {{ inc.fecha[:16] if inc.fecha else '' }}
+                    </div>
+                </div>
+                <span class="inc-tipo-chip chip-{{ inc.tipo | lower if inc.tipo else 'otro' }}">
+                    {% if inc.tipo == 'Caída' %}<i class="ti ti-first-aid-kit" style="font-size:11px;"></i>{% elif inc.tipo == 'Llanto' %}<i class="ti ti-mood-sad" style="font-size:11px;"></i>{% elif inc.tipo == 'Logro' %}<i class="ti ti-star" style="font-size:11px;"></i>{% elif inc.tipo == 'Comentario' %}<i class="ti ti-message" style="font-size:11px;"></i>{% else %}<i class="ti ti-alert-triangle" style="font-size:11px;"></i>{% endif %}
+                    {{ inc.tipo or 'General' }}
+                </span>
+            </div>
+
+            <div class="inc-desc">{{ inc.descripcion }}</div>
+
+            <div class="inc-estados">
+                <span class="estado-badge {% if inc.visto %}badge-ok{% else %}badge-pend{% endif %}">
+                    {% if inc.visto %}<i class="ti ti-eye" style="font-size:11px;"></i> Visto{% else %}<i class="ti ti-eye-off" style="font-size:11px;"></i> No visto{% endif %}
+                </span>
+                <span class="estado-badge {% if inc.enterado %}badge-ok{% else %}badge-alert{% endif %}">
+                    {% if inc.enterado %}<i class="ti ti-check" style="font-size:11px;"></i> Firmado{% else %}<i class="ti ti-clock" style="font-size:11px;"></i> Sin firmar{% endif %}
+                </span>
+                {% if inc.fecha_enterado %}
+                <span class="estado-badge badge-ok">
+                    <i class="ti ti-calendar" style="font-size:11px;"></i> {{ inc.fecha_enterado[:16] }}
+                </span>
+                {% endif %}
+            </div>
+
+            {% if inc.comentario_padre %}
+            <div class="inc-comentario-padre">
+                <div class="inc-comentario-label">💬 Respuesta del padre</div>
+                {{ inc.comentario_padre }}
+            </div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon"><i class="ti ti-mood-happy"></i></div>
+        <div class="empty-title">
+            {% if filtro == 'pendientes' %}No hay incidencias pendientes
+            {% elif filtro == 'firmadas' %}No hay incidencias firmadas aún
+            {% else %}No hay incidencias registradas{% endif %}
+        </div>
+        <div class="empty-text">
+            {% if filtro == 'pendientes' %}Todos los padres han firmado sus incidencias.
+            {% else %}Cuando registres una incidencia aparecerá aquí.{% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
