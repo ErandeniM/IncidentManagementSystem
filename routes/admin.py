@@ -10,6 +10,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from database import get_db, hash_password
 from email_utils import enviar_correo
 from config import ADMIN_PASSWORD
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -612,3 +613,117 @@ def admin_todas_incidencias():
     return render_template('admin_todas_incidencias.html',
                            incidencias = incidencias,
                            filtro      = filtro)
+# ═══════════ TABLA DE CALIFICACIONES ═══════════
+
+MATERIAS = [
+    ('lenguajes',   'Lenguajes'),
+    ('ciencias',    'Saberes y Pensamiento Científico'),
+    ('etica',       'Ética, Naturaleza y Sociedades'),
+    ('comunitario', 'De lo Humano y lo Comunitario'),
+]
+
+
+@admin_bp.route('/calificaciones')
+def admin_calificaciones():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    trimestre = request.args.get('trimestre', 1, type=int)
+    if trimestre not in (1, 2, 3):
+        trimestre = 1
+
+    conn = get_db()
+    filas = conn.execute('''
+        SELECT a.id, a.nombre, a.curp,
+               c.lenguajes, c.ciencias, c.etica, c.comunitario,
+               c.inasistencias, c.observaciones, c.fecha_actualizacion
+        FROM alumnos a
+        LEFT JOIN calificaciones c
+            ON c.id_alumno = a.id AND c.trimestre = ?
+        ORDER BY a.nombre
+    ''', (trimestre,)).fetchall()
+    conn.close()
+
+    alumnos   = []
+    completos = 0
+    sumas     = {k: [] for k, _ in MATERIAS}
+
+    for f in filas:
+        f = dict(f)
+        notas  = [f[k] for k, _ in MATERIAS]
+        llenas = [n for n in notas if n is not None]
+        f['completo'] = len(llenas) == len(MATERIAS)
+        f['promedio'] = round(sum(llenas) / len(llenas), 1) if llenas else None
+        if f['completo']:
+            completos += 1
+        for k, _ in MATERIAS:
+            if f[k] is not None:
+                sumas[k].append(f[k])
+        alumnos.append(f)
+
+    total        = len(alumnos)
+    avance       = round(completos * 100 / total) if total else 0
+    prom_materia = {k: (round(sum(v) / len(v), 1) if v else None) for k, v in sumas.items()}
+    todas        = [n for v in sumas.values() for n in v]
+    prom_grupo   = round(sum(todas) / len(todas), 1) if todas else None
+
+    return render_template('admin_calificaciones.html',
+                           alumnos      = alumnos,
+                           trimestre    = trimestre,
+                           materias     = MATERIAS,
+                           completos    = completos,
+                           total        = total,
+                           avance       = avance,
+                           prom_materia = prom_materia,
+                           prom_grupo   = prom_grupo)
+
+
+@admin_bp.route('/calificaciones/guardar', methods=['POST'])
+def guardar_calificaciones():
+    if not session.get('admin'):
+        return jsonify({'ok': False}), 403
+
+    d = request.get_json()
+
+    def num(v):
+        if v is None or v == '':
+            return None
+        try:
+            return float(v)
+        except (ValueError, TypeError):
+            return None
+
+    conn = get_db()
+    conn.execute('''
+        INSERT INTO calificaciones
+            (id_alumno, trimestre, lenguajes, ciencias, etica, comunitario,
+             inasistencias, observaciones, fecha_actualizacion)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(id_alumno, trimestre) DO UPDATE SET
+            lenguajes           = excluded.lenguajes,
+            ciencias            = excluded.ciencias,
+            etica               = excluded.etica,
+            comunitario         = excluded.comunitario,
+            inasistencias       = excluded.inasistencias,
+            observaciones       = excluded.observaciones,
+            fecha_actualizacion = CURRENT_TIMESTAMP
+    ''', (
+        d.get('id_alumno'),
+        d.get('trimestre'),
+        num(d.get('lenguajes')),
+        num(d.get('ciencias')),
+        num(d.get('etica')),
+        num(d.get('comunitario')),
+        int(d.get('inasistencias') or 0),
+        (d.get('observaciones') or '').strip(),
+    ))
+    conn.commit()
+    conn.close()
+
+    notas  = [num(d.get(k)) for k, _ in MATERIAS]
+    llenas = [n for n in notas if n is not None]
+    return jsonify({
+        'ok':       True,
+        'completo': len(llenas) == len(MATERIAS),
+        'promedio': round(sum(llenas) / len(llenas), 1) if llenas else None
+    })

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,243 +8,898 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
     <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
-        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
-        .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background: #fefcf5;
+            min-height: 100vh;
+            color: #3c3c3c;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
 
         /* Sidebar */
-        .sidebar{background:#fff;border-right:3px solid #f0eee5;padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
-        .sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;border-bottom:3px solid #f0eee5;margin-bottom:12px;}
-        .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#1cb0f6,#0f8fd6);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #0f8fd6;flex-shrink:0;}
-        .brand-title{font-size:16px;font-weight:900;color:#3c3c3c;}
-        .brand-sub{font-size:11px;font-weight:700;color:#777;}
-        .sidebar-section{margin-bottom:16px;}
-        .sidebar-label{font-size:10px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px 6px;}
-        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#777;text-decoration:none;margin-bottom:2px;}
-        .nav-item:hover{background:#fefcf5;color:#3c3c3c;}
-        .nav-item.active{background:#dcf4ff;color:#0f8fd6;}
-        .nav-item.active .nav-icon{color:#1cb0f6;}
-        .nav-icon{font-size:22px;color:#afafaf;flex-shrink:0;}
-        .sidebar-footer{margin-top:auto;padding-top:12px;border-top:3px solid #f0eee5;}
+        .sidebar {
+            background: #fff;
+            border-right: 3px solid #f0eee5;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 8px 20px;
+            border-bottom: 3px solid #f0eee5;
+            margin-bottom: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #1cb0f6, #0f8fd6);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 0 #0f8fd6;
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #3c3c3c;
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            font-weight: 700;
+            color: #777;
+        }
+
+        .sidebar-section {
+            margin-bottom: 16px;
+        }
+
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 900;
+            color: #afafaf;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            padding: 8px 12px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #777;
+            text-decoration: none;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background: #fefcf5;
+            color: #3c3c3c;
+        }
+
+        .nav-item.active {
+            background: #dcf4ff;
+            color: #0f8fd6;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #1cb0f6;
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            color: #afafaf;
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 3px solid #f0eee5;
+        }
 
         /* Header */
-        .expediente-header{background:#fff;padding:20px 28px;display:flex;align-items:center;gap:16px;border-bottom:3px solid #f0eee5;flex-wrap:wrap;}
-        .back-btn{width:44px;height:44px;background:#f2f2f2;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
-        .avatar-alumno{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#ff9600,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;border:3px solid rgba(0,0,0,.08);flex-shrink:0;}
-        .alumno-detail{flex:1;min-width:0;}
-        .alumno-name{font-size:22px;font-weight:900;color:#3c3c3c;}
-        .alumno-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;}
-        .meta-item{font-size:12px;font-weight:700;color:#777;display:flex;align-items:center;gap:4px;}
-        .meta-item.mail{color:#0f8fd6;}
-        .meta-item i{font-size:14px;}
-        .btn-pdf{padding:10px 16px;border-radius:12px;font-size:12px;font-weight:900;text-transform:uppercase;background:#fff;color:#0f8fd6;border:2px solid #7dd3fc;box-shadow:0 3px 0 #1cb0f6;display:flex;align-items:center;gap:6px;text-decoration:none;}
+        .expediente-header {
+            background: #fff;
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 3px solid #f0eee5;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            background: #f2f2f2;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .avatar-alumno {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ff9600, #ff6b35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 22px;
+            border: 3px solid rgba(0, 0, 0, .08);
+            flex-shrink: 0;
+        }
+
+        .alumno-detail {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .alumno-name {
+            font-size: 22px;
+            font-weight: 900;
+            color: #3c3c3c;
+        }
+
+        .alumno-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .meta-item {
+            font-size: 12px;
+            font-weight: 700;
+            color: #777;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .meta-item.mail {
+            color: #0f8fd6;
+        }
+
+        .meta-item i {
+            font-size: 14px;
+        }
+
+        .btn-pdf {
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            background: #fff;
+            color: #0f8fd6;
+            border: 2px solid #7dd3fc;
+            box-shadow: 0 3px 0 #1cb0f6;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
 
         /* Tabs */
-        .tabs-nav{background:#fff;padding:0 28px;border-bottom:3px solid #f0eee5;display:flex;gap:6px;overflow-x:auto;}
-        .tab-btn{padding:14px 18px;font-size:13px;font-weight:800;color:#777;background:none;border:none;cursor:pointer;position:relative;display:flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;}
-        .tab-btn.active{color:#ff6b35;}
-        .tab-btn.active::after{content:"";position:absolute;bottom:-3px;left:12px;right:12px;height:3px;background:#ff6b35;border-radius:2px 2px 0 0;}
+        .tabs-nav {
+            background: #fff;
+            padding: 0 28px;
+            border-bottom: 3px solid #f0eee5;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 14px 18px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #777;
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .tab-btn.active {
+            color: #ff6b35;
+        }
+
+        .tab-btn.active::after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 12px;
+            right: 12px;
+            height: 3px;
+            background: #ff6b35;
+            border-radius: 2px 2px 0 0;
+        }
 
         /* Panels */
-        .tab-panel{display:none;padding:24px 28px 60px;}
-        .tab-panel.active{display:block;}
-        .panel-grid{display:grid;grid-template-columns:320px 1fr;gap:20px;}
+        .tab-panel {
+            display: none;
+            padding: 24px 28px 60px;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+        }
 
         /* Cards */
-        .card{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:20px;box-shadow:0 3px 0 #e5e5e5;}
-        .card-title{font-size:14px;font-weight:900;color:#3c3c3c;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-        .card-title i{color:#ff9600;font-size:18px;}
-        .list-title{font-size:14px;font-weight:900;color:#3c3c3c;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
-        .count-chip{background:#ff9600;color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px;box-shadow:0 2px 0 #cc5028;}
+        .card {
+            background: #fff;
+            border: 2px solid #e5e5e5;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 3px 0 #e5e5e5;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: #3c3c3c;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i {
+            color: #ff9600;
+            font-size: 18px;
+        }
+
+        .list-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: #3c3c3c;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .count-chip {
+            background: #ff9600;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 20px;
+            box-shadow: 0 2px 0 #cc5028;
+        }
 
         /* Form */
-        .form-label{font-size:11px;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:block;}
-        .form-input{width:100%;padding:12px 14px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;outline:none;margin-bottom:12px;}
-        .form-input:focus{border-color:#ff9600;background:#fff;}
-        textarea.form-input{resize:vertical;min-height:80px;}
-        .btn-save{width:100%;padding:14px;background:#58cc02;color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #43a800;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
+        .form-label {
+            font-size: 11px;
+            font-weight: 900;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: #fefcf5;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            color: #3c3c3c;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .form-input:focus {
+            border-color: #ff9600;
+            background: #fff;
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: #58cc02;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #43a800;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+        }
 
         /* Incidencias */
-        .inc-item{background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 0 #e5e5e5;}
-        .inc-item.pending{background:#fffbf0;border-color:#ffc107;box-shadow:0 2px 0 #e0a800;}
-        .inc-item.firmed{background:#f4fce4;border-color:#89e219;box-shadow:0 2px 0 #58cc02;}
-        .inc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-        .inc-type{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:900;text-transform:uppercase;color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.15);}
-        .t-caida{background:#ff4b4b;}
-        .t-llanto{background:#ffc107;color:#3c3c3c;}
-        .t-logro{background:#58cc02;}
-        .t-comentario{background:#1cb0f6;}
-        .t-otro{background:#777;}
-        .inc-time{font-size:11px;font-weight:700;color:#777;}
-        .inc-desc{font-size:13px;font-weight:700;color:#3c3c3c;line-height:1.4;margin:4px 0;}
-        .inc-badges{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
-        .badge-status{font-size:10px;font-weight:900;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;background:#e5e5e5;color:#777;}
-        .badge-status.ok{background:#d7ffb8;color:#58a002;}
-        .badge-status.warn{background:#fff4e5;color:#e07800;}
-        .comentario-padre{background:#dcf4ff;border-left:3px solid #1cb0f6;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;color:#0a3a6b;margin-top:6px;}
+        .inc-item {
+            background: #fefcf5;
+            border: 2px solid #e5e5e5;
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 0 #e5e5e5;
+        }
+
+        .inc-item.pending {
+            background: #fffbf0;
+            border-color: #ffc107;
+            box-shadow: 0 2px 0 #e0a800;
+        }
+
+        .inc-item.firmed {
+            background: #f4fce4;
+            border-color: #89e219;
+            box-shadow: 0 2px 0 #58cc02;
+        }
+
+        .inc-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .inc-type {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #fff;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, .15);
+        }
+
+        .t-caida {
+            background: #ff4b4b;
+        }
+
+        .t-llanto {
+            background: #ffc107;
+            color: #3c3c3c;
+        }
+
+        .t-logro {
+            background: #58cc02;
+        }
+
+        .t-comentario {
+            background: #1cb0f6;
+        }
+
+        .t-otro {
+            background: #777;
+        }
+
+        .inc-time {
+            font-size: 11px;
+            font-weight: 700;
+            color: #777;
+        }
+
+        .inc-desc {
+            font-size: 13px;
+            font-weight: 700;
+            color: #3c3c3c;
+            line-height: 1.4;
+            margin: 4px 0;
+        }
+
+        .inc-badges {
+            display: flex;
+            gap: 5px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge-status {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #e5e5e5;
+            color: #777;
+        }
+
+        .badge-status.ok {
+            background: #d7ffb8;
+            color: #58a002;
+        }
+
+        .badge-status.warn {
+            background: #fff4e5;
+            color: #e07800;
+        }
+
+        .comentario-padre {
+            background: #dcf4ff;
+            border-left: 3px solid #1cb0f6;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0a3a6b;
+            margin-top: 6px;
+        }
 
         /* Calif */
-        .cal-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;margin-bottom:8px;}
-        .cal-materia{font-size:13px;font-weight:900;color:#3c3c3c;}
-        .cal-periodo{font-size:11px;font-weight:700;color:#777;margin-top:2px;}
-        .cal-num{font-size:22px;font-weight:900;min-width:44px;text-align:center;}
-        .num-high{color:#58cc02;}
-        .num-mid{color:#ff9600;}
-        .num-low{color:#ff4b4b;}
+        .cal-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #fefcf5;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .cal-materia {
+            font-size: 13px;
+            font-weight: 900;
+            color: #3c3c3c;
+        }
+
+        .cal-periodo {
+            font-size: 11px;
+            font-weight: 700;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .cal-num {
+            font-size: 22px;
+            font-weight: 900;
+            min-width: 44px;
+            text-align: center;
+        }
+
+        .num-high {
+            color: #58cc02;
+        }
+
+        .num-mid {
+            color: #ff9600;
+        }
+
+        .num-low {
+            color: #ff4b4b;
+        }
 
         /* Perfil */
-        .slider-group{margin-bottom:14px;}
-        .slider-label{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:#3c3c3c;margin-bottom:6px;}
-        .slider-val{color:#ff6b35;font-weight:900;}
-        input[type=range]{width:100%;accent-color:#ff6b35;}
-        .perfil-bar-row{margin-bottom:12px;}
-        .perfil-bar-label{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:#3c3c3c;margin-bottom:5px;}
-        .perfil-bar-bg{background:#f0eee5;height:10px;border-radius:20px;overflow:hidden;}
-        .perfil-bar-fill{height:100%;background:linear-gradient(90deg,#ff9600,#ff6b35);border-radius:20px;}
+        .slider-group {
+            margin-bottom: 14px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 800;
+            color: #3c3c3c;
+            margin-bottom: 6px;
+        }
+
+        .slider-val {
+            color: #ff6b35;
+            font-weight: 900;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #ff6b35;
+        }
+
+        .perfil-bar-row {
+            margin-bottom: 12px;
+        }
+
+        .perfil-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 800;
+            color: #3c3c3c;
+            margin-bottom: 5px;
+        }
+
+        .perfil-bar-bg {
+            background: #f0eee5;
+            height: 10px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .perfil-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9600, #ff6b35);
+            border-radius: 20px;
+        }
 
         /* Actividades */
-        .act-item{background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
-        .act-chip{font-size:10px;font-weight:900;padding:3px 8px;border-radius:20px;background:#dcf4ff;color:#0f8fd6;text-transform:uppercase;}
-        .act-text{flex:1;font-size:13px;font-weight:700;color:#3c3c3c;}
-        .act-date{font-size:10px;font-weight:700;color:#afafaf;}
+        .act-item {
+            background: #fefcf5;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .act-chip {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: #dcf4ff;
+            color: #0f8fd6;
+            text-transform: uppercase;
+        }
+
+        .act-text {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 700;
+            color: #3c3c3c;
+        }
+
+        .act-date {
+            font-size: 10px;
+            font-weight: 700;
+            color: #afafaf;
+        }
 
         /* Empty */
-        .empty-mini{text-align:center;padding:30px 20px;color:#afafaf;}
-        .empty-mini i{font-size:36px;margin-bottom:8px;}
-        .empty-mini-title{font-size:13px;font-weight:800;color:#777;}
+        .empty-mini {
+            text-align: center;
+            padding: 30px 20px;
+            color: #afafaf;
+        }
+
+        .empty-mini i {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .empty-mini-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #777;
+        }
 
         /* Flash */
-        .flash{margin:16px 28px 0;padding:12px 16px;border-radius:14px;font-size:13px;font-weight:800;background:#e8f9d5;border:2px solid #89e219;color:#58a002;box-shadow:0 3px 0 #58cc02;}
-        .flash::before{content:"✓ ";}
+        .flash {
+            margin: 16px 28px 0;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 800;
+            background: #e8f9d5;
+            border: 2px solid #89e219;
+            color: #58a002;
+            box-shadow: 0 3px 0 #58cc02;
+        }
 
-        @media (max-width:900px){
-            .layout{grid-template-columns:1fr;}
-            .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;padding:8px;border-right:none;border-top:3px solid #f0eee5;overflow-x:auto;z-index:50;}
-            .sidebar-brand,.sidebar-label,.sidebar-footer{display:none;}
-            .sidebar-section{margin:0;display:flex;gap:2px;}
-            .nav-item{flex-direction:column;padding:8px 12px;font-size:9px;gap:2px;min-width:64px;text-align:center;}
-            .nav-item span:not(.nav-icon){display:none;}
-            .panel-grid{grid-template-columns:1fr;}
-            .tab-panel{padding:16px;padding-bottom:100px;}
+        .flash::before {
+            content: "✓ ";
+        }
+
+        @media (max-width:900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                left: 0;
+                right: 0;
+                height: auto;
+                flex-direction: row;
+                padding: 8px;
+                border-right: none;
+                border-top: 3px solid #f0eee5;
+                overflow-x: auto;
+                z-index: 50;
+            }
+
+            .sidebar-brand,
+            .sidebar-label,
+            .sidebar-footer {
+                display: none;
+            }
+
+            .sidebar-section {
+                margin: 0;
+                display: flex;
+                gap: 2px;
+            }
+
+            .nav-item {
+                flex-direction: column;
+                padding: 8px 12px;
+                font-size: 9px;
+                gap: 2px;
+                min-width: 64px;
+                text-align: center;
+            }
+
+            .nav-item span:not(.nav-icon) {
+                display: none;
+            }
+
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-panel {
+                padding: 16px;
+                padding-bottom: 100px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="layout">
+    <div class="layout">
 
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
-            <div>
-                <div class="brand-title">Panel docente</div>
-                <div class="brand-sub">Maestra Erandeni</div>
-            </div>
-        </div>
-
-        <div class="sidebar-section">
-            <div class="sidebar-label">Grupo</div>
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item"><i class="ti ti-home nav-icon"></i><span>Inicio</span></a>
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item active"><i class="ti ti-users nav-icon"></i><span>Alumnos</span></a>
-            <a href="#" class="nav-item"><i class="ti ti-chart-bar nav-icon"></i><span>Calificaciones</span></a>
-        </div>
-
-        <div class="sidebar-section">
-            <div class="sidebar-label">Comunicación</div>
-            <a href="{{ url_for('admin.admin_mensajes') }}" class="nav-item"><i class="ti ti-messages nav-icon"></i><span>Mensajes de padres</span></a>
-            <a href="{{ url_for('admin.admin_avisos_padres') }}" class="nav-item"><i class="ti ti-notes nav-icon"></i><span>Avisos de padres</span></a>
-            <a href="{{ url_for('admin.admin_avisos') }}" class="nav-item"><i class="ti ti-speakerphone nav-icon"></i><span>Publicar aviso</span></a>
-        </div>
-
-        <div class="sidebar-section">
-            <div class="sidebar-label">Registros</div>
-            <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="nav-item"><i class="ti ti-alert-triangle nav-icon"></i><span>Todas las incidencias</span></a>
-            <a href="{{ url_for('admin.admin_accesos') }}" class="nav-item"><i class="ti ti-login nav-icon"></i><span>Accesos al sistema</span></a>
-        </div>
-
-        <div class="sidebar-footer">
-            <a href="{{ url_for('admin.admin_logout') }}" class="nav-item" style="color:#ff4b4b;"><i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span></a>
-        </div>
-    </aside>
-
-    <main>
-        <div class="expediente-header">
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn"><i class="ti ti-arrow-left" style="font-size:20px;"></i></a>
-            <div class="avatar-alumno">{{ alumno.nombre[:2] | upper }}</div>
-            <div class="alumno-detail">
-                <div class="alumno-name">{{ alumno.nombre }}</div>
-                <div class="alumno-meta">
-                    <span class="meta-item"><i class="ti ti-id"></i> {{ alumno.curp }}</span>
-                    {% if alumno.correo_padre %}
-                    <span class="meta-item mail"><i class="ti ti-mail"></i> {{ alumno.correo_padre }}</span>
-                    {% endif %}
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
+                <div>
+                    <div class="brand-title">Panel docente</div>
+                    <div class="brand-sub">Maestra Erandeni</div>
                 </div>
             </div>
-            <a href="{{ url_for('admin.expediente_pdf', id_alumno=id_alumno) }}" class="btn-pdf">
-                <i class="ti ti-file-download" style="font-size:15px;"></i> PDF
-            </a>
-        </div>
 
-        <div class="tabs-nav">
-            <button class="tab-btn active" data-tab="incidencias"><i class="ti ti-alert-triangle" style="font-size:16px;"></i> Incidencias</button>
-            <button class="tab-btn" data-tab="calificaciones"><i class="ti ti-chart-bar" style="font-size:16px;"></i> Calificaciones</button>
-            <button class="tab-btn" data-tab="perfil"><i class="ti ti-brain" style="font-size:16px;"></i> Perfil</button>
-            <button class="tab-btn" data-tab="actividades"><i class="ti ti-bulb" style="font-size:16px;"></i> Actividades</button>
-        </div>
+            <div class="sidebar-section">
+                <div class="sidebar-label">Grupo</div>
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item"><i
+                        class="ti ti-home nav-icon"></i><span>Inicio</span></a>
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item active"><i
+                        class="ti ti-users nav-icon"></i><span>Alumnos</span></a>
+                <a href="{{ url_for('admin.admin_calificaciones') }}" class="nav-item"><i
+                        class="ti ti-chart-bar nav-icon"></i><span>Calificaciones</span></a>
+            </div>
 
-        {% with messages = get_flashed_messages() %}
+            <div class="sidebar-section">
+                <div class="sidebar-label">Comunicación</div>
+                <a href="{{ url_for('admin.admin_mensajes') }}" class="nav-item"><i
+                        class="ti ti-messages nav-icon"></i><span>Mensajes de padres</span></a>
+                <a href="{{ url_for('admin.admin_avisos_padres') }}" class="nav-item"><i
+                        class="ti ti-notes nav-icon"></i><span>Avisos de padres</span></a>
+                <a href="{{ url_for('admin.admin_avisos') }}" class="nav-item"><i
+                        class="ti ti-speakerphone nav-icon"></i><span>Publicar aviso</span></a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-label">Registros</div>
+                <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="nav-item"><i
+                        class="ti ti-alert-triangle nav-icon"></i><span>Todas las incidencias</span></a>
+                <a href="{{ url_for('admin.admin_accesos') }}" class="nav-item"><i
+                        class="ti ti-login nav-icon"></i><span>Accesos al sistema</span></a>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('admin.admin_logout') }}" class="nav-item" style="color:#ff4b4b;"><i
+                        class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span></a>
+            </div>
+        </aside>
+
+        <main>
+            <div class="expediente-header">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn"><i class="ti ti-arrow-left"
+                        style="font-size:20px;"></i></a>
+                <div class="avatar-alumno">{{ alumno.nombre[:2] | upper }}</div>
+                <div class="alumno-detail">
+                    <div class="alumno-name">{{ alumno.nombre }}</div>
+                    <div class="alumno-meta">
+                        <span class="meta-item"><i class="ti ti-id"></i> {{ alumno.curp }}</span>
+                        {% if alumno.correo_padre %}
+                        <span class="meta-item mail"><i class="ti ti-mail"></i> {{ alumno.correo_padre }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{{ url_for('admin.expediente_pdf', id_alumno=id_alumno) }}" class="btn-pdf">
+                    <i class="ti ti-file-download" style="font-size:15px;"></i> PDF
+                </a>
+            </div>
+
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="incidencias"><i class="ti ti-alert-triangle"
+                        style="font-size:16px;"></i> Incidencias</button>
+                <button class="tab-btn" data-tab="calificaciones"><i class="ti ti-chart-bar"
+                        style="font-size:16px;"></i> Calificaciones</button>
+                <button class="tab-btn" data-tab="perfil"><i class="ti ti-brain" style="font-size:16px;"></i>
+                    Perfil</button>
+                <button class="tab-btn" data-tab="actividades"><i class="ti ti-bulb" style="font-size:16px;"></i>
+                    Actividades</button>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
             {% if messages %}{% for msg in messages %}
-                <div class="flash">{{ msg }}</div>
+            <div class="flash">{{ msg }}</div>
             {% endfor %}{% endif %}
-        {% endwith %}
+            {% endwith %}
 
-        <!-- INCIDENCIAS -->
-        <div class="tab-panel active" id="tab-incidencias">
-            <div class="panel-grid">
-                <div class="card">
-                    <div class="card-title"><i class="ti ti-plus"></i> Nueva incidencia</div>
-                    <form action="{{ url_for('admin.nueva_incidencia', id_alumno=id_alumno) }}" method="POST">
-                        <label class="form-label">Tipo</label>
-                        <select name="tipo" class="form-input" required>
-                            <option value="Caída">Caída</option>
-                            <option value="Llanto">Llanto</option>
-                            <option value="Logro">Logro</option>
-                            <option value="Comentario">Comentario</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                        <label class="form-label">Descripción</label>
-                        <textarea name="descripcion" class="form-input" required placeholder="Describe lo que ocurrió..."></textarea>
-                        <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Registrar</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <div class="list-title">Historial <span class="count-chip">{{ incidencias | length }}</span></div>
-                    {% if incidencias %}
+            <!-- INCIDENCIAS -->
+            <div class="tab-panel active" id="tab-incidencias">
+                <div class="panel-grid">
+                    <div class="card">
+                        <div class="card-title"><i class="ti ti-plus"></i> Nueva incidencia</div>
+                        <form action="{{ url_for('admin.nueva_incidencia', id_alumno=id_alumno) }}" method="POST">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipo" class="form-input" required>
+                                <option value="Caída">Caída</option>
+                                <option value="Llanto">Llanto</option>
+                                <option value="Logro">Logro</option>
+                                <option value="Comentario">Comentario</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion" class="form-input" required
+                                placeholder="Describe lo que ocurrió..."></textarea>
+                            <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i>
+                                Registrar</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="list-title">Historial <span class="count-chip">{{ incidencias | length }}</span>
+                        </div>
+                        {% if incidencias %}
                         {% for inc in incidencias %}
-                        <div class="inc-item {% if inc.enterado %}firmed{% elif inc.tipo != 'Logro' %}pending{% endif %}">
+                        <div
+                            class="inc-item {% if inc.enterado %}firmed{% elif inc.tipo != 'Logro' %}pending{% endif %}">
                             <div class="inc-head">
-                                <span class="inc-type t-{{ inc.tipo | lower if inc.tipo else 'otro' }}">#{{ inc.numero }} · {{ inc.tipo or 'General' }}</span>
+                                <span class="inc-type t-{{ inc.tipo | lower if inc.tipo else 'otro' }}">#{{ inc.numero
+                                    }} · {{ inc.tipo or 'General' }}</span>
                                 <span class="inc-time">{{ inc.fecha[:16] if inc.fecha else '' }}</span>
                             </div>
                             <div class="inc-desc">{{ inc.descripcion }}</div>
                             <div class="inc-badges">
-                                <span class="badge-status {% if inc.visto %}ok{% endif %}"><i class="ti ti-eye" style="font-size:10px;"></i> {% if inc.visto %}Visto{% else %}No visto{% endif %}</span>
-                                <span class="badge-status {% if inc.enterado %}ok{% else %}warn{% endif %}"><i class="ti ti-check" style="font-size:10px;"></i> {% if inc.enterado %}Firmado{% else %}Sin firmar{% endif %}</span>
+                                <span class="badge-status {% if inc.visto %}ok{% endif %}"><i class="ti ti-eye"
+                                        style="font-size:10px;"></i> {% if inc.visto %}Visto{% else %}No visto{% endif
+                                    %}</span>
+                                <span class="badge-status {% if inc.enterado %}ok{% else %}warn{% endif %}"><i
+                                        class="ti ti-check" style="font-size:10px;"></i> {% if inc.enterado %}Firmado{%
+                                    else %}Sin firmar{% endif %}</span>
                             </div>
                             {% if inc.comentario_padre %}
                             <div class="comentario-padre"><strong>Respuesta:</strong> {{ inc.comentario_padre }}</div>
                             {% endif %}
                         </div>
                         {% endfor %}
+                        {% else %}
+                        <div class="empty-mini"><i class="ti ti-clipboard-off"></i>
+                            <div class="empty-mini-title">Sin incidencias registradas</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALIFICACIONES -->
+            <!-- CALIFICACIONES -->
+            <div class="tab-panel" id="tab-calificaciones">
+                <div class="card">
+                    <div class="list-title">
+                        Calificaciones por trimestre
+                        <a href="{{ url_for('admin.admin_calificaciones') }}" class="btn-save"
+                            style="width:auto;padding:10px 16px;font-size:12px;text-decoration:none;">
+                            <i class="ti ti-table" style="font-size:15px;"></i> Capturar en tabla
+                        </a>
+                    </div>
+
+                    {% if calificaciones %}
+                    {% for cal in calificaciones %}
+                    {% set notas = [cal.lenguajes, cal.ciencias, cal.etica, cal.comunitario] %}
+                    {% set llenas = notas | reject('none') | list %}
+                    {% set prom = (llenas | sum / llenas | length) | round(1) if llenas else None %}
+                    <div
+                        style="background:#fefcf5;border:2px solid #e5e5e5;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 0 #e5e5e5;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                            <span class="inc-type t-logro">{{ cal.trimestre }}º trimestre</span>
+                            <span
+                                class="cal-num {% if prom is none %}{% elif prom >= 8 %}num-high{% elif prom >= 7 %}num-mid{% else %}num-low{% endif %}">
+                                {{ prom if prom is not none else '—' }}
+                            </span>
+                        </div>
+                        {% for campo, label in [('lenguajes','Lenguajes'),('ciencias','Saberes y Pensamiento
+                        Científico'),('etica','Ética, Naturaleza y Sociedades'),('comunitario','De lo Humano y lo
+                        Comunitario')] %}
+                        <div class="cal-row" style="margin-bottom:6px;">
+                            <div class="cal-materia" style="font-size:12px;">{{ label }}</div>
+                            <div class="cal-num {% if cal[campo] is none %}{% elif cal[campo] >= 8 %}num-high{% elif cal[campo] >= 7 %}num-mid{% else %}num-low{% endif %}"
+                                style="font-size:18px;">
+                                {{ cal[campo] | int if cal[campo] is not none else '—' }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div style="font-size:11px;font-weight:800;color:#777;margin-top:8px;">
+                            <i class="ti ti-calendar-off" style="font-size:12px;vertical-align:-2px;"></i>
+                            Inasistencias: {{ cal.inasistencias or 0 }}
+                        </div>
+                        {% if cal.observaciones %}
+                        <div class="comentario-padre" style="margin-top:8px;">
+                            <strong>Observaciones:</strong> {{ cal.observaciones }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
                     {% else %}
-                        <div class="empty-mini"><i class="ti ti-clipboard-off"></i><div class="empty-mini-title">Sin incidencias registradas</div></div>
+                    <div class="empty-mini">
+                        <i class="ti ti-chart-bar-off"></i>
+                        <div class="empty-mini-title">Sin calificaciones capturadas</div>
+                    </div>
                     {% endif %}
                 </div>
             </div>
-        </div>
-
-        <!-- CALIFICACIONES -->
-        <div class="tab-panel" id="tab-calificaciones">
             <div class="panel-grid">
                 <div class="card">
                     <div class="card-title"><i class="ti ti-plus"></i> Nueva calificación</div>
@@ -257,135 +913,162 @@
                             <option>3er trimestre</option>
                         </select>
                         <label class="form-label">Calificación (0-10)</label>
-                        <input type="number" name="calificacion" class="form-input" min="0" max="10" step="0.1" required>
+                        <input type="number" name="calificacion" class="form-input" min="0" max="10" step="0.1"
+                            required>
                         <label class="form-label">Observación</label>
                         <input type="text" name="comentario" class="form-input" placeholder="Opcional">
-                        <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Guardar</button>
+                        <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i>
+                            Guardar</button>
                     </form>
                 </div>
                 <div class="card">
-                    <div class="list-title">Calificaciones <span class="count-chip">{{ calificaciones | length }}</span></div>
+                    <div class="list-title">Calificaciones <span class="count-chip">{{ calificaciones | length }}</span>
+                    </div>
                     {% if calificaciones %}
-                        {% for cal in calificaciones %}
-                        <div class="cal-row">
-                            <div>
-                                <div class="cal-materia">{{ cal.materia }}</div>
-                                <div class="cal-periodo">{{ cal.periodo or '—' }}{% if cal.comentario %} · {{ cal.comentario }}{% endif %}</div>
-                            </div>
-                            <div class="cal-num {% if cal.calificacion >= 8 %}num-high{% elif cal.calificacion >= 6 %}num-mid{% else %}num-low{% endif %}">{{ cal.calificacion }}</div>
+                    {% for cal in calificaciones %}
+                    <div class="cal-row">
+                        <div>
+                            <div class="cal-materia">{{ cal.materia }}</div>
+                            <div class="cal-periodo">{{ cal.periodo or '—' }}{% if cal.comentario %} · {{ cal.comentario
+                                }}{% endif %}</div>
                         </div>
-                        {% endfor %}
+                        <div
+                            class="cal-num {% if cal.calificacion >= 8 %}num-high{% elif cal.calificacion >= 6 %}num-mid{% else %}num-low{% endif %}">
+                            {{ cal.calificacion }}</div>
+                    </div>
+                    {% endfor %}
                     {% else %}
-                        <div class="empty-mini"><i class="ti ti-chart-bar-off"></i><div class="empty-mini-title">Sin calificaciones</div></div>
+                    <div class="empty-mini"><i class="ti ti-chart-bar-off"></i>
+                        <div class="empty-mini-title">Sin calificaciones</div>
+                    </div>
                     {% endif %}
                 </div>
             </div>
-        </div>
+    </div>
 
-        <!-- PERFIL -->
-        <div class="tab-panel" id="tab-perfil">
-            <div class="panel-grid">
-                <div class="card">
-                    <div class="card-title"><i class="ti ti-brain"></i> Editar perfil</div>
-                    <form action="{{ url_for('admin.guardar_perfil', id_alumno=id_alumno) }}" method="POST">
-                        {% for campo, label in [('logico','Lógico-matemático'),('fisico','Físico-deportivo'),('artistico','Artístico'),('social','Social'),('lenguaje','Lenguaje')] %}
-                        <div class="slider-group">
-                            <div class="slider-label">
-                                <span>{{ label }}</span>
-                                <span class="slider-val" id="val-{{ campo }}">{{ perfil[campo] if perfil else 0 }}</span>
-                            </div>
-                            <input type="range" name="{{ campo }}" min="0" max="100" value="{{ perfil[campo] if perfil else 0 }}" oninput="document.getElementById('val-{{ campo }}').textContent = this.value">
+    <!-- PERFIL -->
+    <div class="tab-panel" id="tab-perfil">
+        <div class="panel-grid">
+            <div class="card">
+                <div class="card-title"><i class="ti ti-brain"></i> Editar perfil</div>
+                <form action="{{ url_for('admin.guardar_perfil', id_alumno=id_alumno) }}" method="POST">
+                    {% for campo, label in
+                    [('logico','Lógico-matemático'),('fisico','Físico-deportivo'),('artistico','Artístico'),('social','Social'),('lenguaje','Lenguaje')]
+                    %}
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>{{ label }}</span>
+                            <span class="slider-val" id="val-{{ campo }}">{{ perfil[campo] if perfil else 0 }}</span>
                         </div>
-                        {% endfor %}
-                        <label class="form-label">Observación</label>
-                        <textarea name="nota" class="form-input" placeholder="Nota de la maestra...">{{ perfil.nota if perfil else '' }}</textarea>
-                        <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Guardar perfil</button>
-                    </form>
+                        <input type="range" name="{{ campo }}" min="0" max="100"
+                            value="{{ perfil[campo] if perfil else 0 }}"
+                            oninput="document.getElementById('val-{{ campo }}').textContent = this.value">
+                    </div>
+                    {% endfor %}
+                    <label class="form-label">Observación</label>
+                    <textarea name="nota" class="form-input"
+                        placeholder="Nota de la maestra...">{{ perfil.nota if perfil else '' }}</textarea>
+                    <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Guardar
+                        perfil</button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="list-title">Vista del perfil</div>
+                {% if perfil %}
+                {% for campo, label in
+                [('logico','Lógico-matemático'),('fisico','Físico-deportivo'),('artistico','Artístico'),('social','Social'),('lenguaje','Lenguaje')]
+                %}
+                <div class="perfil-bar-row">
+                    <div class="perfil-bar-label"><span>{{ label }}</span><span style="color:#ff6b35;">{{ perfil[campo]
+                            }}%</span></div>
+                    <div class="perfil-bar-bg">
+                        <div class="perfil-bar-fill" style="width:{{ perfil[campo] }}%"></div>
+                    </div>
                 </div>
-                <div class="card">
-                    <div class="list-title">Vista del perfil</div>
-                    {% if perfil %}
-                        {% for campo, label in [('logico','Lógico-matemático'),('fisico','Físico-deportivo'),('artistico','Artístico'),('social','Social'),('lenguaje','Lenguaje')] %}
-                        <div class="perfil-bar-row">
-                            <div class="perfil-bar-label"><span>{{ label }}</span><span style="color:#ff6b35;">{{ perfil[campo] }}%</span></div>
-                            <div class="perfil-bar-bg"><div class="perfil-bar-fill" style="width:{{ perfil[campo] }}%"></div></div>
-                        </div>
-                        {% endfor %}
-                        {% if perfil.nota %}
-                        <div class="comentario-padre" style="margin-top:14px;"><strong>Observación:</strong> {{ perfil.nota }}</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="empty-mini"><i class="ti ti-brain"></i><div class="empty-mini-title">Perfil sin registrar</div></div>
-                    {% endif %}
+                {% endfor %}
+                {% if perfil.nota %}
+                <div class="comentario-padre" style="margin-top:14px;"><strong>Observación:</strong> {{ perfil.nota }}
                 </div>
+                {% endif %}
+                {% else %}
+                <div class="empty-mini"><i class="ti ti-brain"></i>
+                    <div class="empty-mini-title">Perfil sin registrar</div>
+                </div>
+                {% endif %}
             </div>
         </div>
+    </div>
 
-        <!-- ACTIVIDADES -->
-        <div class="tab-panel" id="tab-actividades">
-            <div class="panel-grid">
-                <div class="card">
-                    <div class="card-title"><i class="ti ti-plus"></i> Nueva actividad</div>
-                    <form action="{{ url_for('admin.nueva_actividad', id_alumno=id_alumno) }}" method="POST">
-                        <label class="form-label">Actividad</label>
-                        <textarea name="actividad" class="form-input" required placeholder="Describe la actividad..."></textarea>
-                        <label class="form-label">Categoría</label>
-                        <select name="categoria" class="form-input">
-                            <option>Cognitiva</option>
-                            <option>Física</option>
-                            <option>Artística</option>
-                            <option>Social</option>
-                            <option>Lenguaje</option>
-                            <option>General</option>
-                        </select>
-                        <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Agregar</button>
-                    </form>
+    <!-- ACTIVIDADES -->
+    <div class="tab-panel" id="tab-actividades">
+        <div class="panel-grid">
+            <div class="card">
+                <div class="card-title"><i class="ti ti-plus"></i> Nueva actividad</div>
+                <form action="{{ url_for('admin.nueva_actividad', id_alumno=id_alumno) }}" method="POST">
+                    <label class="form-label">Actividad</label>
+                    <textarea name="actividad" class="form-input" required
+                        placeholder="Describe la actividad..."></textarea>
+                    <label class="form-label">Categoría</label>
+                    <select name="categoria" class="form-input">
+                        <option>Cognitiva</option>
+                        <option>Física</option>
+                        <option>Artística</option>
+                        <option>Social</option>
+                        <option>Lenguaje</option>
+                        <option>General</option>
+                    </select>
+                    <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i>
+                        Agregar</button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="list-title">Actividades <span class="count-chip">{{ actividades | length }}</span></div>
+                {% if actividades %}
+                {% for act in actividades %}
+                <div class="act-item">
+                    <span class="act-chip">{{ act.categoria }}</span>
+                    <span class="act-text">{{ act.actividad }}</span>
+                    <span class="act-date">{{ act.fecha[:10] if act.fecha else '' }}</span>
                 </div>
-                <div class="card">
-                    <div class="list-title">Actividades <span class="count-chip">{{ actividades | length }}</span></div>
-                    {% if actividades %}
-                        {% for act in actividades %}
-                        <div class="act-item">
-                            <span class="act-chip">{{ act.categoria }}</span>
-                            <span class="act-text">{{ act.actividad }}</span>
-                            <span class="act-date">{{ act.fecha[:10] if act.fecha else '' }}</span>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-mini"><i class="ti ti-bulb-off"></i><div class="empty-mini-title">Sin actividades</div></div>
-                    {% endif %}
+                {% endfor %}
+                {% else %}
+                <div class="empty-mini"><i class="ti ti-bulb-off"></i>
+                    <div class="empty-mini-title">Sin actividades</div>
                 </div>
+                {% endif %}
             </div>
         </div>
+    </div>
     </main>
-</div>
+    </div>
 
-<script>
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const t = this.dataset.tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            this.classList.add('active');
-            document.getElementById('tab-' + t).classList.add('active');
-            window.location.hash = 'tab-' + t;
-        });
-    });
-    document.addEventListener('DOMContentLoaded', function() {
-        const hash = window.location.hash;
-        if (hash) {
-            const t = hash.replace('#tab-', '');
-            const btn = document.querySelector(`[data-tab="${t}"]`);
-            const panel = document.getElementById('tab-' + t);
-            if (btn && panel) {
+    <script>
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const t = this.dataset.tab;
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-                btn.classList.add('active');
-                panel.classList.add('active');
+                this.classList.add('active');
+                document.getElementById('tab-' + t).classList.add('active');
+                window.location.hash = 'tab-' + t;
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            const hash = window.location.hash;
+            if (hash) {
+                const t = hash.replace('#tab-', '');
+                const btn = document.querySelector(`[data-tab="${t}"]`);
+                const panel = document.getElementById('tab-' + t);
+                if (btn && panel) {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                    btn.classList.add('active');
+                    panel.classList.add('active');
+                }
             }
-        }
-    });
-</script>
+        });
+    </script>
 
 </body>
+
 </html>

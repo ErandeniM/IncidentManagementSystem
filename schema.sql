@@ -30,11 +30,15 @@ CREATE TABLE incidencia_seguimiento (
 CREATE TABLE calificaciones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     id_alumno INTEGER NOT NULL,
-    materia TEXT NOT NULL,
-    periodo TEXT,
-    calificacion REAL,
-    comentario TEXT,
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    trimestre INTEGER NOT NULL,
+    lenguajes REAL,
+    ciencias REAL,
+    etica REAL,
+    comunitario REAL,
+    inasistencias INTEGER DEFAULT 0,
+    observaciones TEXT,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_alumno, trimestre),
     FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
 );
 

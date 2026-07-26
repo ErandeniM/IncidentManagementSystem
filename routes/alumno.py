@@ -89,9 +89,9 @@ def panel_alumno():
 
     # ═══ OTROS DATOS ═══
     calificaciones = conn.execute('''
-        SELECT * FROM calificaciones
+         SELECT * FROM calificaciones
         WHERE  id_alumno = ?
-        ORDER  BY periodo, materia
+        ORDER  BY trimestre
     ''', (alumno_id,)).fetchall()
 
     perfil = conn.execute(
@@ -288,9 +288,9 @@ def mi_perfil():
     ).fetchone()
 
     calificaciones = conn.execute('''
-        SELECT * FROM calificaciones
+          SELECT * FROM calificaciones
         WHERE  id_alumno = ?
-        ORDER  BY periodo, materia
+        ORDER  BY trimestre
     ''', (alumno_id,)).fetchall()
 
     perfil = conn.execute(
@@ -303,11 +303,14 @@ def mi_perfil():
         ORDER  BY fecha DESC
     ''', (alumno_id,)).fetchall()
 
-    # Promedio general
-    promedio = conn.execute('''
-        SELECT ROUND(AVG(calificacion), 1) AS prom
-        FROM calificaciones WHERE id_alumno = ?
-    ''', (alumno_id,)).fetchone()['prom']
+    # Promedio general (calculado en Python)
+    todas = []
+    
+    for c in calificaciones:
+        for campo in ('lenguajes', 'ciencias', 'etica', 'comunitario'):
+            if c[campo] is not None:
+                todas.append(c[campo])
+    promedio = round(sum(todas) / len(todas), 1) if todas else None
 
     # Contadores
     total_logros = conn.execute('''

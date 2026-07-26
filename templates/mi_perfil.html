@@ -164,6 +164,7 @@
         </div>
 
         <!-- Calificaciones -->
+         <!-- Calificaciones -->
         <div class="card">
             <div class="card-title">
                 <i class="ti ti-chart-bar"></i> Calificaciones
@@ -171,14 +172,34 @@
             </div>
             {% if calificaciones %}
                 {% for cal in calificaciones %}
-                <div class="cal-row">
-                    <div>
-                        <div class="cal-materia">{{ cal.materia }}</div>
-                        <div class="cal-periodo">{{ cal.periodo or '—' }}{% if cal.comentario %} · {{ cal.comentario }}{% endif %}</div>
+                {% set notas = [cal.lenguajes, cal.ciencias, cal.etica, cal.comunitario] %}
+                {% set llenas = notas | reject('none') | list %}
+                {% set prom = (llenas | sum / llenas | length) | round(1) if llenas else None %}
+                <div style="background:#fefcf5;border:2px solid #e5e5e5;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 0 #e5e5e5;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #f0eee5;">
+                        <span style="font-size:14px;font-weight:900;color:#ff6b35;">{{ cal.trimestre }}º trimestre</span>
+                        <span class="cal-num {% if prom is none %}{% elif prom >= 8 %}num-high{% elif prom >= 7 %}num-mid{% else %}num-low{% endif %}">
+                            {{ prom if prom is not none else '—' }}
+                        </span>
                     </div>
-                    <div class="cal-num {% if cal.calificacion >= 8 %}num-high{% elif cal.calificacion >= 6 %}num-mid{% else %}num-low{% endif %}">
-                        {{ cal.calificacion }}
+                    {% for campo, label in [('lenguajes','Lenguajes'),('ciencias','Saberes y Pensamiento Científico'),('etica','Ética, Naturaleza y Sociedades'),('comunitario','De lo Humano y lo Comunitario')] %}
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+                        <span style="font-size:13px;font-weight:800;color:#3c3c3c;">{{ label }}</span>
+                        <span class="cal-num {% if cal[campo] is none %}{% elif cal[campo] >= 8 %}num-high{% elif cal[campo] >= 7 %}num-mid{% else %}num-low{% endif %}" style="font-size:20px;">
+                            {{ cal[campo] | int if cal[campo] is not none else '—' }}
+                        </span>
                     </div>
+                    {% endfor %}
+                    <div style="font-size:11px;font-weight:800;color:#777;margin-top:8px;">
+                        <i class="ti ti-calendar-off" style="font-size:12px;vertical-align:-2px;"></i>
+                        Inasistencias: {{ cal.inasistencias or 0 }}
+                    </div>
+                    {% if cal.observaciones %}
+                    <div class="nota-box" style="margin-top:10px;">
+                        <div class="nota-label">Observaciones de la maestra</div>
+                        {{ cal.observaciones }}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             {% else %}
