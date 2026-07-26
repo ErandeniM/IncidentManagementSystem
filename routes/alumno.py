@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from database import get_db
+from database import get_db, hash_password
 
 alumno_bp = Blueprint('alumno', __name__)
 
@@ -161,17 +161,23 @@ def comentar(id_incidencia):
     ).fetchone()
 
     if inc and inc['id_alumno'] == session['alumno_id']:
+        tutor = conn.execute(
+            'SELECT nombre_tutor FROM alumnos WHERE id = ?', (session['alumno_id'],)
+        ).fetchone()['nombre_tutor']
+        firmante = tutor or ('Tutor de ' + session['nombre'])
+
         conn.execute('''
             INSERT INTO incidencia_seguimiento
                 (id_incidencia, enterado, fecha_enterado,
-                 comentario_padre, fecha_comentario)
-            VALUES (?, 1, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)
+                 comentario_padre, fecha_comentario, firmado_por)
+            VALUES (?, 1, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?)
             ON CONFLICT(id_incidencia) DO UPDATE SET
                 enterado         = 1,
                 fecha_enterado   = CURRENT_TIMESTAMP,
                 comentario_padre = ?,
-                fecha_comentario = CURRENT_TIMESTAMP
-        ''', (id_incidencia, comentario, comentario))
+                fecha_comentario = CURRENT_TIMESTAMP,
+                firmado_por      = ?
+        ''', (id_incidencia, comentario, firmante, comentario, firmante))
         conn.commit()
         flash('Respuesta registrada ✓')
 
@@ -334,3 +340,81 @@ def mi_perfil():
                            promedio       = promedio,
                            total_logros   = total_logros,
                            total_firmadas = total_firmadas)
+    
+# ═══════════ CONFIGURACIÓN DEL PADRE ═══════════
+
+@alumno_bp.route('/configuracion', methods=['GET', 'POST'])
+def configuracion():
+    if 'alumno_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    alumno_id = session['alumno_id']
+    conn      = get_db()
+
+    if request.method == 'POST':
+        accion = request.form.get('accion')
+
+        if accion == 'datos':
+            nombre_tutor = request.form.get('nombre_tutor', '').strip()
+            correo       = request.form.get('correo_padre', '').strip()
+
+            actual = conn.execute(
+                'SELECT nombre_tutor, correo_padre FROM alumnos WHERE id = ?', (alumno_id,)
+            ).fetchone()
+
+            # Si un campo viene vacío, se conserva el valor anterior
+            conn.execute('''
+                UPDATE alumnos
+                SET nombre_tutor = ?, correo_padre = ?, notif_correo = ?
+                WHERE id = ?
+            ''', (
+                nombre_tutor or actual['nombre_tutor'],
+                correo       or actual['correo_padre'],
+                1 if request.form.get('notif_correo') else 0,
+                alumno_id
+            ))
+            conn.commit()
+            flash('Datos actualizados ✓')
+
+        elif accion == 'password':
+            actual  = request.form.get('password_actual', '')
+            nueva   = request.form.get('password_nueva', '')
+            repetir = request.form.get('password_repetir', '')
+
+            fila = conn.execute(
+                'SELECT password_hash FROM alumnos WHERE id = ?', (alumno_id,)
+            ).fetchone()
+
+            if hash_password(actual) != fila['password_hash']:
+                flash('La contraseña actual no es correcta')
+            elif len(nueva) < 6:
+                flash('La nueva contraseña debe tener al menos 6 caracteres')
+            elif nueva != repetir:
+                flash('Las contraseñas nuevas no coinciden')
+            else:
+                conn.execute(
+                    'UPDATE alumnos SET password_hash = ? WHERE id = ?',
+                    (hash_password(nueva), alumno_id)
+                )
+                conn.commit()
+                flash('Contraseña actualizada ✓')
+
+        conn.close()
+        return redirect(url_for('alumno.configuracion'))
+
+    alumno = conn.execute(
+        'SELECT * FROM alumnos WHERE id = ?', (alumno_id,)
+    ).fetchone()
+
+    accesos = conn.execute('''
+        SELECT fecha, ip FROM registro_accesos
+        WHERE id_alumno = ?
+        ORDER BY fecha DESC
+        LIMIT 10
+    ''', (alumno_id,)).fetchall()
+
+    conn.close()
+    return render_template('configuracion.html',
+                           nombre  = session['nombre'],
+                           alumno  = alumno,
+                           accesos = accesos)

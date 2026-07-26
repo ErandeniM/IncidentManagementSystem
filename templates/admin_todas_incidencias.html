@@ -149,7 +149,7 @@
 
             {% if inc.comentario_padre %}
             <div class="inc-comentario-padre">
-                <div class="inc-comentario-label">💬 Respuesta del padre</div>
+                <div class="inc-comentario-label">💬 Respuesta de {{ inc.firmado_por or 'el tutor' }}</div>
                 {{ inc.comentario_padre }}
             </div>
             {% endif %}

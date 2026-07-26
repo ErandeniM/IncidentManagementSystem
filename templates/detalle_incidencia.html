@@ -123,9 +123,9 @@
                     <i class="ti ti-quote" style="font-size:12px;"></i> Tu respuesta
                 </div>
                 <div class="respuesta-text">"{{ inc.comentario_padre }}"</div>
-                <div class="respuesta-time">
+               <div class="respuesta-time">
                     <i class="ti ti-check" style="font-size:12px;"></i>
-                    Firmado el {{ inc.fecha_enterado[:16] if inc.fecha_enterado else '' }}
+                    Firmado por {{ inc.firmado_por or 'tutor' }} el {{ inc.fecha_enterado[:16] if inc.fecha_enterado else '' }}
                 </div>
             </div>
         </div>

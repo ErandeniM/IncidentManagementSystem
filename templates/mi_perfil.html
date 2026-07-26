@@ -130,7 +130,7 @@
         <div class="sidebar-footer">
             <div class="sidebar-label">Personal</div>
             <a href="{{ url_for('alumno.mi_perfil') }}" class="nav-item active"><i class="ti ti-user nav-icon"></i><span>Mi perfil</span></a>
-            <a href="#" class="nav-item"><i class="ti ti-settings nav-icon"></i><span>Configuración</span></a>
+            <a href="{{ url_for('alumno.configuracion') }}" class="nav-item"><i class="ti ti-settings nav-icon"></i><span>Configuración</span></a>
             <a href="{{ url_for('auth.logout') }}" class="nav-item" style="color:#ff4b4b;"><i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span></a>
         </div>
     </aside>

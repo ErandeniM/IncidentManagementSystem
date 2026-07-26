@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración — Mi Salón</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
+        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
+        .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+        /* Sidebar */
+        .sidebar{background:#fff;border-right:3px solid #f0eee5;padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+        .sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;border-bottom:3px solid #f0eee5;margin-bottom:12px;}
+        .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #cc5028;flex-shrink:0;}
+        .brand-title{font-size:16px;font-weight:900;color:#3c3c3c;}
+        .brand-sub{font-size:11px;font-weight:700;color:#777;}
+        .sidebar-section{margin-bottom:16px;}
+        .sidebar-label{font-size:10px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px 6px;}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#777;text-decoration:none;margin-bottom:2px;}
+        .nav-item:hover{background:#fefcf5;color:#3c3c3c;}
+        .nav-item.active{background:#dcf4ff;color:#0f8fd6;}
+        .nav-item.active .nav-icon{color:#1cb0f6;}
+        .nav-icon{font-size:22px;color:#afafaf;flex-shrink:0;}
+        .sidebar-footer{margin-top:auto;padding-top:12px;border-top:3px solid #f0eee5;}
+
+        /* Main */
+        .main{padding:24px 32px 60px;max-width:680px;margin:0 auto;width:100%;}
+        .topbar{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+        .back-btn{width:44px;height:44px;background:#fff;border:2px solid #e5e5e5;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;box-shadow:0 3px 0 #e5e5e5;flex-shrink:0;}
+        .page-title{font-size:24px;font-weight:900;color:#3c3c3c;}
+        .page-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
+        .page-icon{width:44px;height:44px;background:linear-gradient(135deg,#a3a3a3,#777);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 0 #555;margin-left:auto;}
+
+        /* Card */
+        .card{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:20px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:16px;}
+        .card-title{font-size:15px;font-weight:900;color:#3c3c3c;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+        .card-title i{font-size:20px;}
+        .card-sub{font-size:12px;font-weight:700;color:#777;margin-bottom:16px;}
+
+        /* Cuenta */
+        .cuenta-box{display:flex;align-items:center;gap:14px;background:#fefcf5;border:2px dashed #e5e5e5;border-radius:16px;padding:14px;margin-bottom:16px;}
+        .cuenta-avatar{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#ff9600,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:17px;flex-shrink:0;border:3px solid rgba(0,0,0,.08);}
+        .cuenta-nombre{font-size:15px;font-weight:900;color:#3c3c3c;}
+        .cuenta-curp{font-size:11px;font-weight:800;color:#777;font-family:monospace;margin-top:2px;}
+
+        /* Form */
+        .form-label{font-size:11px;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:block;}
+        .form-input{width:100%;padding:12px 14px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;outline:none;margin-bottom:14px;}
+        .form-input:focus{border-color:#ff9600;background:#fff;}
+        .form-input::placeholder{color:#c4c4c4;font-weight:600;}
+        .form-hint{font-size:11px;font-weight:700;color:#afafaf;margin-top:-10px;margin-bottom:14px;display:flex;align-items:center;gap:4px;}
+
+        /* Toggle */
+        .toggle-row{display:flex;align-items:center;gap:12px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:14px;cursor:pointer;}
+        .toggle-row input{display:none;}
+        .toggle-track{width:48px;height:28px;background:#e5e5e5;border-radius:20px;position:relative;flex-shrink:0;transition:background .2s;}
+        .toggle-knob{width:22px;height:22px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s;}
+        .toggle-row input:checked + .toggle-track{background:#58cc02;}
+        .toggle-row input:checked + .toggle-track .toggle-knob{left:23px;}
+        .toggle-text{flex:1;}
+        .toggle-title{font-size:13px;font-weight:900;color:#3c3c3c;}
+        .toggle-sub{font-size:11px;font-weight:700;color:#777;margin-top:1px;}
+
+        .btn-save{width:100%;padding:14px;background:#58cc02;color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #43a800;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
+        .btn-save:hover{background:#43a800;}
+        .btn-save.blue{background:#1cb0f6;box-shadow:0 4px 0 #0f8fd6;}
+        .btn-save.blue:hover{background:#0f8fd6;}
+
+        /* Accesos */
+        .acceso-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;margin-bottom:8px;}
+        .acceso-icon{width:32px;height:32px;border-radius:10px;background:#dcf4ff;color:#0f8fd6;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .acceso-fecha{flex:1;font-size:12px;font-weight:800;color:#3c3c3c;}
+        .acceso-ip{font-size:10px;font-weight:700;color:#afafaf;font-family:monospace;background:#f2f2f2;padding:2px 8px;border-radius:8px;}
+
+        /* Aviso privacidad */
+        .privacy-box{background:#dcf4ff;border:2px solid #7dd3fc;border-radius:16px;padding:14px 16px;box-shadow:0 3px 0 #1cb0f6;display:flex;gap:10px;font-size:12px;font-weight:700;color:#0a3a6b;line-height:1.5;}
+        .privacy-box i{color:#1cb0f6;font-size:20px;flex-shrink:0;}
+
+        /* Flash */
+        .flash{margin-bottom:16px;padding:12px 16px;border-radius:14px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;box-shadow:0 3px 0 rgba(0,0,0,.08);}
+        .flash-ok{background:#e8f9d5;border:2px solid #89e219;color:#58a002;}
+        .flash-err{background:#ffe0d0;border:2px solid #ff9600;color:#cc5028;}
+
+        .empty-mini{text-align:center;padding:24px 16px;color:#afafaf;}
+        .empty-mini i{font-size:34px;margin-bottom:6px;}
+        .empty-mini-title{font-size:13px;font-weight:800;color:#777;}
+
+        @media (max-width:900px){
+            .layout{grid-template-columns:1fr;}
+            .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;padding:8px;border-right:none;border-top:3px solid #f0eee5;overflow-x:auto;z-index:50;}
+            .sidebar-brand,.sidebar-label,.sidebar-footer{display:none;}
+            .sidebar-section{margin:0;display:flex;gap:2px;}
+            .nav-item{flex-direction:column;padding:8px 12px;font-size:9px;gap:2px;min-width:64px;text-align:center;}
+            .nav-item span:not(.nav-icon){display:none;}
+            .main{padding:16px;padding-bottom:100px;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
+            <div>
+                <div class="brand-title">Mi Salón</div>
+                <div class="brand-sub">Grupo 3° A</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Contenido</div>
+            <a href="{{ url_for('alumno.panel_alumno') }}" class="nav-item"><i class="ti ti-home nav-icon"></i><span>Inicio</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=avisos" class="nav-item"><i class="ti ti-speakerphone nav-icon"></i><span>Avisos generales</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=tareas" class="nav-item"><i class="ti ti-bulb nav-icon"></i><span>Tareas</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=incidencias" class="nav-item"><i class="ti ti-alert-triangle nav-icon"></i><span>Incidencias</span></a>
+            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=logros" class="nav-item"><i class="ti ti-star nav-icon"></i><span>Logros</span></a>
+            <a href="#" class="nav-item"><i class="ti ti-photo nav-icon"></i><span>Álbumes</span></a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Comunicación</div>
+            <a href="{{ url_for('alumno.chat_maestra') }}" class="nav-item"><i class="ti ti-message-circle nav-icon"></i><span>Preguntar a la maestra</span></a>
+            <a href="{{ url_for('alumno.avisar_maestra') }}" class="nav-item"><i class="ti ti-notes nav-icon"></i><span>Avisar a la maestra</span></a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-label">Personal</div>
+            <a href="{{ url_for('alumno.mi_perfil') }}" class="nav-item"><i class="ti ti-user nav-icon"></i><span>Mi perfil</span></a>
+            <a href="{{ url_for('alumno.configuracion') }}" class="nav-item active"><i class="ti ti-settings nav-icon"></i><span>Configuración</span></a>
+            <a href="{{ url_for('auth.logout') }}" class="nav-item" style="color:#ff4b4b;"><i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span></a>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <a href="{{ url_for('alumno.panel_alumno') }}" class="back-btn">
+                <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+            </a>
+            <div>
+                <div class="page-title">Configuración</div>
+                <div class="page-sub">Tus datos y preferencias de la cuenta</div>
+            </div>
+            <div class="page-icon"><i class="ti ti-settings" style="font-size:22px;"></i></div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}{% for msg in messages %}
+                <div class="flash {% if '✓' in msg %}flash-ok{% else %}flash-err{% endif %}">
+                    <i class="ti {% if '✓' in msg %}ti-check{% else %}ti-alert-circle{% endif %}" style="font-size:16px;"></i>
+                    {{ msg }}
+                </div>
+            {% endfor %}{% endif %}
+        {% endwith %}
+
+        <!-- ══ DATOS DE CONTACTO ══ -->
+        <div class="card">
+            <div class="card-title"><i class="ti ti-user-circle" style="color:#ff9600;"></i> Datos de contacto</div>
+            <div class="card-sub">Así te identifica la maestra cuando firmas o escribes</div>
+
+            <div class="cuenta-box">
+                <div class="cuenta-avatar">{{ nombre[:2] | upper }}</div>
+                <div>
+                    <div class="cuenta-nombre">Cuenta de {{ nombre }}</div>
+                    <div class="cuenta-curp">{{ alumno.curp }}</div>
+                </div>
+            </div>
+
+            <form method="POST">
+                <input type="hidden" name="accion" value="datos">
+
+                <label class="form-label">Tu nombre completo</label>
+                <input type="text" name="nombre_tutor" class="form-input"
+                       value="{{ alumno.nombre_tutor or '' }}"
+                       placeholder="Ej: Ana López Ramírez">
+                <div class="form-hint">
+                    <i class="ti ti-info-circle" style="font-size:12px;"></i>
+                    Quedará registrado junto a las incidencias que firmes
+                </div>
+
+                <label class="form-label">Correo de contacto</label>
+                <input type="email" name="correo_padre" class="form-input"
+                       value="{{ alumno.correo_padre or '' }}"
+                       placeholder="tucorreo@gmail.com">
+
+                <label class="toggle-row">
+                    <input type="checkbox" name="notif_correo" {% if alumno.notif_correo %}checked{% endif %}>
+                    <span class="toggle-track"><span class="toggle-knob"></span></span>
+                    <span class="toggle-text">
+                        <span class="toggle-title">Avisos por correo</span>
+                        <span class="toggle-sub">Recibir un correo cuando haya algo nuevo</span>
+                    </span>
+                </label>
+
+                <button type="submit" class="btn-save">
+                    <i class="ti ti-check" style="font-size:17px;"></i> Guardar cambios
+                </button>
+            </form>
+        </div>
+
+        <!-- ══ CONTRASEÑA ══ -->
+        <div class="card">
+            <div class="card-title"><i class="ti ti-lock" style="color:#1cb0f6;"></i> Cambiar contraseña</div>
+            <div class="card-sub">Usa una que solo tú conozcas</div>
+
+            <form method="POST">
+                <input type="hidden" name="accion" value="password">
+
+                <label class="form-label">Contraseña actual</label>
+                <input type="password" name="password_actual" class="form-input" required placeholder="••••••••">
+
+                <label class="form-label">Nueva contraseña</label>
+                <input type="password" name="password_nueva" class="form-input" required minlength="6" placeholder="Mínimo 6 caracteres">
+
+                <label class="form-label">Repetir nueva contraseña</label>
+                <input type="password" name="password_repetir" class="form-input" required minlength="6" placeholder="••••••••">
+
+                <button type="submit" class="btn-save blue">
+                    <i class="ti ti-key" style="font-size:17px;"></i> Cambiar contraseña
+                </button>
+            </form>
+        </div>
+
+        <!-- ══ ACCESOS ══ -->
+        <div class="card">
+            <div class="card-title"><i class="ti ti-login" style="color:#a855f7;"></i> Tus últimos accesos</div>
+            <div class="card-sub">El sistema registra cuándo entras, para tu seguridad y la de la maestra</div>
+
+            {% if accesos %}
+                {% for a in accesos %}
+                <div class="acceso-row">
+                    <div class="acceso-icon"><i class="ti ti-clock" style="font-size:16px;"></i></div>
+                    <div class="acceso-fecha">{{ a.fecha[:16] if a.fecha else '' }}</div>
+                    <div class="acceso-ip">{{ a.ip or '—' }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-mini">
+                    <i class="ti ti-login"></i>
+                    <div class="empty-mini-title">Sin accesos registrados</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="privacy-box">
+            <i class="ti ti-shield-check"></i>
+            <div>Tu información solo la ve la maestra de tu hijo/a. No se comparte con otros padres ni con terceros.</div>
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>

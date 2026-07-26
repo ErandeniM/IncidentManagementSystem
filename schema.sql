@@ -4,6 +4,8 @@ CREATE TABLE alumnos (
     nombre TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     correo_padre TEXT,
+    nombre_tutor TEXT,
+    notif_correo BOOLEAN DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -24,6 +26,7 @@ CREATE TABLE incidencia_seguimiento (
     fecha_enterado TIMESTAMP,
     comentario_padre TEXT,
     fecha_comentario TIMESTAMP,
+    firmado_por TEXT,
     FOREIGN KEY(id_incidencia) REFERENCES incidencias(id)
 );
 

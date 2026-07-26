@@ -6,11 +6,10 @@ from reportlab.lib import colors
 from flask import make_response
 import io
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from database import get_db, hash_password
 from email_utils import enviar_correo
 from config import ADMIN_PASSWORD
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -123,7 +122,7 @@ def admin_expediente(id_alumno):
     alumno = conn.execute('SELECT * FROM alumnos WHERE id = ?', (id_alumno,)).fetchone()
 
     incidencias_raw = conn.execute('''
-        SELECT i.*, s.visto, s.enterado, s.comentario_padre
+        SELECT i.*, s.visto, s.enterado, s.comentario_padre, s.firmado_por
         FROM   incidencias i
         LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
         WHERE  i.id_alumno = ?
@@ -139,7 +138,7 @@ def admin_expediente(id_alumno):
 
     calificaciones = conn.execute('''
         SELECT * FROM calificaciones WHERE id_alumno = ?
-        ORDER BY periodo, materia
+        ORDER BY trimestre
     ''', (id_alumno,)).fetchall()
 
     perfil = conn.execute(
@@ -209,24 +208,6 @@ def nueva_incidencia(id_alumno):
 
 
 # ── Nueva calificación ──
-
-@admin_bp.route('/nueva_calificacion/<int:id_alumno>', methods=['POST'])
-def nueva_calificacion(id_alumno):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    conn = get_db()
-    conn.execute('''
-        INSERT INTO calificaciones (id_alumno, materia, periodo, calificacion, comentario)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (id_alumno,
-          request.form['materia'].strip(),
-          request.form['periodo'].strip(),
-          float(request.form['calificacion']),
-          request.form.get('comentario', '').strip()))
-    conn.commit()
-    conn.close()
-    flash('Calificación guardada ✓')
-    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-calificaciones')
 
 
 # ── Guardar perfil de personalidad ──
@@ -383,7 +364,7 @@ def expediente_pdf(id_alumno):
 
     incidencias_raw = conn.execute('''
         SELECT i.*, s.visto, s.fecha_visto, s.enterado, s.fecha_enterado,
-               s.comentario_padre
+               s.comentario_padre, s.firmado_por
         FROM incidencias i
         LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
         WHERE i.id_alumno = ?
@@ -398,7 +379,7 @@ def expediente_pdf(id_alumno):
 
     calificaciones = conn.execute('''
         SELECT * FROM calificaciones WHERE id_alumno = ?
-        ORDER BY periodo, materia
+        ORDER BY trimestre
     ''', (id_alumno,)).fetchall()
 
     conn.close()
@@ -453,23 +434,27 @@ def expediente_pdf(id_alumno):
     else:
         story.append(Paragraph("Sin incidencias registradas.", normal))
 
-    # Calificaciones
+# Calificaciones
     story.append(Paragraph("Calificaciones", h2_style))
     if calificaciones:
-        data2 = [['Materia', 'Periodo', 'Calificación', 'Observación']]
+        data2 = [['Trim.', 'Lenguajes', 'Ciencias', 'Ética', 'Comunitario', 'Faltas', 'Prom.']]
         for cal in calificaciones:
+            notas  = [cal['lenguajes'], cal['ciencias'], cal['etica'], cal['comunitario']]
+            llenas = [n for n in notas if n is not None]
+            prom   = round(sum(llenas) / len(llenas), 1) if llenas else '—'
             data2.append([
-                cal['materia'],
-                cal['periodo'] or '—',
-                str(cal['calificacion']),
-                (cal['comentario'] or '—')[:50]
+                str(cal['trimestre']),
+                *[('—' if n is None else str(int(n))) for n in notas],
+                str(cal['inasistencias'] or 0),
+                str(prom)
             ])
-        tabla2 = Table(data2, colWidths=[1.5*inch, 1.2*inch, 1*inch, 2.8*inch])
+        tabla2 = Table(data2, colWidths=[0.5*inch, 1*inch, 1*inch, 1*inch, 1.1*inch, 0.6*inch, 0.6*inch])
         tabla2.setStyle(TableStyle([
             ('BACKGROUND',  (0,0), (-1,0), colors.HexColor('#2c3e50')),
             ('TEXTCOLOR',   (0,0), (-1,0), colors.white),
             ('FONTNAME',    (0,0), (-1,0), 'Helvetica-Bold'),
             ('FONTSIZE',    (0,0), (-1,-1), 8),
+            ('ALIGN',       (0,0), (-1,-1), 'CENTER'),
             ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f8f9fa')]),
             ('GRID',        (0,0), (-1,-1), 0.3, colors.HexColor('#dee2e6')),
             ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
@@ -597,7 +582,7 @@ def admin_todas_incidencias():
     incidencias = conn.execute('''
         SELECT i.*, a.nombre AS nombre_alumno, a.curp,
                s.visto, s.fecha_visto, s.enterado, s.fecha_enterado,
-               s.comentario_padre
+               s.comentario_padre, s.firmado_por
         FROM incidencias i
         JOIN alumnos a ON i.id_alumno = a.id
         LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
