@@ -1,928 +1,168 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de la maestra</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Nunito', sans-serif;
-        }
-
-        body {
-            background: #fefcf5;
-            min-height: 100vh;
-            color: #3c3c3c;
-        }
-
-        /* ═══════════ LAYOUT ═══════════ */
-        .layout {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            min-height: 100vh;
-        }
-
-        /* ═══════════ SIDEBAR ═══════════ */
-        .sidebar {
-            background: #fff;
-            border-right: 3px solid #f0eee5;
-            padding: 20px 12px;
-            display: flex;
-            flex-direction: column;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 8px 20px;
-            border-bottom: 3px solid #f0eee5;
-            margin-bottom: 12px;
-        }
-
-        .brand-icon {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #1cb0f6, #0f8fd6);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 0 #0f8fd6;
-            flex-shrink: 0;
-        }
-
-        .brand-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #3c3c3c;
-        }
-
-        .brand-sub {
-            font-size: 11px;
-            font-weight: 700;
-            color: #777;
-        }
-
-        .sidebar-section {
-            margin-bottom: 16px;
-        }
-
-        .sidebar-label {
-            font-size: 10px;
-            font-weight: 900;
-            color: #afafaf;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            padding: 8px 12px 6px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 800;
-            color: #777;
-            cursor: pointer;
-            text-decoration: none;
-            margin-bottom: 2px;
-            transition: background .15s;
-            position: relative;
-        }
-
-        .nav-item:hover {
-            background: #fefcf5;
-            color: #3c3c3c;
-        }
-
-        .nav-item.active {
-            background: #dcf4ff;
-            color: #0f8fd6;
-        }
-
-        .nav-item.active .nav-icon {
-            color: #1cb0f6;
-        }
-
-        .nav-icon {
-            font-size: 22px;
-            color: #afafaf;
-            flex-shrink: 0;
-        }
-
-        .nav-badge {
-            margin-left: auto;
-            background: #ff4b4b;
-            color: #fff;
-            font-size: 10px;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 20px;
-            box-shadow: 0 2px 0 #d33;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 12px;
-            border-top: 3px solid #f0eee5;
-        }
-
-        /* ═══════════ MAIN ═══════════ */
-        .main {
-            padding: 24px 32px 60px;
-            max-width: 1000px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* Topbar */
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .greeting {
-            font-size: 26px;
-            font-weight: 900;
-            color: #3c3c3c;
-            line-height: 1.1;
-        }
-
-        .greeting-sub {
-            font-size: 13px;
-            font-weight: 700;
-            color: #777;
-            margin-top: 4px;
-        }
-
-        .btn-add {
-            background: #58cc02;
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            padding: 12px 20px;
-            font-size: 13px;
-            font-weight: 900;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #43a800;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            font-family: inherit;
-        }
-
-        .btn-add:hover {
-            background: #43a800;
-            color: #fff;
-        }
-
-        .btn-add i {
-            font-size: 16px;
-        }
-
-        /* Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: #fff;
-            border: 2px solid #e5e5e5;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 3px 0 #e5e5e5;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-        }
-
-        .stat-card {
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-        }
-
-        .stat-card:hover {
-            background: #fefcf5;
-        }
-
-        .stat-card.warn {
-            background: #fff4e5;
-            border-color: #ffc107;
-            box-shadow: 0 3px 0 #e0a800;
-        }
-
-        .stat-card.ok {
-            background: #e8f9d5;
-            border-color: #89e219;
-            box-shadow: 0 3px 0 #58cc02;
-        }
-
-        .stat-card.info {
-            background: #dcf4ff;
-            border-color: #7dd3fc;
-            box-shadow: 0 3px 0 #1cb0f6;
-        }
-
-        .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .icon-blue {
-            background: linear-gradient(135deg, #1cb0f6, #0f8fd6);
-            box-shadow: 0 3px 0 #0f8fd6;
-        }
-
-        .icon-warn {
-            background: linear-gradient(135deg, #ffc107, #e0a800);
-            box-shadow: 0 3px 0 #e0a800;
-        }
-
-        .icon-ok {
-            background: linear-gradient(135deg, #58cc02, #43a800);
-            box-shadow: 0 3px 0 #43a800;
-        }
-
-        .icon-orange {
-            background: linear-gradient(135deg, #ff9600, #ff6b35);
-            box-shadow: 0 3px 0 #cc5028;
-        }
-
-        .stat-info {
-            flex: 1;
-        }
-
-        .stat-num {
-            font-size: 26px;
-            font-weight: 900;
-            color: #3c3c3c;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            font-weight: 800;
-            color: #777;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            margin-top: 3px;
-        }
-
-        /* Buscador */
-        .search-box {
-            background: #fff;
-            border: 2px solid #e5e5e5;
-            border-radius: 16px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 3px 0 #e5e5e5;
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            color: #3c3c3c;
-            background: transparent;
-        }
-
-        .search-box input::placeholder {
-            color: #c4c4c4;
-        }
-
-        .search-box i {
-            color: #afafaf;
-            font-size: 20px;
-        }
-
-        /* Section title */
-        .section-title {
-            font-size: 11px;
-            font-weight: 900;
-            color: #afafaf;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            padding: 8px 4px 10px;
-        }
-
-        /* Lista de alumnos */
-        .alumnos-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .alumno-card {
-            background: #fff;
-            border: 2px solid #e5e5e5;
-            border-radius: 16px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 3px 0 #e5e5e5;
-            text-decoration: none;
-            color: inherit;
-            transition: background .15s;
-        }
-
-        .alumno-card:hover {
-            background: #fefcf5;
-        }
-
-        .alumno-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 900;
-            font-size: 16px;
-            border: 3px solid rgba(0, 0, 0, .08);
-            flex-shrink: 0;
-        }
-
-        /* Colores rotativos para avatares */
-        .av-1 {
-            background: linear-gradient(135deg, #ff9600, #ff6b35);
-        }
-
-        .av-2 {
-            background: linear-gradient(135deg, #58cc02, #43a800);
-        }
-
-        .av-3 {
-            background: linear-gradient(135deg, #a855f7, #7c3aed);
-        }
-
-        .av-4 {
-            background: linear-gradient(135deg, #1cb0f6, #0f8fd6);
-        }
-
-        .av-5 {
-            background: linear-gradient(135deg, #ffc107, #e0a800);
-        }
-
-        .av-6 {
-            background: linear-gradient(135deg, #ff4b4b, #d33);
-        }
-
-        .alumno-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .alumno-nombre {
-            font-size: 15px;
-            font-weight: 900;
-            color: #3c3c3c;
-        }
-
-        .alumno-curp {
-            font-size: 11px;
-            font-weight: 800;
-            color: #777;
-            font-family: monospace;
-            margin-top: 2px;
-        }
-
-        .alumno-arrow {
-            color: #c4c4c4;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        /* Empty */
-        .empty {
-            background: #fff;
-            border: 2px solid #e5e5e5;
-            border-radius: 20px;
-            padding: 60px 20px;
-            text-align: center;
-            box-shadow: 0 3px 0 #e5e5e5;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            background: #f7f7f7;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            color: #afafaf;
-        }
-
-        .empty-icon i {
-            font-size: 40px;
-        }
-
-        .empty-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #3c3c3c;
-            margin-bottom: 4px;
-        }
-
-        .empty-text {
-            font-size: 13px;
-            font-weight: 700;
-            color: #777;
-        }
-
-        /* Flash */
-        .flash {
-            margin-bottom: 16px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            font-size: 13px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 3px 0 rgba(0, 0, 0, .08);
-            background: #e8f9d5;
-            border: 2px solid #89e219;
-            color: #58a002;
-        }
-
-        .flash::before {
-            content: "✓";
-            font-size: 16px;
-        }
-
-        /* Modal nuevo alumno */
-        .modal-bg {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .5);
-            z-index: 100;
-            padding: 20px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-bg.active {
-            display: flex;
-        }
-
-        .modal {
-            background: #fff;
-            border-radius: 20px;
-            max-width: 480px;
-            width: 100%;
-            overflow: hidden;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, .2);
-        }
-
-        .modal-header {
-            padding: 16px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #fff;
-            background: linear-gradient(135deg, #58cc02, #43a800);
-        }
-
-        .modal-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, .25);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .modal-title {
-            font-size: 16px;
-            font-weight: 900;
-            flex: 1;
-        }
-
-        .modal-close {
-            width: 32px;
-            height: 32px;
-            background: rgba(255, 255, 255, .2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            cursor: pointer;
-            border: none;
-        }
-
-        .modal-body {
-            padding: 20px 18px;
-        }
-
-        .form-label {
-            font-size: 12px;
-            font-weight: 900;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 14px;
-            background: #fefcf5;
-            border: 2px solid #e5e5e5;
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            color: #3c3c3c;
-            outline: none;
-            margin-bottom: 14px;
-        }
-
-        .form-input:focus {
-            border-color: #58cc02;
-            background: #fff;
-        }
-
-        .form-input::placeholder {
-            color: #c4c4c4;
-            font-weight: 600;
-        }
-
-        .form-hint {
-            font-size: 11px;
-            font-weight: 700;
-            color: #afafaf;
-            margin-top: -10px;
-            margin-bottom: 14px;
-        }
-
-        .btn-guardar {
-            width: 100%;
-            padding: 14px;
-            background: #58cc02;
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 900;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #43a800;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-family: inherit;
-        }
-
-        .btn-guardar:hover {
-            background: #43a800;
-        }
-
-        /* Responsive */
-        @media (max-width:900px) {
-            .layout {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: fixed;
-                bottom: 0;
-                top: auto;
-                left: 0;
-                right: 0;
-                height: auto;
-                flex-direction: row;
-                padding: 8px;
-                border-right: none;
-                border-top: 3px solid #f0eee5;
-                overflow-x: auto;
-                z-index: 50;
-            }
-
-            .sidebar-brand,
-            .sidebar-label,
-            .sidebar-footer {
-                display: none;
-            }
-
-            .sidebar-section {
-                margin: 0;
-                display: flex;
-                gap: 2px;
-            }
-
-            .nav-item {
-                flex-direction: column;
-                padding: 8px 12px;
-                font-size: 9px;
-                gap: 2px;
-                min-width: 64px;
-                text-align: center;
-            }
-
-            .nav-icon {
-                font-size: 20px;
-            }
-
-            .nav-item span:not(.nav-icon) {
-                display: none;
-            }
-
-            .nav-badge {
-                position: absolute;
-                top: 2px;
-                right: 8px;
-                font-size: 8px;
-                padding: 1px 5px;
-            }
-
-            .main {
-                padding: 16px;
-                padding-bottom: 100px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .greeting {
-                font-size: 20px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="layout">
-
-        <!-- ═══════════ SIDEBAR ═══════════ -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
-                <div>
-                    <div class="brand-title">Panel docente</div>
-                    <div class="brand-sub">	Docente {{ DOCENTE }}i</div>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-label">Grupo</div>
-                <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item active">
-                    <i class="ti ti-home nav-icon"></i>
-                    <span>Inicio</span>
-                </a>
-                <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item">
-                    <i class="ti ti-users nav-icon"></i>
-                    <span>Alumnos</span>
-                </a>
-                <a href="{{ url_for('admin.admin_calificaciones') }}" class="nav-item">
-                    <i class="ti ti-chart-bar nav-icon"></i>
-                    <span>Calificaciones</span>
-                </a>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-label">Comunicación</div>
-                <a href="{{ url_for('admin.admin_mensajes') }}" class="nav-item">
-                    <i class="ti ti-messages nav-icon"></i>
-                    <span>Mensajes de padres</span>
-                </a>
-                <a href="{{ url_for('admin.admin_avisos_padres') }}" class="nav-item">
-                    <i class="ti ti-notes nav-icon"></i>
-                    <span>Avisos de padres</span>
-                </a>
-                <a href="{{ url_for('admin.admin_avisos') }}" class="nav-item">
-                    <i class="ti ti-speakerphone nav-icon"></i>
-                    <span>Publicar aviso</span>
-                </a>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-label">Registros</div>
-                <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="nav-item">
-                    <i class="ti ti-alert-triangle nav-icon"></i>
-                    <span>Todas las incidencias</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <i class="ti ti-photo nav-icon"></i>
-                    <span>Álbumes de fotos</span>
-                </a>
-                <a href="{{ url_for('admin.admin_accesos') }}" class="nav-item">
-                    <i class="ti ti-login nav-icon"></i>
-                    <span>Accesos al sistema</span>
-                </a>
-            </div>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-label">Personal</div>
-                <a href="#" class="nav-item">
-                    <i class="ti ti-user nav-icon"></i>
-                    <span>Mi cuenta</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <i class="ti ti-settings nav-icon"></i>
-                    <span>Configuración</span>
-                </a>
-                <a href="{{ url_for('admin.admin_logout') }}" class="nav-item" style="color:#ff4b4b;">
-                    <i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i>
-                    <span>Cerrar sesión</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- ═══════════ MAIN ═══════════ -->
-        <main class="main">
-
-            <div class="topbar">
-                <div>
-                    <div class="greeting">¡Bienvenida, maestra!</div>
-                    <div class="greeting-sub">Aquí puedes gestionar tu grupo</div>
-                </div>
-                <button class="btn-add" onclick="abrirModal()">
-                    <i class="ti ti-plus"></i> Nuevo alumno
-                </button>
-            </div>
-
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}{% for msg in messages %}
-            <div class="flash">{{ msg }}</div>
-            {% endfor %}{% endif %}
-            {% endwith %}
-
-            <div class="stats-grid">
-                <a href="{{ url_for('admin.admin_dashboard') }}" class="stat-card info">
-                    <div class="stat-icon icon-blue"><i class="ti ti-users" style="font-size:22px;"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-num">{{ alumnos | length }}</div>
-                        <div class="stat-label">Alumnos</div>
-                    </div>
-                </a>
-                <a href="{{ url_for('admin.admin_mensajes') }}" class="stat-card">
-                    <div class="stat-icon icon-orange"><i class="ti ti-message" style="font-size:22px;"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-num">{{ mensajes_pendientes }}</div>
-                        <div class="stat-label">Mensajes</div>
-                    </div>
-                </a>
-                <a href="{{ url_for('admin.admin_avisos_padres') }}" class="stat-card warn">
-                    <div class="stat-icon icon-warn"><i class="ti ti-notes" style="font-size:22px;"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-num">{{ avisos_pendientes }}</div>
-                        <div class="stat-label">Avisos</div>
-                    </div>
-                </a>
-                <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes" class="stat-card ok">
-                    <div class="stat-icon icon-ok"><i class="ti ti-alert-triangle" style="font-size:22px;"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-num">{{ incidencias_sin_firmar }}</div>
-                        <div class="stat-label">Sin firmar</div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="search-box">
-                <i class="ti ti-search"></i>
-                <input type="text" id="buscador" placeholder="Buscar alumno por nombre o CURP..."
-                    oninput="filtrarAlumnos()">
-            </div>
-
-            <div class="section-title">Lista de alumnos</div>
-
-            {% if alumnos %}
-            <div class="alumnos-list" id="alumnosList">
-                {% for alumno in alumnos %}
-                <a href="{{ url_for('admin.admin_expediente', id_alumno=alumno.id) }}" class="alumno-card"
-                    data-nombre="{{ alumno.nombre | lower }}" data-curp="{{ alumno.curp | lower }}">
-                    <div class="alumno-avatar av-{{ (loop.index0 % 6) + 1 }}">
-                        {{ alumno.nombre[:2] | upper }}
-                    </div>
-                    <div class="alumno-info">
-                        <div class="alumno-nombre">{{ alumno.nombre }}</div>
-                        <div class="alumno-curp">{{ alumno.curp }}</div>
-                    </div>
-                    <i class="ti ti-chevron-right alumno-arrow"></i>
-                </a>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty">
-                <div class="empty-icon"><i class="ti ti-users-off"></i></div>
-                <div class="empty-title">No hay alumnos registrados</div>
-                <div class="empty-text">Agrega tu primer alumno con el botón de arriba.</div>
-            </div>
-            {% endif %}
-
-        </main>
+{% extends "base_admin.html" %}
+{% set activo = 'inicio' %}
+
+{% block titulo %}Inicio{% endblock %}
+
+{% block css_extra %}
+<style>
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+    .stat-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:16px;box-shadow:0 3px 0 #e5e5e5;display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;}
+    .stat-card:hover{background:#fefcf5;}
+    .stat-card.warn{background:#fff4e5;border-color:#ffc107;box-shadow:0 3px 0 #e0a800;}
+    .stat-card.ok{background:#e8f9d5;border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
+    .stat-card.info{background:#dcf4ff;border-color:#7dd3fc;box-shadow:0 3px 0 #1cb0f6;}
+    .stat-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+    .stat-num{font-size:26px;font-weight:900;color:#3c3c3c;line-height:1;}
+    .stat-label{font-size:11px;font-weight:800;color:#777;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+
+    .search-box{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:20px;}
+    .search-box input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;background:transparent;}
+    .search-box input::placeholder{color:#c4c4c4;}
+    .search-box i{color:#afafaf;font-size:20px;}
+
+    .section-title{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 4px 10px;}
+
+    .alumno-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;text-decoration:none;color:inherit;margin-bottom:10px;}
+    .alumno-card:hover{background:#fefcf5;}
+    .alumno-avatar{width:52px;height:52px;border-radius:16px;font-size:16px;}
+    .alumno-info{flex:1;min-width:0;}
+    .alumno-nombre{font-size:15px;font-weight:900;color:#3c3c3c;}
+    .alumno-curp{font-size:11px;font-weight:800;color:#777;font-family:monospace;margin-top:2px;}
+    .alumno-arrow{color:#c4c4c4;font-size:20px;flex-shrink:0;}
+
+    .btn-add{background:#58cc02;color:#fff;border:none;border-radius:14px;padding:12px 20px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #43a800;text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:8px;font-family:inherit;margin-left:auto;}
+    .btn-add:hover{background:#43a800;}
+
+    @media (max-width:900px){ .stats-grid{grid-template-columns:repeat(2,1fr);} }
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="topbar">
+    <div>
+        <div class="page-title">¡Bienvenida, maestra!</div>
+        <div class="page-sub">Aquí puedes gestionar tu grupo · {{ GRUPO }}</div>
     </div>
+    <button class="btn-add" onclick="abrirModal()">
+        <i class="ti ti-plus" style="font-size:16px;"></i> Nuevo alumno
+    </button>
+</div>
+{% endblock %}
 
-    <!-- Modal Nuevo alumno -->
-    <div class="modal-bg" id="modalBg">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-icon"><i class="ti ti-user-plus" style="font-size:22px;"></i></div>
-                <div class="modal-title">Registrar nuevo alumno</div>
-                <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x"
-                        style="font-size:18px;"></i></button>
-            </div>
-            <div class="modal-body">
-                <form action="{{ url_for('admin.nuevo_alumno') }}" method="POST">
-                    <label class="form-label">CURP (10 caracteres)</label>
-                    <input type="text" name="curp" class="form-input" pattern="[A-Za-z0-9]{10}" maxlength="10" required
-                        placeholder="MABC010101" style="text-transform:uppercase;">
-                    <div class="form-hint">Primeros 10 caracteres del CURP del alumno</div>
+{% block contenido %}
 
-                    <label class="form-label">Nombre corto</label>
-                    <input type="text" name="nombre" class="form-input" required placeholder="Ej: Juan P.">
-                    <div class="form-hint">Solo nombre e inicial del apellido</div>
+<div class="stats-grid">
+    <a href="{{ url_for('admin.admin_dashboard') }}" class="stat-card info">
+        <div class="stat-icon ic-azul"><i class="ti ti-users" style="font-size:22px;"></i></div>
+        <div>
+            <div class="stat-num">{{ alumnos | length }}</div>
+            <div class="stat-label">Alumnos</div>
+        </div>
+    </a>
+    <a href="{{ url_for('admin.admin_mensajes') }}" class="stat-card">
+        <div class="stat-icon ic-naranja"><i class="ti ti-message" style="font-size:22px;"></i></div>
+        <div>
+            <div class="stat-num">{{ mensajes_pendientes }}</div>
+            <div class="stat-label">Mensajes</div>
+        </div>
+    </a>
+    <a href="{{ url_for('admin.admin_avisos_padres') }}" class="stat-card warn">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#ffc107,#e0a800);box-shadow:0 3px 0 #e0a800;"><i class="ti ti-notes" style="font-size:22px;"></i></div>
+        <div>
+            <div class="stat-num">{{ avisos_pendientes }}</div>
+            <div class="stat-label">Avisos</div>
+        </div>
+    </a>
+    <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes" class="stat-card ok">
+        <div class="stat-icon ic-verde"><i class="ti ti-alert-triangle" style="font-size:22px;"></i></div>
+        <div>
+            <div class="stat-num">{{ incidencias_sin_firmar }}</div>
+            <div class="stat-label">Sin firmar</div>
+        </div>
+    </a>
+</div>
 
-                    <label class="form-label">Contraseña de acceso</label>
-                    <input type="text" name="password" class="form-input" value="alumno2024" required>
+<div class="search-box">
+    <i class="ti ti-search"></i>
+    <input type="text" id="buscador" placeholder="Buscar alumno por nombre o CURP..." oninput="filtrarAlumnos()">
+</div>
 
-                    <label class="form-label">Correo del padre / madre</label>
-                    <input type="email" name="correo_padre" class="form-input" placeholder="papa@gmail.com" required>
-                    <div class="form-hint">Para notificaciones automáticas</div>
+<div class="section-title">Lista de alumnos</div>
 
-                    <button type="submit" class="btn-guardar">
-                        <i class="ti ti-check" style="font-size:18px;"></i> Registrar alumno
-                    </button>
-                </form>
-            </div>
+{% if alumnos %}
+<div id="alumnosList">
+    {% for alumno in alumnos %}
+    <a href="{{ url_for('admin.admin_expediente', id_alumno=alumno.id) }}"
+       class="alumno-card"
+       data-nombre="{{ alumno.nombre | lower }}"
+       data-curp="{{ alumno.curp | lower }}">
+        <div class="avatar alumno-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ alumno.nombre[:2] | upper }}</div>
+        <div class="alumno-info">
+            <div class="alumno-nombre">{{ alumno.nombre }}</div>
+            <div class="alumno-curp">{{ alumno.curp }}</div>
+        </div>
+        <i class="ti ti-chevron-right alumno-arrow"></i>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+    <div class="empty-icon"><i class="ti ti-users-off"></i></div>
+    <div class="empty-title">No hay alumnos registrados</div>
+    <div class="empty-text">Agrega tu primer alumno con el botón de arriba.</div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block modales %}
+<div class="modal-bg" id="modalBg">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon"><i class="ti ti-user-plus" style="font-size:22px;"></i></div>
+            <div class="modal-title">Registrar nuevo alumno</div>
+            <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x" style="font-size:18px;"></i></button>
+        </div>
+        <div class="modal-body">
+            <form action="{{ url_for('admin.nuevo_alumno') }}" method="POST">
+                <label class="form-label">CURP (10 caracteres)</label>
+                <input type="text" name="curp" class="form-input" pattern="[A-Za-z0-9]{10}" maxlength="10" required placeholder="MABC010101" style="text-transform:uppercase;">
+                <div class="form-hint">Primeros 10 caracteres del CURP del alumno</div>
+
+                <label class="form-label">Nombre corto</label>
+                <input type="text" name="nombre" class="form-input" required placeholder="Ej: Juan P.">
+                <div class="form-hint">Solo nombre e inicial del apellido</div>
+
+                <label class="form-label">Contraseña de acceso</label>
+                <input type="text" name="password" class="form-input" value="alumno2024" required>
+
+                <label class="form-label">Correo del padre / madre</label>
+                <input type="email" name="correo_padre" class="form-input" placeholder="papa@gmail.com" required>
+                <div class="form-hint">Para notificaciones automáticas</div>
+
+                <button type="submit" class="btn-save">
+                    <i class="ti ti-check" style="font-size:18px;"></i> Registrar alumno
+                </button>
+            </form>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        function abrirModal() {
-            document.getElementById('modalBg').classList.add('active');
-        }
-        function cerrarModal() {
-            document.getElementById('modalBg').classList.remove('active');
-        }
-        document.getElementById('modalBg').addEventListener('click', function (e) {
-            if (e.target === this) cerrarModal();
+{% block js_extra %}
+<script>
+    function abrirModal() { document.getElementById('modalBg').classList.add('active'); }
+    function cerrarModal() { document.getElementById('modalBg').classList.remove('active'); }
+    document.getElementById('modalBg').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModal();
+    });
+
+    function filtrarAlumnos() {
+        var texto = document.getElementById('buscador').value.toLowerCase();
+        document.querySelectorAll('.alumno-card').forEach(function(card) {
+            var coincide = card.dataset.nombre.includes(texto) || card.dataset.curp.includes(texto);
+            card.style.display = coincide ? 'flex' : 'none';
         });
-
-        function filtrarAlumnos() {
-            var texto = document.getElementById('buscador').value.toLowerCase();
-            document.querySelectorAll('.alumno-card').forEach(function (card) {
-                var nombre = card.dataset.nombre;
-                var curp = card.dataset.curp;
-                if (nombre.includes(texto) || curp.includes(texto)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-    </script>
-
-</body>
-
-</html>
+    }
+</script>
+{% endblock %}

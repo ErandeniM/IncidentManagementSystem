@@ -1,193 +1,95 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de accesos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
-        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
-        .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+{% extends "base_admin.html" %}
+{% set activo = 'accesos' %}
 
-        /* Sidebar */
-        .sidebar{background:#fff;border-right:3px solid #f0eee5;padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
-        .sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;border-bottom:3px solid #f0eee5;margin-bottom:12px;}
-        .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#1cb0f6,#0f8fd6);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #0f8fd6;flex-shrink:0;}
-        .brand-title{font-size:16px;font-weight:900;color:#3c3c3c;}
-        .brand-sub{font-size:11px;font-weight:700;color:#777;}
-        .sidebar-section{margin-bottom:16px;}
-        .sidebar-label{font-size:10px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px 6px;}
-        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#777;text-decoration:none;margin-bottom:2px;}
-        .nav-item:hover{background:#fefcf5;color:#3c3c3c;}
-        .nav-item.active{background:#dcf4ff;color:#0f8fd6;}
-        .nav-item.active .nav-icon{color:#1cb0f6;}
-        .nav-icon{font-size:22px;color:#afafaf;flex-shrink:0;}
-        .sidebar-footer{margin-top:auto;padding-top:12px;border-top:3px solid #f0eee5;}
+{% block titulo %}Registro de accesos{% endblock %}
 
-        /* Main */
-        .main{padding:24px 32px 60px;max-width:900px;margin:0 auto;width:100%;}
-        .topbar{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
-        .back-btn{width:44px;height:44px;background:#fff;border:2px solid #e5e5e5;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;box-shadow:0 3px 0 #e5e5e5;flex-shrink:0;}
-        .page-title{font-size:24px;font-weight:900;color:#3c3c3c;}
-        .page-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
-        .page-icon{width:44px;height:44px;background:linear-gradient(135deg,#a855f7,#7c3aed);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 0 #7c3aed;margin-left:auto;}
+{% block css_extra %}
+<style>
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+    .stat-mini{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
+    .stat-mini-num{font-size:24px;font-weight:900;color:#3c3c3c;line-height:1;}
+    .stat-mini-label{font-size:11px;font-weight:800;color:#777;text-transform:uppercase;margin-top:4px;letter-spacing:.05em;}
 
-        /* Stats mini */
-        .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-        .stat-mini{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
-        .stat-mini-num{font-size:24px;font-weight:900;color:#3c3c3c;line-height:1;}
-        .stat-mini-label{font-size:11px;font-weight:800;color:#777;text-transform:uppercase;margin-top:4px;letter-spacing:.05em;}
+    .acceso-row{display:flex;align-items:center;gap:12px;padding:12px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;margin-bottom:8px;box-shadow:0 2px 0 #e5e5e5;}
+    .acceso-avatar{width:44px;height:44px;font-size:14px;}
+    .acceso-info{flex:1;min-width:0;}
+    .acceso-nombre{font-size:14px;font-weight:900;color:#3c3c3c;}
+    .acceso-curp{font-size:11px;font-weight:800;color:#777;font-family:monospace;margin-top:2px;}
+    .acceso-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+    .acceso-fecha{font-size:11px;font-weight:800;color:#3c3c3c;display:flex;align-items:center;gap:4px;}
+    .acceso-fecha i{color:#7c3aed;font-size:12px;}
+    .acceso-ip{font-size:10px;font-weight:700;color:#afafaf;font-family:monospace;background:#f2f2f2;padding:2px 8px;border-radius:8px;}
 
-        /* Lista accesos */
-        .accesos-list{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:16px;box-shadow:0 3px 0 #e5e5e5;}
-        .list-title{font-size:14px;font-weight:900;color:#3c3c3c;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
-        .count-chip{background:#a855f7;color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px;box-shadow:0 2px 0 #7c3aed;}
+    @media (max-width:900px){
+        .stats-row{grid-template-columns:1fr;}
+        .acceso-row{flex-wrap:wrap;}
+        .acceso-meta{width:100%;flex-direction:row;justify-content:space-between;}
+    }
+</style>
+{% endblock %}
 
-        .acceso-row{display:flex;align-items:center;gap:12px;padding:12px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;margin-bottom:8px;box-shadow:0 2px 0 #e5e5e5;}
-        .acceso-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;flex-shrink:0;border:2px solid rgba(0,0,0,.08);}
-        .av-1{background:linear-gradient(135deg,#ff9600,#ff6b35);}
-        .av-2{background:linear-gradient(135deg,#58cc02,#43a800);}
-        .av-3{background:linear-gradient(135deg,#a855f7,#7c3aed);}
-        .av-4{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);}
-        .av-5{background:linear-gradient(135deg,#ffc107,#e0a800);}
-        .av-6{background:linear-gradient(135deg,#ff4b4b,#d33);}
+{% block encabezado %}
+<div class="topbar">
+    <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
+    <div>
+        <div class="page-title">Registro de accesos</div>
+        <div class="page-sub">Historial de ingresos al portal por parte de los padres</div>
+    </div>
+    <div class="page-icon ic-morado"><i class="ti ti-login" style="font-size:22px;"></i></div>
+</div>
+{% endblock %}
 
-        .acceso-info{flex:1;min-width:0;}
-        .acceso-nombre{font-size:14px;font-weight:900;color:#3c3c3c;}
-        .acceso-curp{font-size:11px;font-weight:800;color:#777;font-family:monospace;margin-top:2px;}
+{% block contenido %}
 
-        .acceso-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
-        .acceso-fecha{font-size:11px;font-weight:800;color:#3c3c3c;display:flex;align-items:center;gap:4px;}
-        .acceso-fecha i{color:#7c3aed;font-size:12px;}
-        .acceso-ip{font-size:10px;font-weight:700;color:#afafaf;font-family:monospace;background:#f2f2f2;padding:2px 8px;border-radius:8px;}
-
-        /* Empty */
-        .empty{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:60px 20px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
-        .empty-icon{width:80px;height:80px;background:#f7f7f7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#afafaf;}
-        .empty-icon i{font-size:40px;}
-        .empty-title{font-size:16px;font-weight:900;color:#3c3c3c;margin-bottom:4px;}
-        .empty-text{font-size:13px;font-weight:700;color:#777;}
-
-        @media (max-width:900px){
-            .layout{grid-template-columns:1fr;}
-            .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;padding:8px;border-right:none;border-top:3px solid #f0eee5;overflow-x:auto;z-index:50;}
-            .sidebar-brand,.sidebar-label,.sidebar-footer{display:none;}
-            .sidebar-section{margin:0;display:flex;gap:2px;}
-            .nav-item{flex-direction:column;padding:8px 12px;font-size:9px;gap:2px;min-width:64px;text-align:center;}
-            .nav-item span:not(.nav-icon){display:none;}
-            .main{padding:16px;padding-bottom:100px;}
-            .acceso-row{flex-wrap:wrap;}
-            .acceso-meta{width:100%;flex-direction:row;justify-content:space-between;}
-        }
-    </style>
-</head>
-<body>
-
-<div class="layout">
-
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
-            <div>
-                <div class="brand-title">Panel docente</div>
-                <div class="brand-sub">	Docente {{ DOCENTE }}i</div>
-            </div>
+<div class="stats-row">
+    <div class="stat-mini">
+        <div class="stat-mini-num">{{ accesos | length }}</div>
+        <div class="stat-mini-label">Accesos totales</div>
+    </div>
+    <div class="stat-mini">
+        <div class="stat-mini-num">{{ accesos | map(attribute='curp') | unique | list | length }}</div>
+        <div class="stat-mini-label">Padres activos</div>
+    </div>
+    <div class="stat-mini">
+        <div class="stat-mini-num" style="color:#a855f7;">
+            {% if accesos %}{{ accesos[0].fecha[:10] if accesos[0].fecha else '—' }}{% else %}—{% endif %}
         </div>
-
-        <div class="sidebar-section">
-            <div class="sidebar-label">Grupo</div>
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item"><i class="ti ti-home nav-icon"></i><span>Inicio</span></a>
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item"><i class="ti ti-users nav-icon"></i><span>Alumnos</span></a>
-            <a href="{{ url_for('admin.admin_calificaciones') }}" class="nav-item"><i class="ti ti-chart-bar nav-icon"></i><span>Calificaciones</span></a>
-        </div>
-
-        <div class="sidebar-section">
-            <div class="sidebar-label">Comunicación</div>
-            <a href="{{ url_for('admin.admin_mensajes') }}" class="nav-item"><i class="ti ti-messages nav-icon"></i><span>Mensajes de padres</span></a>
-            <a href="{{ url_for('admin.admin_avisos_padres') }}" class="nav-item"><i class="ti ti-notes nav-icon"></i><span>Avisos de padres</span></a>
-            <a href="{{ url_for('admin.admin_avisos') }}" class="nav-item"><i class="ti ti-speakerphone nav-icon"></i><span>Publicar aviso</span></a>
-        </div>
-
-        <div class="sidebar-section">
-            <div class="sidebar-label">Registros</div>
-            <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="nav-item"><i class="ti ti-alert-triangle nav-icon"></i><span>Todas las incidencias</span></a>
-            <a href="{{ url_for('admin.admin_accesos') }}" class="nav-item active"><i class="ti ti-login nav-icon"></i><span>Accesos al sistema</span></a>
-        </div>
-
-        <div class="sidebar-footer">
-            <a href="{{ url_for('admin.admin_logout') }}" class="nav-item" style="color:#ff4b4b;"><i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span></a>
-        </div>
-    </aside>
-
-    <main class="main">
-
-        <div class="topbar">
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
-                <i class="ti ti-arrow-left" style="font-size:20px;"></i>
-            </a>
-            <div>
-                <div class="page-title">Registro de accesos</div>
-                <div class="page-sub">Historial de ingresos al portal por parte de los padres</div>
-            </div>
-            <div class="page-icon"><i class="ti ti-login" style="font-size:22px;"></i></div>
-        </div>
-
-        <div class="stats-row">
-            <div class="stat-mini">
-                <div class="stat-mini-num">{{ accesos | length }}</div>
-                <div class="stat-mini-label">Accesos totales</div>
-            </div>
-            <div class="stat-mini">
-                <div class="stat-mini-num">{{ accesos | map(attribute='id_alumno') | unique | list | length }}</div>
-                <div class="stat-mini-label">Padres activos</div>
-            </div>
-            <div class="stat-mini">
-                <div class="stat-mini-num" style="color:#a855f7;">
-                    {% if accesos %}{{ accesos[0].fecha[:10] if accesos[0].fecha else '—' }}{% else %}—{% endif %}
-                </div>
-                <div class="stat-mini-label">Último acceso</div>
-            </div>
-        </div>
-
-        <div class="accesos-list">
-            <div class="list-title">
-                Historial de accesos
-                <span class="count-chip">{{ accesos | length }}</span>
-            </div>
-
-            {% if accesos %}
-                {% for a in accesos %}
-                <div class="acceso-row">
-                    <div class="acceso-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ a.nombre[:2] | upper }}</div>
-                    <div class="acceso-info">
-                        <div class="acceso-nombre">{{ a.nombre }}</div>
-                        <div class="acceso-curp">{{ a.curp }}</div>
-                    </div>
-                    <div class="acceso-meta">
-                        <div class="acceso-fecha">
-                            <i class="ti ti-clock"></i>
-                            {{ a.fecha[:16] if a.fecha else '' }}
-                        </div>
-                        <div class="acceso-ip">
-                            <i class="ti ti-network" style="font-size:9px;vertical-align:-1px;"></i>
-                            {{ a.ip or '—' }}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty">
-                    <div class="empty-icon"><i class="ti ti-login"></i></div>
-                    <div class="empty-title">No hay accesos registrados</div>
-                    <div class="empty-text">Cuando un padre ingrese al portal aparecerá aquí.</div>
-                </div>
-            {% endif %}
-        </div>
-
-    </main>
+        <div class="stat-mini-label">Último acceso</div>
+    </div>
 </div>
 
-</body>
-</html>
+<div class="card">
+    <div class="list-title">
+        Historial de accesos
+        <span class="count-chip morado">{{ accesos | length }}</span>
+    </div>
+
+    {% if accesos %}
+        {% for a in accesos %}
+        <div class="acceso-row">
+            <div class="avatar acceso-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ a.nombre[:2] | upper }}</div>
+            <div class="acceso-info">
+                <div class="acceso-nombre">{{ a.nombre }}</div>
+                <div class="acceso-curp">{{ a.curp }}</div>
+            </div>
+            <div class="acceso-meta">
+                <div class="acceso-fecha">
+                    <i class="ti ti-clock"></i>
+                    {{ a.fecha[:16] if a.fecha else '' }}
+                </div>
+                <div class="acceso-ip">{{ a.ip or '—' }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            <div class="empty-icon"><i class="ti ti-login"></i></div>
+            <div class="empty-title">No hay accesos registrados</div>
+            <div class="empty-text">Cuando un padre ingrese al portal aparecerá aquí.</div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
