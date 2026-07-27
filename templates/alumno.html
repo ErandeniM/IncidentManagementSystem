@@ -609,10 +609,27 @@
 
         /* ══ TIPO 3: AVISO GENERAL ══ */
         .post-aviso {
-            background: #fff;
-            border: 2px solid #7dd3fc;
-            box-shadow: 0 3px 0 #1cb0f6;
+           background: #f0f9ff;
+                border-color: #bae6fd;
+                box-shadow: 0 3px 0 #7dd3fc;
+                opacity: .85;
         }
+
+        .post-aviso.confirmado {
+                background: #f0f9ff;
+                border-color: #bae6fd;
+                box-shadow: 0 3px 0 #7dd3fc;
+                opacity: .85;
+            }
+
+            .post-aviso.confirmado .post-title {
+                color: #5c7898;
+            }
+
+            .post-aviso.confirmado .aviso-icon-big {
+                background: #7dd3fc;
+                box-shadow: 0 3px 0 #38bdf8;
+            }
 
         .aviso-header {
             padding: 14px 18px 10px;
@@ -1087,7 +1104,7 @@
                 <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
                 <div>
                     <div class="brand-title">Mi Salón</div>
-                    <div class="brand-sub">Grupo 3° A</div>
+                    <div class="brand-sub">{{ GRUPO }} A</div>
                 </div>
             </div>
 
@@ -1149,7 +1166,7 @@
                     <i class="ti ti-user nav-icon"></i>
                     <span>Mi perfil</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="{{ url_for('alumno.configuracion') }}" class="nav-item">
                     <i class="ti ti-settings nav-icon"></i>
                     <span>Configuración</span>
                 </a>
@@ -1213,7 +1230,7 @@
                 <div class="post-header">
                     <div class="post-avatar">EM</div>
                     <div class="post-meta">
-                        <div class="post-author">Maestra Erandeni</div>
+                        <div class="post-author">	Docente {{ DOCENTE }}</div>
                         <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ inc.fecha[:16] if
                             inc.fecha else '' }}</div>
                     </div>
@@ -1254,7 +1271,7 @@
                 <div class="post-header">
                     <div class="post-avatar avatar-em">EM</div>
                     <div class="post-meta">
-                        <div class="post-author">Maestra Erandeni <span class="verified"><i class="ti ti-check"
+                        <div class="post-author">	Docente {{ DOCENTE }}<span class="verified"><i class="ti ti-check"
                                     style="font-size:9px;"></i></span></div>
                         <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ inc.fecha[:16] if
                             inc.fecha else '' }} · Personal para {{ nombre }}</div>
@@ -1289,7 +1306,7 @@
                         <div class="aviso-header-type">
                             {% if av.fecha_actualizado %}Aviso actualizado{% else %}Aviso general{% endif %}
                         </div>
-                        <div class="aviso-header-name">Maestra Erandeni <span class="verified"><i class="ti ti-check"
+                        <div class="aviso-header-name">	Docente {{ DOCENTE }}<span class="verified"><i class="ti ti-check"
                                     style="font-size:9px;"></i></span></div>
                     </div>
                     <div class="aviso-time">{{ av.fecha[:10] if av.fecha else '' }}</div>
@@ -1325,7 +1342,7 @@
                 <div class="actividad-header">
                     <div class="actividad-icon-round"><i class="ti ti-bulb" style="font-size:22px;"></i></div>
                     <div class="post-meta">
-                        <div class="post-author">Maestra Erandeni <span class="verified"><i class="ti ti-check"
+                        <div class="post-author">	Docente {{ DOCENTE }} <span class="verified"><i class="ti ti-check"
                                     style="font-size:9px;"></i></span></div>
                         <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ act.fecha[:16] if
                             act.fecha else '' }} · Para reforzar en casa</div>
@@ -1376,7 +1393,7 @@
                         Aviso importante
                         {% endif %}
                     </div>
-                    <div class="modal-aviso-sub">De la maestra Erandeni</div>
+                    <div class="modal-aviso-sub">De la 	Docente {{ DOCENTE }}</div>
                 </div>
             </div>
 

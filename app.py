@@ -4,6 +4,7 @@ from database import init_db
 from routes.auth import auth_bp
 from routes.alumno import alumno_bp
 from routes.admin import admin_bp
+from config import DOCENTE_NOMBRE, GRUPO_NOMBRE, ESCUELA_NOMBRE
 
 app = Flask(__name__)
 from datetime import datetime, timedelta
@@ -38,6 +39,15 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(alumno_bp)
 app.register_blueprint(admin_bp)
 
+@app.context_processor
+def inyectar_datos_escuela():
+    """Deja estas variables disponibles en TODOS los templates."""
+    return {
+        'DOCENTE': DOCENTE_NOMBRE,
+        'GRUPO':   GRUPO_NOMBRE,
+        'ESCUELA': ESCUELA_NOMBRE,
+    }
+    
 init_db()
 
 if __name__ == '__main__':
