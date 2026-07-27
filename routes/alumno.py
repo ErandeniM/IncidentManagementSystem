@@ -97,7 +97,7 @@ def panel_alumno():
     perfil = conn.execute(
         'SELECT * FROM perfil_alumno WHERE id_alumno = ?', (alumno_id,)
     ).fetchone()
-
+    sin_firmar = sum(1 for i in incidencias if not i['enterado'])
     conn.close()
     return render_template('alumno.html',
                            nombre         = session['nombre'],
@@ -107,7 +107,9 @@ def panel_alumno():
                            perfil         = perfil,
                            actividades    = actividades,
                            avisos         = avisos,
-                           filtro         = filtro)
+                           filtro         = filtro,
+                           sin_firmar=sin_firmar)
+    
 
 
 # ═══════════ DETALLE DE INCIDENCIA ═══════════

@@ -1,1612 +1,355 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ nombre }} — Mi Salón</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Nunito', sans-serif;
-        }
-
-        body {
-            background: #fefcf5;
-            min-height: 100vh;
-            color: #3c3c3c;
-        }
-
-        /* ═══════════ LAYOUT ═══════════ */
-        .layout {
-            display: grid;
-            grid-template-columns: 260px 1fr;
-            min-height: 100vh;
-        }
-
-        /* ═══════════ MENÚ LATERAL ═══════════ */
-        .sidebar {
-            background: #fff;
-            border-right: 3px solid #f0eee5;
-            padding: 20px 12px;
-            display: flex;
-            flex-direction: column;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 8px 20px;
-            border-bottom: 3px solid #f0eee5;
-            margin-bottom: 12px;
-        }
-
-        .brand-icon {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #ff9600, #ff6b35);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 0 #cc5028;
-            flex-shrink: 0;
-        }
-
-        .brand-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #3c3c3c;
-        }
-
-        .brand-sub {
-            font-size: 11px;
-            font-weight: 700;
-            color: #777;
-        }
-
-        .sidebar-section {
-            margin-bottom: 16px;
-        }
-
-        .sidebar-label {
-            font-size: 10px;
-            font-weight: 900;
-            color: #afafaf;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            padding: 8px 12px 6px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 800;
-            color: #777;
-            cursor: pointer;
-            text-decoration: none;
-            margin-bottom: 2px;
-            transition: background .15s;
-            position: relative;
-        }
-
-        .nav-item:hover {
-            background: #fefcf5;
-            color: #3c3c3c;
-        }
-
-        .nav-item.active {
-            background: #dcf4ff;
-            color: #0f8fd6;
-        }
-
-        .nav-item.active .nav-icon {
-            color: #1cb0f6;
-        }
-
-        .nav-icon {
-            font-size: 22px;
-            color: #afafaf;
-            flex-shrink: 0;
-        }
-
-        .nav-item.active .nav-icon {
-            color: #1cb0f6;
-        }
-
-        .nav-badge {
-            margin-left: auto;
-            background: #ff4b4b;
-            color: #fff;
-            font-size: 10px;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 20px;
-            box-shadow: 0 2px 0 #d33;
-        }
-
-        .nav-badge.small {
-            background: #ffc107;
-            color: #8a5a00;
-            box-shadow: 0 2px 0 #e0a800;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 12px;
-            border-top: 3px solid #f0eee5;
-        }
-
-        /* ═══════════ MAIN CONTENT ═══════════ */
-        .main {
-            padding: 24px 32px 60px;
-            max-width: 720px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* Top bar */
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .greeting-block {}
-
-        .greeting {
-            font-size: 24px;
-            font-weight: 900;
-            color: #3c3c3c;
-            line-height: 1.1;
-        }
-
-        .greeting-sub {
-            font-size: 13px;
-            font-weight: 700;
-            color: #777;
-            margin-top: 2px;
-        }
-
-        .topbar-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .icon-btn {
-            width: 44px;
-            height: 44px;
-            background: #fff;
-            border: 2px solid #e5e5e5;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #777;
-            position: relative;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #e5e5e5;
-            text-decoration: none;
-        }
-
-        .icon-btn:hover {
-            background: #fefcf5;
-        }
-
-        .icon-btn i {
-            font-size: 22px;
-        }
-
-        .notif-dot {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            background: #ff4b4b;
-            color: #fff;
-            font-size: 9px;
-            font-weight: 900;
-            padding: 1px 6px;
-            border-radius: 20px;
-            box-shadow: 0 1px 0 #d33;
-        }
-
-        /* Ask box */
-        .ask-box {
-            background: #fff;
-            border: 2px solid #e5e5e5;
-            border-radius: 18px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 3px 0 #e5e5e5;
-            margin-bottom: 20px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .ask-box:hover {
-            background: #fefcf5;
-        }
-
-        .ask-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #58cc02, #43a800);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            flex-shrink: 0;
-            border: 3px solid #43a800;
-        }
-
-        .ask-input-fake {
-            flex: 1;
-            background: #f7f7f7;
-            border-radius: 14px;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #afafaf;
-        }
-
-        .ask-send {
-            width: 40px;
-            height: 40px;
-            background: #1cb0f6;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            flex-shrink: 0;
-            box-shadow: 0 3px 0 #0f8fd6;
-        }
-
-        .ask-send i {
-            font-size: 20px;
-        }
-
-        /* Filtros chips (móvil) */
-        .filters-mobile {
-            display: none;
-            padding: 0 0 16px;
-            gap: 6px;
-            overflow-x: auto;
-        }
-
-        /* ═══════════ POSTS ═══════════ */
-        .post {
-            border-radius: 20px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 3px 0 rgba(0, 0, 0, .08);
-        }
-
-        .post-header {
-            padding: 14px 18px 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .post-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 900;
-            font-size: 14px;
-            border: 3px solid rgba(0, 0, 0, .08);
-            flex-shrink: 0;
-        }
-
-        .avatar-em {
-            background: linear-gradient(135deg, #ff9600, #ff6b35);
-        }
-
-        .post-meta {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .post-author {
-            font-size: 14px;
-            font-weight: 900;
-            color: #3c3c3c;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .verified {
-            width: 16px;
-            height: 16px;
-            background: #1cb0f6;
-            border-radius: 50%;
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-        }
-
-        .post-time {
-            font-size: 11px;
-            font-weight: 700;
-            color: #777;
-            margin-top: 1px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .post-body {
-            padding: 0 18px 12px;
-        }
-
-        .post-title {
-            font-size: 16px;
-            font-weight: 900;
-            margin-bottom: 4px;
-            color: #3c3c3c;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .post-text {
-            font-size: 14px;
-            font-weight: 700;
-            line-height: 1.5;
-            color: #555;
-        }
-
-        .post-footer {
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .action-btn {
-            padding: 9px 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            border: none;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            text-decoration: none;
-        }
-
-        .action-btn i {
-            font-size: 14px;
-        }
-
-        /* ══ TIPO 1: INCIDENCIA URGENTE ══ */
-        .post-urgente {
-            background: #fff;
-            border: 3px solid #ff6b35;
-            box-shadow: 0 3px 0 #cc5028;
-        }
-
-        .urgente-strip {
-            background: linear-gradient(90deg, #ff9600, #ff6b35);
-            color: #fff;
-            padding: 10px 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-        }
-
-        .urgente-strip-icon {
-            width: 26px;
-            height: 26px;
-            background: rgba(255, 255, 255, .25);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .post-urgente .post-title {
-            color: #cc5028;
-            font-size: 16px;
-        }
-
-        .post-urgente .post-time {
-            color: #cc5028;
-            font-weight: 800;
-        }
-
-        .post-urgente .post-footer {
-            background: #fff8f2;
-            border-top: 2px solid #ffe0d0;
-        }
-
-        .btn-firmar {
-            background: #ff6b35;
-            color: #fff;
-            box-shadow: 0 3px 0 #cc5028;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.04);
-            }
-        }
-
-        .privado-tag {
-            font-size: 11px;
-            font-weight: 900;
-            color: #cc5028;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* ══ TIPO 2: LOGRO INDIVIDUAL ══ */
-        .post-logro {
-            background: linear-gradient(135deg, #89e219, #58cc02);
-            border: 3px solid #43a800;
-            box-shadow: 0 3px 0 #43a800;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .post-logro::before {
-            content: "";
-            position: absolute;
-            top: -30px;
-            right: -30px;
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 255, 255, .1);
-            border-radius: 50%;
-        }
-
-        .post-logro::after {
-            content: "";
-            position: absolute;
-            bottom: -40px;
-            left: -40px;
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, .08);
-            border-radius: 50%;
-        }
-
-        .post-logro .post-header,
-        .post-logro .post-body,
-        .post-logro .post-footer {
-            position: relative;
-            z-index: 1;
-        }
-
-        .post-logro .post-avatar {
-            background: #fff;
-            color: #43a800;
-        }
-
-        .post-logro .post-author,
-        .post-logro .post-title {
-            color: #fff;
-        }
-
-        .post-logro .post-title {
-            font-size: 18px;
-        }
-
-        .post-logro .post-time {
-            color: rgba(255, 255, 255, .85);
-        }
-
-        .post-logro .post-text {
-            color: rgba(255, 255, 255, .95);
-        }
-
-        .logro-badge {
-            background: #fff;
-            color: #43a800;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 900;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            box-shadow: 0 2px 0 rgba(0, 0, 0, .1);
-        }
-
-        .logro-hero {
-            background: rgba(255, 255, 255, .15);
-            border: 2px dashed rgba(255, 255, 255, .5);
-            border-radius: 14px;
-            padding: 12px;
-            margin: 0 18px 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .logro-hero-icon {
-            width: 44px;
-            height: 44px;
-            background: #fff;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 0 rgba(0, 0, 0, .15);
-            flex-shrink: 0;
-            color: #43a800;
-        }
-
-        .logro-hero-title {
-            font-size: 13px;
-            font-weight: 900;
-            color: #fff;
-        }
-
-        .logro-hero-sub {
-            font-size: 11px;
-            font-weight: 700;
-            color: rgba(255, 255, 255, .9);
-        }
-
-        .post-logro .post-footer {
-            background: rgba(255, 255, 255, .15);
-            border-top: 2px solid rgba(255, 255, 255, .2);
-        }
-
-        .btn-celebrar {
-            background: #fff;
-            color: #43a800;
-            box-shadow: 0 3px 0 rgba(0, 0, 0, .15);
-        }
-
-        /* ══ TIPO 3: AVISO GENERAL ══ */
-        .post-aviso {
-           background: #f0f9ff;
-                border-color: #bae6fd;
-                box-shadow: 0 3px 0 #7dd3fc;
-                opacity: .85;
-        }
-
-        .post-aviso.confirmado {
-                background: #f0f9ff;
-                border-color: #bae6fd;
-                box-shadow: 0 3px 0 #7dd3fc;
-                opacity: .85;
-            }
-
-            .post-aviso.confirmado .post-title {
-                color: #5c7898;
-            }
-
-            .post-aviso.confirmado .aviso-icon-big {
-                background: #7dd3fc;
-                box-shadow: 0 3px 0 #38bdf8;
-            }
-
-        .aviso-header {
-            padding: 14px 18px 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #dcf4ff;
-            border-bottom: 2px solid #7dd3fc;
-        }
-
-        .aviso-icon-big {
-            width: 44px;
-            height: 44px;
-            background: #1cb0f6;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            box-shadow: 0 3px 0 #0f8fd6;
-            flex-shrink: 0;
-        }
-
-        .aviso-header-text {
-            flex: 1;
-        }
-
-        .aviso-header-type {
-            font-size: 11px;
-            font-weight: 900;
-            color: #0f8fd6;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-        }
-
-        .aviso-header-name {
-            font-size: 14px;
-            font-weight: 900;
-            color: #0a3a6b;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .aviso-time {
-            font-size: 11px;
-            font-weight: 900;
-            color: #0f8fd6;
-            background: #fff;
-            padding: 5px 10px;
-            border-radius: 20px;
-        }
-
-        .post-aviso .post-body {
-            padding-top: 14px;
-        }
-
-        .post-aviso .post-title {
-            color: #0a3a6b;
-        }
-
-        .post-aviso .post-text {
-            color: #3c5570;
-        }
-
-        .evento-card {
-            margin: 0 18px 12px;
-            background: #f0f9ff;
-            border: 2px dashed #7dd3fc;
-            border-radius: 14px;
-            padding: 12px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .evento-fecha {
-            background: #1cb0f6;
-            color: #fff;
-            border-radius: 12px;
-            padding: 8px 12px;
-            text-align: center;
-            box-shadow: 0 3px 0 #0f8fd6;
-            flex-shrink: 0;
-            min-width: 60px;
-        }
-
-        .evento-fecha-dia {
-            font-size: 22px;
-            font-weight: 900;
-            line-height: 1;
-        }
-
-        .evento-fecha-mes {
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-
-        .evento-titulo {
-            font-size: 13px;
-            font-weight: 900;
-            color: #0a3a6b;
-        }
-
-        .evento-detalle {
-            font-size: 11px;
-            font-weight: 700;
-            color: #3c5570;
-            margin-top: 2px;
-        }
-
-        .post-aviso .post-footer {
-            background: #f0f9ff;
-            border-top: 2px solid #dcf4ff;
-        }
-
-        .btn-confirmar {
-            background: #1cb0f6;
-            color: #fff;
-            box-shadow: 0 3px 0 #0f8fd6;
-        }
-
-        .confirm-count {
-            font-size: 11px;
-            font-weight: 900;
-            color: #0f8fd6;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* ══ TIPO 4: ACTIVIDAD/TAREA ══ */
-        .post-actividad {
-            background: #fff;
-            border: 2px solid #ffc107;
-            box-shadow: 0 3px 0 #e0a800;
-            position: relative;
-        }
-
-        .actividad-tag {
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            background: #ffc107;
-            color: #8a5a00;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            box-shadow: 0 2px 0 #e0a800;
-        }
-
-        .actividad-header {
-            padding: 14px 18px 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .actividad-icon-round {
-            width: 40px;
-            height: 40px;
-            background: #fff4d1;
-            border: 2px solid #ffc107;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #e07800;
-            flex-shrink: 0;
-        }
-
-        .post-actividad .post-title {
-            color: #8a5a00;
-        }
-
-        .post-actividad .post-text {
-            color: #5c4a20;
-        }
-
-        .actividad-tarea {
-            margin: 0 18px 12px;
-            background: #fff8e5;
-            border: 2px dashed #ffc107;
-            border-radius: 14px;
-            padding: 12px;
-        }
-
-        .actividad-tarea-label {
-            font-size: 10px;
-            font-weight: 900;
-            color: #e07800;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            margin-bottom: 4px;
-        }
-
-        .actividad-tarea-text {
-            font-size: 13px;
-            font-weight: 700;
-            color: #5c4a20;
-            line-height: 1.4;
-        }
-
-        .post-actividad .post-footer {
-            background: #fffbf0;
-            border-top: 2px solid #ffe89c;
-        }
-
-        .btn-visto {
-            background: transparent;
-            color: #8a5a00;
-            border: 2px solid #ffc107;
-            box-shadow: 0 3px 0 #e0a800;
-        }
-
-        .actividad-opcional-text {
-            font-size: 11px;
-            font-weight: 900;
-            color: #e07800;
-            font-style: italic;
-        }
-
-        /* ══ TIPO 5: LOGRO GRUPAL / ÁLBUM ══ */
-        .post-grupal {
-            background: #fff;
-            border: 2px solid #ce82ff;
-            box-shadow: 0 3px 0 #a855f7;
-        }
-
-        .grupal-strip {
-            background: linear-gradient(90deg, #ce82ff, #a855f7);
-            color: #fff;
-            padding: 10px 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-        }
-
-        .post-grupal .post-title {
-            color: #7c3aed;
-        }
-
-        .post-grupal .post-text {
-            color: #4c1d95;
-        }
-
-        .grupal-photos {
-            padding: 0 18px 12px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-
-        .grupal-photo {
-            aspect-ratio: 1;
-            background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
-            border: 2px solid #ce82ff;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #7c3aed;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .post-grupal .post-footer {
-            background: #faf5ff;
-            border-top: 2px solid #e9d5ff;
-        }
-
-        .btn-reaccionar {
-            background: #f3e8ff;
-            color: #7c3aed;
-            border: 2px solid #ce82ff;
-            box-shadow: 0 3px 0 #a855f7;
-        }
-
-        /* Day divider */
-        .day-divider {
-            padding: 16px 0 12px;
-            font-size: 11px;
-            font-weight: 900;
-            color: #afafaf;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .day-line {
-            flex: 1;
-            height: 2px;
-            background: #f0eee5;
-            border-radius: 2px;
-        }
-
-        /* Empty state */
-        .empty-state {
-            background: #fff;
-            border: 2px solid #e5e5e5;
-            border-radius: 20px;
-            padding: 40px 20px;
-            text-align: center;
-            box-shadow: 0 3px 0 #e5e5e5;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            background: #f7f7f7;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            color: #afafaf;
-        }
-
-        .empty-icon i {
-            font-size: 40px;
-        }
-
-        .empty-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #3c3c3c;
-            margin-bottom: 4px;
-        }
-
-        .empty-text {
-            font-size: 13px;
-            font-weight: 700;
-            color: #777;
-        }
-
-        /* Flash */
-        .flash {
-            margin-bottom: 16px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            font-size: 13px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 3px 0 rgba(0, 0, 0, .08);
-        }
-
-        .flash-ok {
-            background: #e8f9d5;
-            border: 2px solid #89e219;
-            color: #58a002;
-        }
-
-        .flash-ok::before {
-            content: "✓";
-            font-size: 16px;
-        }
-
-        /* Responsive */
-        @media (max-width:900px) {
-            .layout {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: fixed;
-                bottom: 0;
-                top: auto;
-                left: 0;
-                right: 0;
-                height: auto;
-                flex-direction: row;
-                padding: 8px;
-                border-right: none;
-                border-top: 3px solid #f0eee5;
-                overflow-x: auto;
-                z-index: 50;
-            }
-
-            .sidebar-brand,
-            .sidebar-label,
-            .sidebar-footer {
-                display: none;
-            }
-
-            .sidebar-section {
-                margin: 0;
-                display: flex;
-                gap: 2px;
-            }
-
-            .nav-item {
-                flex-direction: column;
-                padding: 8px 12px;
-                font-size: 9px;
-                gap: 2px;
-                min-width: 64px;
-                text-align: center;
-            }
-
-            .nav-icon {
-                font-size: 20px;
-            }
-
-            .nav-item span:not(.nav-icon) {
-                display: none;
-            }
-
-            .nav-item.mobile-visible span:not(.nav-icon) {
-                display: inline;
-            }
-
-            .nav-badge {
-                position: absolute;
-                top: 2px;
-                right: 8px;
-                font-size: 8px;
-                padding: 1px 5px;
-            }
-
-            .main {
-                padding: 16px;
-                padding-bottom: 100px;
-            }
-
-            .filters-mobile {
-                display: flex;
-            }
-
-            .greeting {
-                font-size: 20px;
-            }
-
-            .post-aviso.confirmado {
-                background: #f0f9ff;
-                border-color: #bae6fd;
-                box-shadow: 0 3px 0 #7dd3fc;
-                opacity: .85;
-            }
-
-            .post-aviso.confirmado .post-title {
-                color: #5c7898;
-            }
-
-            .post-aviso.confirmado .aviso-icon-big {
-                background: #7dd3fc;
-                box-shadow: 0 3px 0 #38bdf8;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="layout">
-
-        <!-- ═══════════ SIDEBAR ═══════════ -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
-                <div>
-                    <div class="brand-title">Mi Salón</div>
-                    <div class="brand-sub">{{ GRUPO }} A</div>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-label">Contenido</div>
-                <a href="{{ url_for('alumno.panel_alumno') }}"
-                    class="nav-item {% if filtro == 'todo' %}active{% endif %}">
-                    <i class="ti ti-home nav-icon"></i>
-                    <span>Inicio</span>
-                </a>
-                <a href="{{ url_for('alumno.panel_alumno') }}?filtro=avisos"
-                    class="nav-item {% if filtro == 'avisos' %}active{% endif %}">
-                    <i class="ti ti-speakerphone nav-icon"></i>
-                    <span>Avisos generales</span>
-                </a>
-                <a href="{{ url_for('alumno.panel_alumno') }}?filtro=tareas"
-                    class="nav-item {% if filtro == 'tareas' %}active{% endif %}">
-                    <i class="ti ti-bulb nav-icon"></i>
-                    <span>Tareas</span>
-                </a>
-                <a href="{{ url_for('alumno.panel_alumno') }}?filtro=incidencias"
-                    class="nav-item {% if filtro == 'incidencias' %}active{% endif %}">
-                    <i class="ti ti-alert-triangle nav-icon"></i>
-                    <span>Incidencias</span>
-                    {% set pendientes = incidencias | selectattr('enterado', 'equalto', 0) | list | length %}
-                    {% if pendientes > 0 %}
-                    <span class="nav-badge">{{ pendientes }}</span>
-                    {% endif %}
-                </a>
-                <a href="{{ url_for('alumno.panel_alumno') }}?filtro=logros"
-                    class="nav-item {% if filtro == 'logros' %}active{% endif %}">
-                    <i class="ti ti-star nav-icon"></i>
-                    <span>Logros</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <i class="ti ti-photo nav-icon"></i>
-                    <span>Álbumes</span>
-                </a>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-label">Comunicación</div>
-                <a href="{{ url_for('alumno.chat_maestra') }}" class="nav-item">
-                    <i class="ti ti-message-circle nav-icon"></i>
-                    <span>Preguntar a la maestra</span>
-                    {% if mensajes_nuevos is defined and mensajes_nuevos > 0 %}
-                    <span class="nav-badge">{{ mensajes_nuevos }}</span>
-                    {% endif %}
-                </a>
-                <a href="{{ url_for('alumno.avisar_maestra') }}" class="nav-item">
-                    <i class="ti ti-notes nav-icon"></i>
-                    <span>Avisar a la maestra</span>
-                </a>
-            </div>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-label">Personal</div>
-                <a href="{{ url_for('alumno.mi_perfil') }}" class="nav-item mobile-visible">
-                    <i class="ti ti-user nav-icon"></i>
-                    <span>Mi perfil</span>
-                </a>
-                <a href="{{ url_for('alumno.configuracion') }}" class="nav-item">
-                    <i class="ti ti-settings nav-icon"></i>
-                    <span>Configuración</span>
-                </a>
-                <a href="{{ url_for('auth.logout') }}" class="nav-item" style="color:#ff4b4b;">
-                    <i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i>
-                    <span>Cerrar sesión</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- ═══════════ MAIN ═══════════ -->
-        <main class="main">
-
-            <div class="topbar">
-                <div class="greeting-block">
-                    <div class="greeting">¡Hola! 👋</div>
-                    <div class="greeting-sub">Papá / mamá de {{ nombre }}</div>
-                </div>
-                <div class="topbar-actions">
-                    <a href="#" class="icon-btn">
-                        <i class="ti ti-bell"></i>
-                        {% if pendientes > 0 %}
-                        <span class="notif-dot">{{ pendientes }}</span>
-                        {% endif %}
-                    </a>
-                    <a href="#" class="icon-btn">
-                        <i class="ti ti-message-circle"></i>
-                    </a>
-                </div>
-            </div>
-
-            <a href="{{ url_for('alumno.chat_maestra') }}" class="ask-box">
-                <div class="ask-avatar"><i class="ti ti-message-2" style="font-size:22px;"></i></div>
-                <div class="ask-input-fake">Pregúntale algo a la maestra en privado...</div>
-                <div class="ask-send"><i class="ti ti-arrow-right"></i></div>
-            </a>
-
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}{% for msg in messages %}
-            <div class="flash flash-ok">{{ msg }}</div>
-            {% endfor %}{% endif %}
-            {% endwith %}
-
-            {% if publicaciones %}
-            <div class="day-divider">
-                <div class="day-line"></div>
-                {% if filtro == 'incidencias' %}Incidencias
-                {% elif filtro == 'logros' %}Logros
-                {% elif filtro == 'avisos' %}Avisos generales
-                {% elif filtro == 'tareas' %}Tareas
-                {% else %}Publicaciones recientes{% endif %}
-                <div class="day-line"></div>
-            </div>
-
-            {% for pub in publicaciones %}
-
-            {# ══ LOGRO ══ #}
-            {% if pub.tipo_pub == 'logro' %}
-            {% set inc = pub.datos %}
-            <div class="post post-logro">
-                <div class="post-header">
-                    <div class="post-avatar">EM</div>
-                    <div class="post-meta">
-                        <div class="post-author">	Docente {{ DOCENTE }}</div>
-                        <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ inc.fecha[:16] if
-                            inc.fecha else '' }}</div>
-                    </div>
-                    <span class="logro-badge"><i class="ti ti-sparkles" style="font-size:11px;"></i> Logro #{{
-                        inc.numero }}</span>
-                </div>
-                <div class="post-body">
-                    <div class="post-title"><i class="ti ti-trophy" style="font-size:22px;"></i> ¡{{ nombre }} destacó
-                        hoy!</div>
-                    <div class="post-text">{% if inc.enterado %}Ya firmaste este logro. ¡Sigue celebrando con {{ nombre
-                        }}!{% else %}Toca "Ver detalle" para leer lo que hizo tu hijo/a.{% endif %}</div>
-                </div>
-                <div class="logro-hero">
-                    <div class="logro-hero-icon"><i class="ti ti-star-filled" style="font-size:22px;"></i></div>
-                    <div>
-                        <div class="logro-hero-title">Reconocimiento especial</div>
-                        <div class="logro-hero-sub">Registrado por la maestra</div>
-                    </div>
-                </div>
-                <div class="post-footer">
-                    <span style="font-size:11px;font-weight:900;color:#fff;"><i class="ti ti-heart"
-                            style="font-size:12px;vertical-align:-2px;"></i> Comparte la alegría</span>
-                    <a href="{{ url_for('alumno.ver_incidencia', id_incidencia=inc.id) }}"
-                        class="action-btn btn-celebrar">
-                        <i class="ti ti-confetti"></i> {% if inc.enterado %}Ver{% else %}Ver y firmar{% endif %}
-                    </a>
-                </div>
-            </div>
-
-            {# ══ INCIDENCIA URGENTE ══ #}
-            {% elif pub.tipo_pub == 'incidencia' %}
-            {% set inc = pub.datos %}
-            <div class="post post-urgente">
-                <div class="urgente-strip">
-                    <div class="urgente-strip-icon"><i class="ti ti-alert-circle" style="font-size:16px;"></i></div>
-                    {% if inc.enterado %}Ya firmaste{% else %}Requiere tu firma{% endif %}
-                </div>
-                <div class="post-header">
-                    <div class="post-avatar avatar-em">EM</div>
-                    <div class="post-meta">
-                        <div class="post-author">	Docente {{ DOCENTE }}<span class="verified"><i class="ti ti-check"
-                                    style="font-size:9px;"></i></span></div>
-                        <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ inc.fecha[:16] if
-                            inc.fecha else '' }} · Personal para {{ nombre }}</div>
-                    </div>
-                </div>
-                <div class="post-body">
-                    <div class="post-title">
-                        {% if inc.tipo == 'Caída' %}<i class="ti ti-first-aid-kit"></i>{% elif inc.tipo == 'Llanto' %}<i
-                            class="ti ti-mood-sad"></i>{% elif inc.tipo == 'Comentario' %}<i
-                            class="ti ti-message"></i>{% else %}<i class="ti ti-alert-triangle"></i>{% endif %}
-                        Incidencia #{{ inc.numero }} — {{ inc.tipo or 'General' }}
-                    </div>
-                    <div class="post-text">Toca "{% if inc.enterado %}Ver{% else %}Ver y firmar{% endif %}" para leer el
-                        detalle completo. Solo tú puedes ver este mensaje.</div>
-                </div>
-                <div class="post-footer">
-                    <span class="privado-tag"><i class="ti ti-lock" style="font-size:12px;"></i> Privado</span>
-                    <a href="{{ url_for('alumno.ver_incidencia', id_incidencia=inc.id) }}"
-                        class="action-btn {% if not inc.enterado %}btn-firmar{% else %}btn-visto{% endif %}">
-                        <i class="ti ti-eye"></i> {% if inc.enterado %}Ver detalle{% else %}Ver y firmar{% endif %}
-                    </a>
-                </div>
-            </div>
-
-            {# ══ AVISO GENERAL ══ #}
-            {% elif pub.tipo_pub == 'aviso' %}
-            {% set av = pub.datos %}
-            <div class="post post-aviso {% if av.confirmado_por_padre %}confirmado{% endif %}">
-                <div class="aviso-header">
-                    <div class="aviso-icon-big"><i class="ti ti-speakerphone" style="font-size:22px;"></i></div>
-                    <div class="aviso-header-text">
-                        <div class="aviso-header-type">
-                            {% if av.fecha_actualizado %}Aviso actualizado{% else %}Aviso general{% endif %}
-                        </div>
-                        <div class="aviso-header-name">	Docente {{ DOCENTE }}<span class="verified"><i class="ti ti-check"
-                                    style="font-size:9px;"></i></span></div>
-                    </div>
-                    <div class="aviso-time">{{ av.fecha[:10] if av.fecha else '' }}</div>
-                </div>
-                <div class="post-body">
-                    <div class="post-title">{{ av.titulo }}</div>
-                    <div class="post-text">{{ av.contenido }}</div>
-                </div>
-                <div class="post-footer">
-                    <div class="confirm-count">
-                        {% if av.confirmado_por_padre %}
-                        <i class="ti ti-check" style="font-size:14px;color:#58cc02;"></i> Confirmado
-                        {% else %}
-                        <i class="ti ti-users" style="font-size:14px;"></i> Para todo el grupo
-                        {% endif %}
-                    </div>
-                    {% if not av.confirmado_por_padre %}
-                    <form method="POST" action="{{ url_for('alumno.confirmar_aviso', id_aviso=av.id) }}"
-                        style="margin:0;">
-                        <button type="submit" class="action-btn btn-confirmar">
-                            <i class="ti ti-check"></i> Confirmar
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
-            </div>
-
-            {# ══ TAREA / ACTIVIDAD ══ #}
-            {% elif pub.tipo_pub == 'tarea' %}
-            {% set act = pub.datos %}
-            <div class="post post-actividad">
-                <div class="actividad-tag">{{ act.categoria or 'Opcional' }}</div>
-                <div class="actividad-header">
-                    <div class="actividad-icon-round"><i class="ti ti-bulb" style="font-size:22px;"></i></div>
-                    <div class="post-meta">
-                        <div class="post-author">	Docente {{ DOCENTE }} <span class="verified"><i class="ti ti-check"
-                                    style="font-size:9px;"></i></span></div>
-                        <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ act.fecha[:16] if
-                            act.fecha else '' }} · Para reforzar en casa</div>
-                    </div>
-                </div>
-                <div class="post-body">
-                    <div class="post-title">Actividad recomendada</div>
-                </div>
-                <div class="actividad-tarea">
-                    <div class="actividad-tarea-label"><i class="ti ti-notebook"
-                            style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Instrucción</div>
-                    <div class="actividad-tarea-text">{{ act.actividad }}</div>
-                </div>
-                <div class="post-footer">
-                    <span class="actividad-opcional-text">Sin obligación de entrega</span>
-                    <button class="action-btn btn-visto">
-                        <i class="ti ti-check"></i> Visto
-                    </button>
-                </div>
-            </div>
-            {% endif %}
-
-            {% endfor %}
-
-            {% else %}
-            <div class="empty-state">
-                <div class="empty-icon"><i class="ti ti-mood-smile"></i></div>
-                <div class="empty-title">Todo tranquilo por aquí</div>
-                <div class="empty-text">Cuando la maestra publique algo aparecerá en esta pantalla.</div>
-            </div>
-            {% endif %}
-
-        </main>
+{% extends "base_padre.html" %}
+{% set activo = 'feed' %}
+
+{% block titulo %}{{ nombre }}{% endblock %}
+
+{% block css_extra %}
+<style>
+    .greeting{font-size:24px;font-weight:900;color:#3c3c3c;line-height:1.1;}
+    .greeting-sub{font-size:13px;font-weight:700;color:#777;margin-top:2px;}
+    .topbar-actions{display:flex;gap:8px;align-items:center;margin-left:auto;}
+    .icon-btn{width:44px;height:44px;background:#fff;border:2px solid #e5e5e5;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;position:relative;box-shadow:0 3px 0 #e5e5e5;text-decoration:none;}
+    .icon-btn:hover{background:#fefcf5;}
+    .icon-btn i{font-size:22px;}
+    .notif-dot{position:absolute;top:6px;right:6px;background:#ff4b4b;color:#fff;font-size:9px;font-weight:900;padding:1px 6px;border-radius:20px;box-shadow:0 1px 0 #d33;}
+
+    .ask-box{background:#fff;border:2px solid #e5e5e5;border-radius:18px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:20px;text-decoration:none;}
+    .ask-box:hover{background:#fefcf5;}
+    .ask-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#58cc02,#43a800);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;border:3px solid #43a800;}
+    .ask-input-fake{flex:1;background:#f7f7f7;border-radius:14px;padding:10px 14px;font-size:13px;font-weight:700;color:#afafaf;}
+    .ask-send{width:40px;height:40px;background:#1cb0f6;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 3px 0 #0f8fd6;}
+    .ask-send i{font-size:20px;}
+
+    .day-divider{padding:16px 0 12px;font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:12px;}
+    .day-line{flex:1;height:2px;background:#f0eee5;border-radius:2px;}
+
+    /* ══ POSTS ══ */
+    .post{border-radius:20px;margin-bottom:20px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.08);}
+    .post-header{padding:14px 18px 10px;display:flex;align-items:center;gap:10px;}
+    .post-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;border:3px solid rgba(0,0,0,.08);flex-shrink:0;}
+    .avatar-em{background:linear-gradient(135deg,#ff9600,#ff6b35);}
+    .post-meta{flex:1;min-width:0;}
+    .post-author{font-size:14px;font-weight:900;color:#3c3c3c;display:flex;align-items:center;gap:5px;}
+    .verified{width:16px;height:16px;background:#1cb0f6;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;}
+    .post-time{font-size:11px;font-weight:700;color:#777;margin-top:1px;display:flex;align-items:center;gap:4px;}
+    .post-body{padding:0 18px 12px;}
+    .post-title{font-size:16px;font-weight:900;margin-bottom:4px;color:#3c3c3c;display:flex;align-items:center;gap:6px;}
+    .post-text{font-size:14px;font-weight:700;line-height:1.5;color:#555;}
+    .post-footer{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .action-btn{padding:9px 16px;border-radius:12px;font-size:12px;font-weight:900;display:flex;align-items:center;gap:6px;cursor:pointer;border:none;text-transform:uppercase;letter-spacing:.03em;text-decoration:none;font-family:inherit;}
+    .action-btn i{font-size:14px;}
+
+    /* Incidencia urgente */
+    .post-urgente{background:#fff;border:3px solid #ff6b35;box-shadow:0 3px 0 #cc5028;}
+    .urgente-strip{background:linear-gradient(90deg,#ff9600,#ff6b35);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
+    .urgente-strip-icon{width:26px;height:26px;background:rgba(255,255,255,.25);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .post-urgente .post-title{color:#cc5028;}
+    .post-urgente .post-time{color:#cc5028;font-weight:800;}
+    .post-urgente .post-footer{background:#fff8f2;border-top:2px solid #ffe0d0;}
+    .btn-firmar{background:#ff6b35;color:#fff;box-shadow:0 3px 0 #cc5028;animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+    .privado-tag{font-size:11px;font-weight:900;color:#cc5028;display:flex;align-items:center;gap:4px;}
+    .btn-visto{background:transparent;color:#8a5a00;border:2px solid #ffc107;box-shadow:0 3px 0 #e0a800;}
+
+    /* Logro */
+    .post-logro{background:linear-gradient(135deg,#89e219,#58cc02);border:3px solid #43a800;box-shadow:0 3px 0 #43a800;color:#fff;position:relative;overflow:hidden;}
+    .post-logro::before{content:"";position:absolute;top:-30px;right:-30px;width:150px;height:150px;background:rgba(255,255,255,.1);border-radius:50%;}
+    .post-logro::after{content:"";position:absolute;bottom:-40px;left:-40px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%;}
+    .post-logro .post-header,.post-logro .post-body,.post-logro .post-footer{position:relative;z-index:1;}
+    .post-logro .post-avatar{background:#fff;color:#43a800;}
+    .post-logro .post-author,.post-logro .post-title{color:#fff;}
+    .post-logro .post-title{font-size:18px;}
+    .post-logro .post-time{color:rgba(255,255,255,.85);}
+    .post-logro .post-text{color:rgba(255,255,255,.95);}
+    .logro-badge{background:#fff;color:#43a800;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 0 rgba(0,0,0,.1);}
+    .logro-hero{background:rgba(255,255,255,.15);border:2px dashed rgba(255,255,255,.5);border-radius:14px;padding:12px;margin:0 18px 12px;display:flex;align-items:center;gap:10px;position:relative;z-index:1;}
+    .logro-hero-icon{width:44px;height:44px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.15);flex-shrink:0;color:#43a800;}
+    .logro-hero-title{font-size:13px;font-weight:900;color:#fff;}
+    .logro-hero-sub{font-size:11px;font-weight:700;color:rgba(255,255,255,.9);}
+    .post-logro .post-footer{background:rgba(255,255,255,.15);border-top:2px solid rgba(255,255,255,.2);}
+    .btn-celebrar{background:#fff;color:#43a800;box-shadow:0 3px 0 rgba(0,0,0,.15);}
+
+    /* Aviso general */
+    .post-aviso{background:#fff;border:2px solid #7dd3fc;box-shadow:0 3px 0 #1cb0f6;}
+    .post-aviso.confirmado{background:#f0f9ff;border-color:#bae6fd;box-shadow:0 3px 0 #7dd3fc;opacity:.85;}
+    .post-aviso.confirmado .post-title{color:#5c7898;}
+    .post-aviso.confirmado .aviso-icon-big{background:#7dd3fc;box-shadow:0 3px 0 #38bdf8;}
+    .aviso-header{padding:14px 18px 10px;display:flex;align-items:center;gap:10px;background:#dcf4ff;border-bottom:2px solid #7dd3fc;}
+    .post-aviso.confirmado .aviso-header{background:#f0f9ff;border-bottom-color:#bae6fd;}
+    .aviso-icon-big{width:44px;height:44px;background:#1cb0f6;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 0 #0f8fd6;flex-shrink:0;}
+    .aviso-header-text{flex:1;}
+    .aviso-header-type{font-size:11px;font-weight:900;color:#0f8fd6;text-transform:uppercase;letter-spacing:.1em;}
+    .aviso-header-name{font-size:14px;font-weight:900;color:#0a3a6b;display:flex;align-items:center;gap:5px;}
+    .aviso-time{font-size:11px;font-weight:900;color:#0f8fd6;background:#fff;padding:5px 10px;border-radius:20px;}
+    .post-aviso .post-body{padding-top:14px;}
+    .post-aviso .post-title{color:#0a3a6b;}
+    .post-aviso .post-text{color:#3c5570;}
+    .post-aviso .post-footer{background:#f0f9ff;border-top:2px solid #dcf4ff;}
+    .btn-confirmar{background:#1cb0f6;color:#fff;box-shadow:0 3px 0 #0f8fd6;}
+    .confirm-count{font-size:11px;font-weight:900;color:#0f8fd6;display:flex;align-items:center;gap:5px;}
+
+    /* Tarea */
+    .post-actividad{background:#fff;border:2px solid #ffc107;box-shadow:0 3px 0 #e0a800;position:relative;}
+    .actividad-tag{position:absolute;top:12px;right:16px;background:#ffc107;color:#8a5a00;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 2px 0 #e0a800;}
+    .actividad-header{padding:14px 18px 10px;display:flex;align-items:center;gap:10px;}
+    .actividad-icon-round{width:40px;height:40px;background:#fff4d1;border:2px solid #ffc107;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#e07800;flex-shrink:0;}
+    .post-actividad .post-title{color:#8a5a00;}
+    .actividad-tarea{margin:0 18px 12px;background:#fff8e5;border:2px dashed #ffc107;border-radius:14px;padding:12px;}
+    .actividad-tarea-label{font-size:10px;font-weight:900;color:#e07800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+    .actividad-tarea-text{font-size:13px;font-weight:700;color:#5c4a20;line-height:1.4;}
+    .post-actividad .post-footer{background:#fffbf0;border-top:2px solid #ffe89c;}
+    .actividad-opcional-text{font-size:11px;font-weight:900;color:#e07800;font-style:italic;}
+
+    /* Modal avisos */
+    .modal-aviso-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .modal-aviso-bg.hidden{display:none;}
+    .modal-aviso{background:#fff;border-radius:24px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;}
+    .modal-aviso-header{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);padding:20px;display:flex;align-items:center;gap:14px;color:#fff;}
+    .modal-aviso-icon{width:56px;height:56px;background:rgba(255,255,255,.25);border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .modal-aviso-title{font-size:18px;font-weight:900;line-height:1.2;}
+    .modal-aviso-sub{font-size:12px;font-weight:700;opacity:.9;margin-top:2px;}
+    .modal-aviso-body{padding:20px;overflow-y:auto;}
+    .modal-aviso-item{background:#dcf4ff;border:2px solid #7dd3fc;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 3px 0 #1cb0f6;}
+    .modal-aviso-edit-badge{background:#ffc107;color:#8a5a00;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 2px 0 #e0a800;}
+    .modal-aviso-item-title{font-size:15px;font-weight:900;color:#0a3a6b;margin-bottom:6px;}
+    .modal-aviso-item-text{font-size:13px;font-weight:700;color:#3c5570;line-height:1.4;margin-bottom:12px;}
+    .modal-aviso-btn{width:100%;padding:12px;background:#58cc02;color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 #43a800;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;}
+    .modal-aviso-btn:hover{background:#43a800;}
+    .modal-aviso-close{width:100%;padding:10px;background:transparent;color:#777;border:none;font-size:12px;font-weight:800;cursor:pointer;text-transform:uppercase;margin-top:8px;font-family:inherit;}
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="topbar">
+    <div>
+        <div class="greeting">¡Hola! 👋</div>
+        <div class="greeting-sub">Papá / mamá de {{ nombre }}</div>
     </div>
-    <!-- Modal de avisos pendientes -->
-    {% set avisos_pendientes = publicaciones | selectattr('tipo_pub', 'equalto', 'aviso') | map(attribute='datos') |
-    rejectattr('confirmado_por_padre') | list %}
-    {% if avisos_pendientes %}
-    <div class="modal-aviso-bg" id="modalAvisoBg">
-        <div class="modal-aviso">
-            <div class="modal-aviso-header">
-                <div class="modal-aviso-icon"><i class="ti ti-speakerphone" style="font-size:28px;"></i></div>
-                <div>
-                    <div class="modal-aviso-title">
-                        {% if avisos_pendientes | length > 1 %}
-                        Tienes {{ avisos_pendientes | length }} avisos por confirmar
-                        {% else %}
-                        Aviso importante
-                        {% endif %}
-                    </div>
-                    <div class="modal-aviso-sub">De la 	Docente {{ DOCENTE }}</div>
-                </div>
-            </div>
+    <div class="topbar-actions">
+        <a href="{{ url_for('alumno.panel_alumno') }}?filtro=incidencias" class="icon-btn">
+            <i class="ti ti-bell"></i>
+            {% if sin_firmar > 0 %}<span class="notif-dot">{{ sin_firmar }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('alumno.chat_maestra') }}" class="icon-btn">
+            <i class="ti ti-message-circle"></i>
+            {% if mensajes_nuevos is defined and mensajes_nuevos > 0 %}
+            <span class="notif-dot">{{ mensajes_nuevos }}</span>
+            {% endif %}
+        </a>
+    </div>
+</div>
+{% endblock %}
 
-            <div class="modal-aviso-body">
-                {% for av in avisos_pendientes %}
-                <div class="modal-aviso-item">
-                    {% if av.fecha_actualizado %}
-                    <div class="modal-aviso-edit-badge">
-                        <i class="ti ti-refresh" style="font-size:11px;"></i> Este aviso fue actualizado
-                    </div>
-                    {% endif %}
-                    <div class="modal-aviso-item-title">{{ av.titulo }}</div>
-                    <div class="modal-aviso-item-text">{{ av.contenido }}</div>
-                    <form method="POST" action="{{ url_for('alumno.confirmar_aviso', id_aviso=av.id) }}"
-                        class="modal-aviso-form">
-                        <button type="submit" class="modal-aviso-btn">
-                            <i class="ti ti-check" style="font-size:18px;"></i> Confirmar que leí
-                        </button>
-                    </form>
-                </div>
-                {% endfor %}
+{% block contenido %}
 
-                <button class="modal-aviso-close" onclick="cerrarModalAviso()">
-                    Revisar después
-                </button>
+<a href="{{ url_for('alumno.chat_maestra') }}" class="ask-box">
+    <div class="ask-avatar"><i class="ti ti-message-2" style="font-size:22px;"></i></div>
+    <div class="ask-input-fake">Pregúntale algo a la maestra en privado...</div>
+    <div class="ask-send"><i class="ti ti-arrow-right"></i></div>
+</a>
+
+{% if publicaciones %}
+<div class="day-divider">
+    <div class="day-line"></div>
+    {% if filtro == 'incidencias' %}Incidencias
+    {% elif filtro == 'logros' %}Logros
+    {% elif filtro == 'avisos' %}Avisos generales
+    {% elif filtro == 'tareas' %}Tareas
+    {% else %}Publicaciones recientes{% endif %}
+    <div class="day-line"></div>
+</div>
+
+{% for pub in publicaciones %}
+
+    {# ══ LOGRO ══ #}
+    {% if pub.tipo_pub == 'logro' %}
+    {% set inc = pub.datos %}
+    <div class="post post-logro">
+        <div class="post-header">
+            <div class="post-avatar">{{ DOCENTE[:2] | upper }}</div>
+            <div class="post-meta">
+                <div class="post-author">Maestra {{ DOCENTE }}</div>
+                <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ inc.fecha[:16] if inc.fecha else '' }}</div>
             </div>
+            <span class="logro-badge"><i class="ti ti-sparkles" style="font-size:11px;"></i> Logro #{{ inc.numero }}</span>
+        </div>
+        <div class="post-body">
+            <div class="post-title"><i class="ti ti-trophy" style="font-size:22px;"></i> ¡{{ nombre }} destacó hoy!</div>
+            <div class="post-text">{% if inc.enterado %}Ya firmaste este logro. ¡Sigue celebrando con {{ nombre }}!{% else %}Toca "Ver y firmar" para leer lo que hizo tu hijo/a.{% endif %}</div>
+        </div>
+        <div class="logro-hero">
+            <div class="logro-hero-icon"><i class="ti ti-star-filled" style="font-size:22px;"></i></div>
+            <div>
+                <div class="logro-hero-title">Reconocimiento especial</div>
+                <div class="logro-hero-sub">Registrado por la maestra</div>
+            </div>
+        </div>
+        <div class="post-footer">
+            <span style="font-size:11px;font-weight:900;color:#fff;"><i class="ti ti-heart" style="font-size:12px;vertical-align:-2px;"></i> Comparte la alegría</span>
+            <a href="{{ url_for('alumno.ver_incidencia', id_incidencia=inc.id) }}" class="action-btn btn-celebrar">
+                <i class="ti ti-confetti"></i> {% if inc.enterado %}Ver{% else %}Ver y firmar{% endif %}
+            </a>
         </div>
     </div>
 
-    <style>
-        .modal-aviso-bg {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .6);
-            z-index: 200;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            animation: fadeIn .2s;
-        }
+    {# ══ INCIDENCIA ══ #}
+    {% elif pub.tipo_pub == 'incidencia' %}
+    {% set inc = pub.datos %}
+    <div class="post post-urgente">
+        <div class="urgente-strip">
+            <div class="urgente-strip-icon"><i class="ti ti-alert-circle" style="font-size:16px;"></i></div>
+            {% if inc.enterado %}Ya firmaste{% else %}Requiere tu firma{% endif %}
+        </div>
+        <div class="post-header">
+            <div class="post-avatar avatar-em">{{ DOCENTE[:2] | upper }}</div>
+            <div class="post-meta">
+                <div class="post-author">Maestra {{ DOCENTE }} <span class="verified"><i class="ti ti-check" style="font-size:9px;"></i></span></div>
+                <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ inc.fecha[:16] if inc.fecha else '' }} · Personal para {{ nombre }}</div>
+            </div>
+        </div>
+        <div class="post-body">
+            <div class="post-title">
+                {% if inc.tipo == 'Caída' %}<i class="ti ti-first-aid-kit"></i>
+                {% elif inc.tipo == 'Llanto' %}<i class="ti ti-mood-sad"></i>
+                {% elif inc.tipo == 'Comentario' %}<i class="ti ti-message"></i>
+                {% else %}<i class="ti ti-alert-triangle"></i>{% endif %}
+                Incidencia #{{ inc.numero }} — {{ inc.tipo or 'General' }}
+            </div>
+            <div class="post-text">Toca el botón para leer el detalle completo. Solo tú puedes ver este mensaje.</div>
+        </div>
+        <div class="post-footer">
+            <span class="privado-tag"><i class="ti ti-lock" style="font-size:12px;"></i> Privado</span>
+            <a href="{{ url_for('alumno.ver_incidencia', id_incidencia=inc.id) }}"
+               class="action-btn {% if not inc.enterado %}btn-firmar{% else %}btn-visto{% endif %}">
+                <i class="ti ti-eye"></i> {% if inc.enterado %}Ver detalle{% else %}Ver y firmar{% endif %}
+            </a>
+        </div>
+    </div>
 
-        .modal-aviso-bg.hidden {
-            display: none;
-        }
+    {# ══ AVISO GENERAL ══ #}
+    {% elif pub.tipo_pub == 'aviso' %}
+    {% set av = pub.datos %}
+    <div class="post post-aviso {% if av.confirmado_por_padre %}confirmado{% endif %}">
+        <div class="aviso-header">
+            <div class="aviso-icon-big"><i class="ti ti-speakerphone" style="font-size:22px;"></i></div>
+            <div class="aviso-header-text">
+                <div class="aviso-header-type">
+                    {% if av.fecha_actualizado %}Aviso actualizado{% else %}Aviso general{% endif %}
+                </div>
+                <div class="aviso-header-name">Maestra {{ DOCENTE }} <span class="verified"><i class="ti ti-check" style="font-size:9px;"></i></span></div>
+            </div>
+            <div class="aviso-time">{{ av.fecha[:10] if av.fecha else '' }}</div>
+        </div>
+        <div class="post-body">
+            <div class="post-title">{{ av.titulo }}</div>
+            <div class="post-text">{{ av.contenido }}</div>
+        </div>
+        <div class="post-footer">
+            <div class="confirm-count">
+                {% if av.confirmado_por_padre %}
+                <i class="ti ti-check" style="font-size:14px;color:#58cc02;"></i> Confirmado
+                {% else %}
+                <i class="ti ti-users" style="font-size:14px;"></i> Para todo el grupo
+                {% endif %}
+            </div>
+            {% if not av.confirmado_por_padre %}
+            <form method="POST" action="{{ url_for('alumno.confirmar_aviso', id_aviso=av.id) }}" style="margin:0;">
+                <button type="submit" class="action-btn btn-confirmar">
+                    <i class="ti ti-check"></i> Confirmar
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        .modal-aviso {
-            background: #fff;
-            border-radius: 24px;
-            max-width: 480px;
-            width: 100%;
-            max-height: 85vh;
-            overflow: hidden;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, .3);
-            display: flex;
-            flex-direction: column;
-            animation: slideUp .3s;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-aviso-header {
-            background: linear-gradient(135deg, #1cb0f6, #0f8fd6);
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            color: #fff;
-        }
-
-        .modal-aviso-icon {
-            width: 56px;
-            height: 56px;
-            background: rgba(255, 255, 255, .25);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .modal-aviso-title {
-            font-size: 18px;
-            font-weight: 900;
-            line-height: 1.2;
-        }
-
-        .modal-aviso-sub {
-            font-size: 12px;
-            font-weight: 700;
-            opacity: .9;
-            margin-top: 2px;
-        }
-
-        .modal-aviso-body {
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .modal-aviso-item {
-            background: #dcf4ff;
-            border: 2px solid #7dd3fc;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 3px 0 #1cb0f6;
-        }
-
-        .modal-aviso-edit-badge {
-            background: #ffc107;
-            color: #8a5a00;
-            font-size: 10px;
-            font-weight: 900;
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            box-shadow: 0 2px 0 #e0a800;
-        }
-
-        .modal-aviso-item-title {
-            font-size: 15px;
-            font-weight: 900;
-            color: #0a3a6b;
-            margin-bottom: 6px;
-        }
-
-        .modal-aviso-item-text {
-            font-size: 13px;
-            font-weight: 700;
-            color: #3c5570;
-            line-height: 1.4;
-            margin-bottom: 12px;
-        }
-
-        .modal-aviso-form {
-            margin: 0;
-        }
-
-        .modal-aviso-btn {
-            width: 100%;
-            padding: 12px;
-            background: #58cc02;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 900;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #43a800;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-family: inherit;
-        }
-
-        .modal-aviso-btn:hover {
-            background: #43a800;
-        }
-
-        .modal-aviso-close {
-            width: 100%;
-            padding: 10px;
-            background: transparent;
-            color: #777;
-            border: none;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            margin-top: 8px;
-            font-family: inherit;
-        }
-
-        .modal-aviso-close:hover {
-            color: #3c3c3c;
-        }
-    </style>
-
-    <script>
-        function cerrarModalAviso() {
-            document.getElementById('modalAvisoBg').classList.add('hidden');
-        }
-    </script>
+    {# ══ TAREA ══ #}
+    {% elif pub.tipo_pub == 'tarea' %}
+    {% set act = pub.datos %}
+    <div class="post post-actividad">
+        <div class="actividad-tag">{{ act.categoria or 'Opcional' }}</div>
+        <div class="actividad-header">
+            <div class="actividad-icon-round"><i class="ti ti-bulb" style="font-size:22px;"></i></div>
+            <div class="post-meta">
+                <div class="post-author">Maestra {{ DOCENTE }} <span class="verified"><i class="ti ti-check" style="font-size:9px;"></i></span></div>
+                <div class="post-time"><i class="ti ti-clock" style="font-size:11px;"></i> {{ act.fecha[:16] if act.fecha else '' }} · Para reforzar en casa</div>
+            </div>
+        </div>
+        <div class="post-body">
+            <div class="post-title">Actividad recomendada</div>
+        </div>
+        <div class="actividad-tarea">
+            <div class="actividad-tarea-label">
+                <i class="ti ti-notebook" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Instrucción
+            </div>
+            <div class="actividad-tarea-text">{{ act.actividad }}</div>
+        </div>
+        <div class="post-footer">
+            <span class="actividad-opcional-text">Sin obligación de entrega</span>
+        </div>
+    </div>
     {% endif %}
-</body>
 
-</html>
+{% endfor %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon"><i class="ti ti-mood-smile"></i></div>
+    <div class="empty-title">Todo tranquilo por aquí</div>
+    <div class="empty-text">Cuando la maestra publique algo aparecerá en esta pantalla.</div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block modales %}
+{% set avisos_pendientes = publicaciones | selectattr('tipo_pub', 'equalto', 'aviso') | map(attribute='datos') | rejectattr('confirmado_por_padre') | list %}
+{% if avisos_pendientes %}
+<div class="modal-aviso-bg" id="modalAvisoBg">
+    <div class="modal-aviso">
+        <div class="modal-aviso-header">
+            <div class="modal-aviso-icon"><i class="ti ti-speakerphone" style="font-size:28px;"></i></div>
+            <div>
+                <div class="modal-aviso-title">
+                    {% if avisos_pendientes | length > 1 %}
+                        Tienes {{ avisos_pendientes | length }} avisos por confirmar
+                    {% else %}
+                        Aviso importante
+                    {% endif %}
+                </div>
+                <div class="modal-aviso-sub">De la maestra {{ DOCENTE }}</div>
+            </div>
+        </div>
+
+        <div class="modal-aviso-body">
+            {% for av in avisos_pendientes %}
+            <div class="modal-aviso-item">
+                {% if av.fecha_actualizado %}
+                <div class="modal-aviso-edit-badge">
+                    <i class="ti ti-refresh" style="font-size:11px;"></i> Este aviso fue actualizado
+                </div>
+                {% endif %}
+                <div class="modal-aviso-item-title">{{ av.titulo }}</div>
+                <div class="modal-aviso-item-text">{{ av.contenido }}</div>
+                <form method="POST" action="{{ url_for('alumno.confirmar_aviso', id_aviso=av.id) }}" style="margin:0;">
+                    <button type="submit" class="modal-aviso-btn">
+                        <i class="ti ti-check" style="font-size:18px;"></i> Confirmar que leí
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+
+            <button class="modal-aviso-close" onclick="cerrarModalAviso()">Revisar después</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    function cerrarModalAviso() {
+        var m = document.getElementById('modalAvisoBg');
+        if (m) m.classList.add('hidden');
+    }
+</script>
+{% endblock %}
