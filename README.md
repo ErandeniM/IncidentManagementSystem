@@ -222,8 +222,8 @@ El sistema usa SQLite con 8 tablas:
 
 ## 👩‍💻 Autora
 
-**Erandeni Mendivil**
-Docente de Educación Primaria | Estudiante de Ingeniería en Sistemas
+**Erandeni Mendivil Morales**
+Docente de Educación Primaria | Estudiante de Ingeniería en Sistemas de Información
 Hermosillo, Sonora — México
 
 > Proyecto desarrollado desde una necesidad real del aula, con proyección hacia validación institucional SEC/SEP como herramienta estándar de documentación y comunicación escolar.
@@ -232,4 +232,4 @@ Hermosillo, Sonora — México
 
 ## 📄 Licencia
 
-Este proyecto es de desarrollo personal con fines educativos e institucionales. Todos los derechos reservados © 2025 Erandeni Mendivil.
+Este proyecto es de desarrollo personal con fines educativos e institucionales. Todos los derechos reservados © 2026 Erandeni 
