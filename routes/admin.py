@@ -5,6 +5,9 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from flask import make_response
 import io
+import csv
+import io
+import random
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from database import get_db, hash_password
@@ -712,3 +715,108 @@ def guardar_calificaciones():
         'completo': len(llenas) == len(MATERIAS),
         'promedio': round(sum(llenas) / len(llenas), 1) if llenas else None
     })
+    
+# ═══════════ RESETEAR CONTRASEÑA DE UN PADRE ═══════════
+
+PALABRAS = ['casa', 'sol', 'luna', 'flor', 'mar', 'nube', 'arbol', 'rio', 'cielo', 'campo']
+
+
+def generar_password():
+    """Contraseña simple de dictar por teléfono. Ej: luna-4821"""
+    return f"{random.choice(PALABRAS)}-{random.randint(1000, 9999)}"
+
+
+@admin_bp.route('/alumno/<int:id_alumno>/password', methods=['POST'])
+def resetear_password(id_alumno):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    nueva = request.form.get('password_nueva', '').strip()
+    if len(nueva) < 6:
+        flash('La contraseña debe tener al menos 6 caracteres')
+        return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
+
+    conn = get_db()
+    conn.execute(
+        'UPDATE alumnos SET password_hash = ? WHERE id = ?',
+        (hash_password(nueva), id_alumno)
+    )
+    conn.commit()
+    alumno = conn.execute(
+        'SELECT nombre FROM alumnos WHERE id = ?', (id_alumno,)
+    ).fetchone()
+    conn.close()
+
+    flash(f'Contraseña de {alumno["nombre"]} restablecida. Nueva contraseña: {nueva} ✓')
+    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
+
+
+# ═══════════ ALTA MASIVA POR CSV ═══════════
+
+@admin_bp.route('/alumnos/importar', methods=['GET', 'POST'])
+def importar_alumnos():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    resultados = None
+
+    if request.method == 'POST':
+        archivo = request.files.get('archivo')
+        if not archivo or not archivo.filename:
+            flash('No seleccionaste ningún archivo')
+            return redirect(url_for('admin.importar_alumnos'))
+
+        try:
+            contenido = archivo.read().decode('utf-8-sig')
+        except UnicodeDecodeError:
+            archivo.seek(0)
+            contenido = archivo.read().decode('latin-1')
+
+        lector = csv.DictReader(io.StringIO(contenido))
+        conn   = get_db()
+        creados, errores = [], []
+
+        for num, fila in enumerate(lector, start=2):
+            curp   = (fila.get('curp')   or '').strip().upper()
+            nombre = (fila.get('nombre') or '').strip()
+            correo = (fila.get('correo') or '').strip()
+            passwd = (fila.get('contrasena') or '').strip() or generar_password()
+
+            if not curp or not nombre:
+                errores.append(f'Fila {num}: falta CURP o nombre')
+                continue
+            if len(curp) != 10:
+                errores.append(f'Fila {num}: el CURP debe tener 10 caracteres ({curp})')
+                continue
+
+            try:
+                conn.execute('''
+                    INSERT INTO alumnos (curp, nombre, password_hash, correo_padre)
+                    VALUES (?, ?, ?, ?)
+                ''', (curp, nombre, hash_password(passwd), correo))
+                creados.append({'curp': curp, 'nombre': nombre, 'password': passwd})
+            except Exception:
+                errores.append(f'Fila {num}: el CURP {curp} ya existe')
+
+        conn.commit()
+        conn.close()
+        resultados = {'creados': creados, 'errores': errores}
+
+    return render_template('admin_importar.html', resultados=resultados)
+
+
+@admin_bp.route('/alumnos/plantilla-csv')
+def plantilla_csv():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    salida = io.StringIO()
+    escritor = csv.writer(salida)
+    escritor.writerow(['curp', 'nombre', 'correo', 'contrasena'])
+    escritor.writerow(['MABC010101', 'María G.', 'mama.maria@gmail.com', ''])
+    escritor.writerow(['LOPZ020202', 'Juan P.', 'papa.juan@gmail.com', ''])
+
+    respuesta = make_response('\ufeff' + salida.getvalue())
+    respuesta.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    respuesta.headers['Content-Disposition'] = 'attachment; filename=plantilla_alumnos.csv'
+    return respuesta

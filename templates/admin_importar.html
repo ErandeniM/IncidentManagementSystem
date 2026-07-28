@@ -1,0 +1,194 @@
+{% extends "base_admin.html" %}
+{% set activo = 'alumnos' %}
+
+{% block titulo %}Importar alumnos{% endblock %}
+
+{% block css_extra %}
+<style>
+    .pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+    .paso{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:16px;box-shadow:0 3px 0 #e5e5e5;}
+    .paso-num{width:32px;height:32px;background:#1cb0f6;color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;box-shadow:0 2px 0 #0f8fd6;margin-bottom:10px;}
+    .paso-titulo{font-size:13px;font-weight:900;color:#3c3c3c;margin-bottom:4px;}
+    .paso-texto{font-size:12px;font-weight:700;color:#777;line-height:1.4;}
+
+    .dropzone{display:block;background:#fefcf5;border:3px dashed #7dd3fc;border-radius:20px;padding:32px 20px;text-align:center;cursor:pointer;margin-bottom:14px;}
+    .dropzone:hover{background:#f0f9ff;border-color:#1cb0f6;}
+    .dropzone.cargado{background:#e8f9d5;border-color:#89e219;border-style:solid;}
+    .dropzone i{display:block;font-size:44px;color:#7dd3fc;margin-bottom:8px;}
+    .dropzone.cargado i{color:#58cc02;}
+    .dropzone-titulo{font-size:14px;font-weight:900;color:#3c3c3c;}
+    .dropzone-sub{font-size:12px;font-weight:700;color:#777;margin-top:4px;}
+    #archivo{display:none;}
+
+    .ejemplo{background:#f7f7f7;border-radius:12px;padding:12px 14px;font-family:monospace;font-size:12px;font-weight:700;color:#555;line-height:1.6;overflow-x:auto;white-space:pre;margin-bottom:14px;}
+
+    .res-tabla{width:100%;border-collapse:separate;border-spacing:0;}
+    .res-tabla th{background:#fefcf5;padding:10px 12px;font-size:11px;font-weight:900;color:#777;text-transform:uppercase;text-align:left;border-bottom:2px solid #f0eee5;}
+    .res-tabla td{padding:10px 12px;font-size:13px;font-weight:700;color:#3c3c3c;border-bottom:2px solid #f7f7f7;}
+    .res-pass{font-family:monospace;font-weight:900;color:#0f8fd6;background:#dcf4ff;padding:3px 10px;border-radius:8px;}
+
+    .error-item{background:#ffe0d0;border:2px solid #ff9600;border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:13px;font-weight:800;color:#cc5028;display:flex;align-items:center;gap:8px;}
+
+    .aviso-imprimir{background:#fff8e5;border:2px solid #ffc107;border-radius:14px;padding:12px 16px;font-size:13px;font-weight:800;color:#8a5a00;margin-bottom:14px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 0 #e0a800;}
+    .aviso-imprimir i{font-size:20px;color:#e07800;flex-shrink:0;}
+
+    @media (max-width:900px){ .pasos{grid-template-columns:1fr;} }
+    @media print{ .sidebar,.topbar,.pasos,.no-imprimir{display:none !important;} .layout{grid-template-columns:1fr;} }
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="topbar">
+    <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
+    <div>
+        <div class="page-title">Importar alumnos</div>
+        <div class="page-sub">Da de alta a todo el grupo desde un archivo</div>
+    </div>
+    <div class="page-icon ic-verde"><i class="ti ti-upload" style="font-size:22px;"></i></div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+{% if not resultados %}
+
+<div class="pasos no-imprimir">
+    <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-titulo">Descarga la plantilla</div>
+        <div class="paso-texto">Un archivo CSV con las columnas correctas y dos ejemplos.</div>
+    </div>
+    <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-titulo">Llénala en Excel</div>
+        <div class="paso-texto">Una fila por alumno. Borra los ejemplos antes de guardar.</div>
+    </div>
+    <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-titulo">Súbela aquí</div>
+        <div class="paso-texto">El sistema crea las cuentas y te da las contraseñas.</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="ti ti-file-download" style="color:#58cc02;"></i> Plantilla</div>
+    <div class="ejemplo">curp,nombre,correo,contrasena
+MABC010101,María G.,mama.maria@gmail.com,
+LOPZ020202,Juan P.,papa.juan@gmail.com,</div>
+    <div style="font-size:12px;font-weight:700;color:#777;margin-bottom:14px;line-height:1.5;">
+        <strong>curp</strong> y <strong>nombre</strong> son obligatorios. Si dejas <strong>contrasena</strong> vacía,
+        el sistema genera una fácil de dictar por teléfono.
+    </div>
+    <a href="{{ url_for('admin.plantilla_csv') }}" class="btn-chico btn-verde">
+        <i class="ti ti-download" style="font-size:15px;"></i> Descargar plantilla CSV
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="ti ti-upload" style="color:#1cb0f6;"></i> Subir archivo</div>
+    <form method="POST" enctype="multipart/form-data">
+        <label class="dropzone" id="dropzone" for="archivo">
+            <i class="ti ti-file-spreadsheet"></i>
+            <div class="dropzone-titulo" id="dzTitulo">Toca para elegir tu archivo CSV</div>
+            <div class="dropzone-sub" id="dzSub">También puedes arrastrarlo aquí</div>
+        </label>
+        <input type="file" name="archivo" id="archivo" accept=".csv" required>
+        <button type="submit" class="btn-save azul">
+            <i class="ti ti-users-plus" style="font-size:17px;"></i> Importar alumnos
+        </button>
+    </form>
+</div>
+
+{% else %}
+
+{% if resultados.creados %}
+<div class="aviso-imprimir no-imprimir">
+    <i class="ti ti-alert-circle"></i>
+    <div>Estas contraseñas solo se muestran ahora. Imprime esta página o cópialas antes de salir.</div>
+</div>
+
+<div class="card">
+    <div class="list-title">
+        Alumnos creados
+        <span class="count-chip">{{ resultados.creados | length }}</span>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="res-tabla">
+            <thead>
+                <tr>
+                    <th>Alumno</th>
+                    <th>CURP</th>
+                    <th>Contraseña</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in resultados.creados %}
+                <tr>
+                    <td>{{ a.nombre }}</td>
+                    <td style="font-family:monospace;">{{ a.curp }}</td>
+                    <td><span class="res-pass">{{ a.password }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;" class="no-imprimir">
+        <button onclick="window.print()" class="btn-chico btn-azul">
+            <i class="ti ti-printer" style="font-size:15px;"></i> Imprimir lista
+        </button>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn-chico btn-verde">
+            <i class="ti ti-check" style="font-size:15px;"></i> Ir al panel
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% if resultados.errores %}
+<div class="card">
+    <div class="list-title">
+        Filas con problemas
+        <span class="count-chip">{{ resultados.errores | length }}</span>
+    </div>
+    {% for e in resultados.errores %}
+    <div class="error-item">
+        <i class="ti ti-alert-triangle" style="font-size:16px;"></i>
+        {{ e }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if not resultados.creados and not resultados.errores %}
+<div class="empty">
+    <div class="empty-icon"><i class="ti ti-file-off"></i></div>
+    <div class="empty-title">El archivo estaba vacío</div>
+    <div class="empty-text">Revisa que tenga los encabezados y al menos una fila.</div>
+</div>
+{% endif %}
+
+<div style="margin-top:16px;" class="no-imprimir">
+    <a href="{{ url_for('admin.importar_alumnos') }}" class="btn-chico btn-azul">
+        <i class="ti ti-refresh" style="font-size:15px;"></i> Importar otro archivo
+    </a>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    var input = document.getElementById('archivo');
+    if (input) {
+        input.addEventListener('change', function() {
+            if (!this.files.length) return;
+            var dz = document.getElementById('dropzone');
+            dz.classList.add('cargado');
+            document.getElementById('dzTitulo').textContent = this.files[0].name;
+            document.getElementById('dzSub').textContent = 'Listo para importar';
+        });
+    }
+</script>
+{% endblock %}

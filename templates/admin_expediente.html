@@ -277,6 +277,28 @@
                 </div>
             {% endif %}
         </div>
+
+        <div class="card">
+            <div class="card-title"><i class="ti ti-key" style="color:#1cb0f6;"></i> Contraseña de acceso</div>
+            <div style="font-size:12px;font-weight:700;color:#777;margin-bottom:14px;">
+                Usa esto si el padre olvidó su contraseña.
+            </div>
+            <form action="{{ url_for('admin.resetear_password', id_alumno=id_alumno) }}" method="POST"
+                  onsubmit="return confirm('¿Restablecer la contraseña de este padre?');">
+                <label class="form-label">Nueva contraseña</label>
+                <input type="text" name="password_nueva" class="form-input" required minlength="6"
+                       value="luna-{{ range(1000, 9999) | random }}">
+                <div class="form-hint">Anótala antes de guardar. Se la tendrás que dictar al padre.</div>
+                <button type="submit" class="btn-save azul">
+                    <i class="ti ti-key" style="font-size:16px;"></i> Restablecer contraseña
+                </button>
+            </form>
+        </div>
+
+
+
+
+
     </div>
 </div>
 

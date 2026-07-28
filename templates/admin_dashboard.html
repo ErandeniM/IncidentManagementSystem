@@ -43,7 +43,10 @@
         <div class="page-title">¡Bienvenida, maestra!</div>
         <div class="page-sub">Aquí puedes gestionar tu grupo · {{ GRUPO }}</div>
     </div>
-    <button class="btn-add" onclick="abrirModal()">
+    <a href="{{ url_for('admin.importar_alumnos') }}" class="btn-chico btn-azul" style="margin-left:auto;">
+        <i class="ti ti-upload" style="font-size:15px;"></i> Importar CSV
+    </a>
+    <button class="btn-add" style="margin-left:0;" onclick="abrirModal()">
         <i class="ti ti-plus" style="font-size:16px;"></i> Nuevo alumno
     </button>
 </div>
