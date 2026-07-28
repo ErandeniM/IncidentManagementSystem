@@ -8,11 +8,13 @@ import io
 import csv
 import io
 import random
+from werkzeug.security import check_password_hash
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from database import get_db, hash_password
 from email_utils import enviar_correo
-from config import ADMIN_PASSWORD
+from config import ADMIN_PASSWORD_HASH
+from seguridad import esta_bloqueado, registrar_fallo, limpiar
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -22,12 +24,22 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @admin_bp.route('', methods=['GET', 'POST'])
 def admin_panel():
     if request.method == 'POST':
-        if request.form.get('password') == ADMIN_PASSWORD:
+        ip = request.remote_addr
+
+        bloqueado, minutos = esta_bloqueado(ip, 'admin')
+        if bloqueado:
+            flash(f'Demasiados intentos. Vuelve a intentar en {minutos} minuto(s).')
+            return render_template('admin_login.html')
+
+        if check_password_hash(ADMIN_PASSWORD_HASH, request.form.get('password', '')):
+            limpiar(ip, 'admin')
             session['admin'] = True
             return redirect(url_for('admin.admin_dashboard'))
-        flash('Contraseña incorrecta')
-    return render_template('admin_login.html')
 
+        registrar_fallo(ip, 'admin', maximo=5)
+        flash('Contraseña incorrecta')
+
+    return render_template('admin_login.html')
 
 @admin_bp.route('/logout')
 def admin_logout():

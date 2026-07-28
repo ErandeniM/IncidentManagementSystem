@@ -5,6 +5,7 @@ from routes.auth import auth_bp
 from routes.alumno import alumno_bp
 from routes.admin import admin_bp
 from config import DOCENTE_NOMBRE, GRUPO_NOMBRE, ESCUELA_NOMBRE
+from config import SECRET_KEY
 
 app = Flask(__name__)
 from datetime import datetime, timedelta
@@ -33,7 +34,11 @@ def fecha_local(fecha_str):
     except:
         return fecha_str[:10] if len(fecha_str) >= 10 else ''
 app.secret_key = SECRET_KEY
-app.config['SESSION_TYPE'] = 'filesystem'
+# Cookies de sesión más seguras
+app.config.update(
+    SESSION_COOKIE_HTTPONLY = True,     # el JavaScript no puede leer la cookie
+    SESSION_COOKIE_SAMESITE = 'Lax',    # evita envíos desde otros sitios
+)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(alumno_bp)
