@@ -77,17 +77,22 @@
             {% endfor %}{% endif %}
         {% endwith %}
 
-        <div class="hero hero-{{ inc.tipo | lower if inc.tipo else 'otro' }}">
+        {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'Incidencia', 'icono': 'ti-alert-triangle', 'color': '#777777'}) %}
+        <div class="hero" style="background:{{ t.color }};box-shadow:0 4px 0 rgba(0,0,0,.25);">
             <div class="hero-icon">
-                {% if inc.tipo == 'Caída' %}<i class="ti ti-first-aid-kit" style="font-size:40px;"></i>
-                {% elif inc.tipo == 'Llanto' %}<i class="ti ti-mood-sad" style="font-size:40px;"></i>
-                {% elif inc.tipo == 'Logro' %}<i class="ti ti-trophy" style="font-size:40px;"></i>
-                {% elif inc.tipo == 'Comentario' %}<i class="ti ti-message" style="font-size:40px;"></i>
-                {% else %}<i class="ti ti-alert-triangle" style="font-size:40px;"></i>{% endif %}
+                <i class="ti {{ t.icono }}" style="font-size:40px;"></i>
             </div>
-            <div class="hero-title">{{ inc.tipo or 'Incidencia' }}</div>
+            <div class="hero-title">{{ t.etiqueta }}</div>
             <div class="hero-number">Registrada por la maestra</div>
         </div>
+        {% if inc.accion_docente %}
+        <div class="card" style="border-color:#89e219;box-shadow:0 3px 0 #58cc02;">
+            <div class="card-label" style="color:#58a002;">
+                <i class="ti ti-first-aid-kit" style="color:#58cc02;"></i> Atención brindada
+            </div>
+            <div class="card-text">{{ inc.accion_docente }}</div>
+        </div>
+        {% endif %}
 
         <div class="card">
             <div class="card-label"><i class="ti ti-file-text"></i> Descripción</div>

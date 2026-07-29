@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from database import get_db, hash_password, verificar_password
+from database import hash_password, verificar_password
+from repositorios import alumnos as repo_alumnos
+from repositorios import accesos as repo_accesos
 from seguridad import esta_bloqueado, registrar_fallo, limpiar
 
 auth_bp = Blueprint('auth', __name__)
@@ -17,11 +19,7 @@ def login():
 
         curp     = request.form['curp'].strip().upper()
         password = request.form['password']
-
-        conn   = get_db()
-        alumno = conn.execute(
-            'SELECT * FROM alumnos WHERE curp = ?', (curp,)
-        ).fetchone()
+        alumno   = repo_alumnos.obtener_por_curp(curp)
 
         valida, actualizar = (False, False)
         if alumno:
@@ -29,31 +27,20 @@ def login():
 
         if valida:
             if actualizar:
-                conn.execute(
-                    'UPDATE alumnos SET password_hash = ? WHERE id = ?',
-                    (hash_password(password), alumno['id'])
-                )
+                repo_alumnos.actualizar_password(alumno['id'], hash_password(password))
 
-            conn.execute(
-                'INSERT INTO registro_accesos (id_alumno, ip) VALUES (?, ?)',
-                (alumno['id'], ip)
-            )
-            conn.commit()
-            conn.close()
-
+            repo_accesos.registrar(alumno['id'], ip)
             limpiar(ip, 'padre')
+
             session['alumno_id'] = alumno['id']
             session['nombre']    = alumno['nombre']
             return redirect(url_for('alumno.panel_alumno'))
 
-        conn.close()
-
-        # CURP inexistente = error de dedo, más tolerancia.
-        # CURP válida con contraseña mal = posible ataque, menos tolerancia.
         registrar_fallo(ip, 'padre', maximo=5 if alumno else 10)
         flash('CURP o contraseña incorrectos')
 
     return render_template('login.html')
+
 
 @auth_bp.route('/logout')
 def logout():

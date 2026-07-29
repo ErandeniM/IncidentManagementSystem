@@ -1,5 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from database import get_db, hash_password
+from database import get_db, hash_password, verificar_password
+from repositorios import alumnos as repo_alumnos
+from repositorios import accesos as repo_accesos
+from repositorios import incidencias as repo_incidencias
+
 
 alumno_bp = Blueprint('alumno', __name__)
 
@@ -54,7 +58,7 @@ def panel_alumno():
     publicaciones = []
 
     for inc in incidencias:
-        tipo_pub = 'logro' if inc['tipo'] == 'Logro' else 'incidencia'
+        tipo_pub = 'logro' if inc['tipo'] in ('logro', 'Logro') else 'incidencia'
         publicaciones.append({
             'tipo_pub': tipo_pub,
             'fecha':    inc['fecha'],
@@ -108,7 +112,9 @@ def panel_alumno():
                            actividades    = actividades,
                            avisos         = avisos,
                            filtro         = filtro,
-                           sin_firmar=sin_firmar)
+                           sin_firmar = sin_firmar,
+                           tipos_map      = repo_incidencias.TIPOS_MAP,
+                           niveles_map    = repo_incidencias.NIVELES_MAP,)
     
 
 
@@ -119,30 +125,15 @@ def ver_incidencia(id_incidencia):
     if 'alumno_id' not in session:
         return redirect(url_for('auth.login'))
 
-    conn = get_db()
-    inc = conn.execute('''
-        SELECT i.*, s.visto, s.fecha_visto, s.enterado,
-               s.fecha_enterado, s.comentario_padre, s.fecha_comentario
-        FROM incidencias i
-        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
-        WHERE i.id = ? AND i.id_alumno = ?
-    ''', (id_incidencia, session['alumno_id'])).fetchone()
-
+    inc = repo_incidencias.obtener(id_incidencia, session['alumno_id'])
     if not inc:
         return redirect(url_for('alumno.panel_alumno'))
 
     if not inc['visto']:
-        conn.execute('''
-            INSERT INTO incidencia_seguimiento
-                (id_incidencia, visto, fecha_visto)
-            VALUES (?, 1, CURRENT_TIMESTAMP)
-            ON CONFLICT(id_incidencia) DO UPDATE SET
-                visto = 1, fecha_visto = CURRENT_TIMESTAMP
-        ''', (id_incidencia,))
-        conn.commit()
+        repo_incidencias.marcar_visto(id_incidencia)
 
-    conn.close()
-    return render_template('detalle_incidencia.html', inc=inc)
+    return render_template('detalle_incidencia.html', inc=inc,tipos_map      = repo_incidencias.TIPOS_MAP,
+                           niveles_map    = repo_incidencias.NIVELES_MAP,)
 
 
 # ═══════════ COMENTAR / FIRMA DE ENTERADO ═══════════
@@ -157,35 +148,18 @@ def comentar(id_incidencia):
         flash('La respuesta es obligatoria para marcar como enterado')
         return redirect(url_for('alumno.ver_incidencia', id_incidencia=id_incidencia))
 
-    conn = get_db()
-    inc  = conn.execute(
-        'SELECT id_alumno FROM incidencias WHERE id = ?', (id_incidencia,)
-    ).fetchone()
+    alumno_id = session['alumno_id']
 
-    if inc and inc['id_alumno'] == session['alumno_id']:
-        tutor = conn.execute(
-            'SELECT nombre_tutor FROM alumnos WHERE id = ?', (session['alumno_id'],)
-        ).fetchone()['nombre_tutor']
-        firmante = tutor or ('Tutor de ' + session['nombre'])
-
-        conn.execute('''
-            INSERT INTO incidencia_seguimiento
-                (id_incidencia, enterado, fecha_enterado,
-                 comentario_padre, fecha_comentario, firmado_por)
-            VALUES (?, 1, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?)
-            ON CONFLICT(id_incidencia) DO UPDATE SET
-                enterado         = 1,
-                fecha_enterado   = CURRENT_TIMESTAMP,
-                comentario_padre = ?,
-                fecha_comentario = CURRENT_TIMESTAMP,
-                firmado_por      = ?
-        ''', (id_incidencia, comentario, firmante, comentario, firmante))
-        conn.commit()
+    if repo_incidencias.pertenece_a(id_incidencia, alumno_id):
+        tutor = repo_alumnos.nombre_del_tutor(alumno_id)
+        repo_incidencias.firmar(
+            id_incidencia = id_incidencia,
+            comentario    = comentario,
+            firmado_por   = tutor or f'Tutor de {session["nombre"]}'
+        )
         flash('Respuesta registrada ✓')
 
-    conn.close()
     return redirect(url_for('alumno.panel_alumno'))
-
 
 # ═══════════ CHAT: PREGUNTAR A LA MAESTRA ═══════════
 
@@ -321,16 +295,8 @@ def mi_perfil():
     promedio = round(sum(todas) / len(todas), 1) if todas else None
 
     # Contadores
-    total_logros = conn.execute('''
-        SELECT COUNT(*) AS n FROM incidencias
-        WHERE id_alumno = ? AND tipo = 'Logro'
-    ''', (alumno_id,)).fetchone()['n']
-
-    total_firmadas = conn.execute('''
-        SELECT COUNT(*) AS n FROM incidencias i
-        JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
-        WHERE i.id_alumno = ? AND s.enterado = 1
-    ''', (alumno_id,)).fetchone()['n']
+    total_logros = repo_incidencias.contar_logros(alumno_id)
+    total_firmadas = repo_incidencias.contar_firmadas(alumno_id)
 
     conn.close()
     return render_template('mi_perfil.html',
@@ -351,31 +317,17 @@ def configuracion():
         return redirect(url_for('auth.login'))
 
     alumno_id = session['alumno_id']
-    conn      = get_db()
 
     if request.method == 'POST':
         accion = request.form.get('accion')
 
         if accion == 'datos':
-            nombre_tutor = request.form.get('nombre_tutor', '').strip()
-            correo       = request.form.get('correo_padre', '').strip()
-
-            actual = conn.execute(
-                'SELECT nombre_tutor, correo_padre FROM alumnos WHERE id = ?', (alumno_id,)
-            ).fetchone()
-
-            # Si un campo viene vacío, se conserva el valor anterior
-            conn.execute('''
-                UPDATE alumnos
-                SET nombre_tutor = ?, correo_padre = ?, notif_correo = ?
-                WHERE id = ?
-            ''', (
-                nombre_tutor or actual['nombre_tutor'],
-                correo       or actual['correo_padre'],
-                1 if request.form.get('notif_correo') else 0,
-                alumno_id
-            ))
-            conn.commit()
+            repo_alumnos.actualizar_datos_tutor(
+                id_alumno    = alumno_id,
+                nombre_tutor = request.form.get('nombre_tutor', '').strip(),
+                correo_padre = request.form.get('correo_padre', '').strip(),
+                notif_correo = request.form.get('notif_correo')
+            )
             flash('Datos actualizados ✓')
 
         elif accion == 'password':
@@ -383,40 +335,22 @@ def configuracion():
             nueva   = request.form.get('password_nueva', '')
             repetir = request.form.get('password_repetir', '')
 
-            fila = conn.execute(
-                'SELECT password_hash FROM alumnos WHERE id = ?', (alumno_id,)
-            ).fetchone()
+            alumno = repo_alumnos.obtener_por_id(alumno_id)
+            valida, _ = verificar_password(actual, alumno['password_hash'])
 
-            if hash_password(actual) != fila['password_hash']:
+            if not valida:
                 flash('La contraseña actual no es correcta')
             elif len(nueva) < 6:
                 flash('La nueva contraseña debe tener al menos 6 caracteres')
             elif nueva != repetir:
                 flash('Las contraseñas nuevas no coinciden')
             else:
-                conn.execute(
-                    'UPDATE alumnos SET password_hash = ? WHERE id = ?',
-                    (hash_password(nueva), alumno_id)
-                )
-                conn.commit()
+                repo_alumnos.actualizar_password(alumno_id, hash_password(nueva))
                 flash('Contraseña actualizada ✓')
 
-        conn.close()
         return redirect(url_for('alumno.configuracion'))
 
-    alumno = conn.execute(
-        'SELECT * FROM alumnos WHERE id = ?', (alumno_id,)
-    ).fetchone()
-
-    accesos = conn.execute('''
-        SELECT fecha, ip FROM registro_accesos
-        WHERE id_alumno = ?
-        ORDER BY fecha DESC
-        LIMIT 10
-    ''', (alumno_id,)).fetchall()
-
-    conn.close()
     return render_template('configuracion.html',
                            nombre  = session['nombre'],
-                           alumno  = alumno,
-                           accesos = accesos)
+                           alumno  = repo_alumnos.obtener_por_id(alumno_id),
+                           accesos = repo_accesos.ultimos_de_alumno(alumno_id))

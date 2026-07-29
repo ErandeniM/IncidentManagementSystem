@@ -78,18 +78,22 @@
                     {{ inc.fecha[:16] if inc.fecha else '' }}
                 </div>
             </div>
-            <span class="inc-tipo-chip chip-{{ inc.tipo | lower if inc.tipo else 'otro' }}">
-                {% if inc.tipo == 'Caída' %}<i class="ti ti-first-aid-kit" style="font-size:11px;"></i>
-                {% elif inc.tipo == 'Llanto' %}<i class="ti ti-mood-sad" style="font-size:11px;"></i>
-                {% elif inc.tipo == 'Logro' %}<i class="ti ti-star" style="font-size:11px;"></i>
-                {% elif inc.tipo == 'Comentario' %}<i class="ti ti-message" style="font-size:11px;"></i>
-                {% else %}<i class="ti ti-alert-triangle" style="font-size:11px;"></i>{% endif %}
-                {{ inc.tipo or 'General' }}
+          {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'icono': 'ti-alert-triangle', 'color': '#777777'}) %}
+            {% set n = niveles_map.get(inc.nivel, {'etiqueta': 'Informativo', 'color': '#7dd3fc'}) %}
+            <span class="inc-tipo-chip" style="background:{{ t.color }};box-shadow:0 2px 0 rgba(0,0,0,.2);">
+                <i class="ti {{ t.icono }}" style="font-size:11px;"></i> {{ t.etiqueta }}
+            </span>
+            <span class="inc-tipo-chip" style="background:{{ n.color }};color:#3c3c3c;box-shadow:0 2px 0 rgba(0,0,0,.15);">
+                {{ n.etiqueta }}
             </span>
         </div>
 
         <div class="inc-desc">{{ inc.descripcion }}</div>
-
+        {% if inc.accion_docente %}
+        <div style="background:#f4fce4;border-left:3px solid #58cc02;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;font-weight:700;color:#2d4a02;">
+            <strong>Atención brindada:</strong> {{ inc.accion_docente }}
+        </div>
+        {% endif %}
         <div class="inc-estados">
             <span class="estado-badge {% if inc.visto %}badge-ok{% endif %}">
                 {% if inc.visto %}<i class="ti ti-eye" style="font-size:11px;"></i> Visto

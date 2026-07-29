@@ -208,12 +208,10 @@
             </div>
         </div>
         <div class="post-body">
+            {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'icono': 'ti-alert-triangle'}) %}
             <div class="post-title">
-                {% if inc.tipo == 'Caída' %}<i class="ti ti-first-aid-kit"></i>
-                {% elif inc.tipo == 'Llanto' %}<i class="ti ti-mood-sad"></i>
-                {% elif inc.tipo == 'Comentario' %}<i class="ti ti-message"></i>
-                {% else %}<i class="ti ti-alert-triangle"></i>{% endif %}
-                Incidencia #{{ inc.numero }} — {{ inc.tipo or 'General' }}
+                <i class="ti {{ t.icono }}"></i>
+                Incidencia #{{ inc.numero }} — {{ t.etiqueta }}
             </div>
             <div class="post-text">Toca el botón para leer el detalle completo. Solo tú puedes ver este mensaje.</div>
         </div>

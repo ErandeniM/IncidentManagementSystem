@@ -120,16 +120,30 @@
         <div class="card">
             <div class="card-title"><i class="ti ti-plus" style="color:#ff9600;"></i> Nueva incidencia</div>
             <form action="{{ url_for('admin.nueva_incidencia', id_alumno=id_alumno) }}" method="POST">
-                <label class="form-label">Tipo</label>
+                <label class="form-label">Tipo de incidencia</label>
                 <select name="tipo" class="form-input" required>
-                    <option value="Caída">Caída</option>
-                    <option value="Llanto">Llanto</option>
-                    <option value="Logro">Logro</option>
-                    <option value="Comentario">Comentario</option>
-                    <option value="Otro">Otro</option>
+                    {% for clave, etiqueta, icono, color in tipos %}
+                    <option value="{{ clave }}">{{ etiqueta }}</option>
+                    {% endfor %}
                 </select>
-                <label class="form-label">Descripción</label>
-                <textarea name="descripcion" class="form-input" required placeholder="Describe lo que ocurrió..."></textarea>
+
+                <label class="form-label">Nivel de atención</label>
+                <select name="nivel" class="form-input" required>
+                    {% for clave, etiqueta, color in niveles %}
+                    <option value="{{ clave }}">{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+                <label class="form-label">¿Qué ocurrió?</label>
+                <textarea name="descripcion" class="form-input" required
+                          placeholder="Describe el hecho con detalle: qué pasó, dónde y a qué hora..."></textarea>
+
+                <label class="form-label">¿Qué hiciste al respecto?</label>
+                <textarea name="accion_docente" class="form-input"
+                          placeholder="Ejemplo: Se aplicó agua fría, se revisó la rodilla, se avisó a dirección..."></textarea>
+                <div style="font-size:11px;font-weight:700;color:#afafaf;margin-top:-8px;margin-bottom:12px;">
+                    Este campo es tu respaldo. Documenta la atención que diste.
+                </div>
+
                 <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Registrar</button>
             </form>
         </div>
@@ -143,10 +157,29 @@
                 {% for inc in incidencias %}
                 <div class="inc-item {% if inc.enterado %}firmed{% elif inc.tipo != 'Logro' %}pending{% endif %}">
                     <div class="inc-head">
-                        <span class="inc-type t-{{ inc.tipo | lower if inc.tipo else 'otro' }}">#{{ inc.numero }} · {{ inc.tipo or 'General' }}</span>
+                        {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'color': '#777777', 'icono': 'ti-alert-triangle'}) %}
+                        {% set n = niveles_map.get(inc.nivel, {'etiqueta': 'Informativo', 'color': '#7dd3fc'}) %}
+                        <span class="inc-type" style="background:{{ t.color }};box-shadow:0 2px 0 rgba(0,0,0,.2);">
+                            <i class="ti {{ t.icono }}" style="font-size:10px;"></i> #{{ inc.numero }} · {{ t.etiqueta }}
+                        </span>
+                        <span class="inc-type" style="background:{{ n.color }};color:#3c3c3c;box-shadow:0 2px 0 rgba(0,0,0,.15);">
+                            {{ n.etiqueta }}
+                        </span>
                         <span class="inc-time">{{ inc.fecha[:16] if inc.fecha else '' }}</span>
                     </div>
+                    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+                        <a href="{{ url_for('admin.acta_pdf', id_incidencia=inc.id) }}"
+                           target="_blank" class="btn-chico btn-azul"
+                           style="padding:5px 10px;font-size:10px;">
+                            <i class="ti ti-file-text" style="font-size:12px;"></i> Acta PDF
+                        </a>
+                    </div>
                     <div class="inc-desc">{{ inc.descripcion }}</div>
+                    {% if inc.accion_docente %}
+                    <div style="background:#e8f9d5;border-left:3px solid #58cc02;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;color:#2d4a02;margin-top:6px;">
+                        <strong>Atención brindada:</strong> {{ inc.accion_docente }}
+                    </div>
+                    {% endif %}
                     <div class="inc-badges">
                         <span class="badge-status {% if inc.visto %}ok{% endif %}">
                             <i class="ti ti-eye" style="font-size:10px;"></i>

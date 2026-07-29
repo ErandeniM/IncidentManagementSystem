@@ -118,3 +118,16 @@ CREATE TABLE avisos_confirmaciones (
     FOREIGN KEY(id_aviso) REFERENCES avisos(id) ON DELETE CASCADE,
     FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
 );
+
+CREATE TABLE incidencias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_alumno INTEGER NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    descripcion TEXT NOT NULL,
+    accion_docente TEXT,
+    tipo TEXT,
+    nivel TEXT DEFAULT 'informativo',
+    id_docente INTEGER DEFAULT 1,
+    FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
+    
+);

@@ -4,17 +4,22 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
 from flask import make_response
-import io
 import csv
 import io
 import random
+from datetime import datetime
+from config import ADMIN_PASSWORD_HASH, DOCENTE_NOMBRE, GRUPO_NOMBRE, ESCUELA_NOMBRE
 from werkzeug.security import check_password_hash
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from database import get_db, hash_password
 from email_utils import enviar_correo
-from config import ADMIN_PASSWORD_HASH
 from seguridad import esta_bloqueado, registrar_fallo, limpiar
+from repositorios import alumnos as repo_alumnos
+from repositorios import accesos as repo_accesos
+from repositorios import incidencias as repo_incidencias
+from reportlab.graphics.shapes import Drawing, Rect
+from documentos import acta_incidencia
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -56,9 +61,7 @@ def admin_dashboard():
 
     conn = get_db()
 
-    alumnos = conn.execute(
-        'SELECT id, nombre, curp FROM alumnos ORDER BY nombre'
-    ).fetchall()
+    alumnos = repo_alumnos.obtener_todos()
 
     # Mensajes de padres no vistos
     mensajes_pendientes = conn.execute('''
@@ -73,11 +76,7 @@ def admin_dashboard():
     ''').fetchone()['n']
 
     # Incidencias sin firmar
-    incidencias_sin_firmar = conn.execute('''
-        SELECT COUNT(*) AS n FROM incidencias i
-        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
-        WHERE s.enterado IS NULL OR s.enterado = 0
-    ''').fetchone()['n']
+    incidencias_sin_firmar = repo_incidencias.contar_sin_firmar()
 
     conn.close()
     return render_template('admin_dashboard.html',
@@ -91,40 +90,28 @@ def admin_dashboard():
 def nuevo_alumno():
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
-    curp          = request.form['curp'].strip().upper()
-    nombre        = request.form['nombre'].strip()
-    password_hash = hash_password(request.form['password'])
-    correo_padre  = request.form.get('correo_padre', '').strip()
-    conn          = get_db()
-    try:
-        conn.execute(
-            'INSERT INTO alumnos (curp, nombre, password_hash, correo_padre) VALUES (?, ?, ?, ?)',
-            (curp, nombre, password_hash, correo_padre)
-        )
-        conn.commit()
+
+    curp   = request.form['curp'].strip().upper()
+    nombre = request.form['nombre'].strip()
+
+    id_nuevo = repo_alumnos.crear(
+        curp          = curp,
+        nombre        = nombre,
+        password_hash = hash_password(request.form['password']),
+        correo_padre  = request.form.get('correo_padre', '').strip()
+    )
+
+    if id_nuevo:
         flash(f'Alumno {nombre} registrado correctamente ✓')
-    except Exception:
+    else:
         flash('Error: ese CURP ya existe')
-    finally:
-        conn.close()
+
     return redirect(url_for('admin.admin_dashboard'))
-
-
 @admin_bp.route('/accesos')
 def admin_accesos():
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
-    conn    = get_db()
-    accesos = conn.execute('''
-        SELECT a.nombre, a.curp, r.fecha, r.ip
-        FROM registro_accesos r
-        JOIN alumnos a ON r.id_alumno = a.id
-        ORDER BY r.fecha DESC
-        LIMIT 100
-    ''').fetchall()
-    conn.close()
-    return render_template('admin_accesos.html', accesos=accesos)
-
+    return render_template('admin_accesos.html', accesos=repo_accesos.todos())
 
 # ── Expediente del alumno ──
 
@@ -134,22 +121,9 @@ def admin_expediente(id_alumno):
         return redirect(url_for('admin.admin_panel'))
 
     conn   = get_db()
-    alumno = conn.execute('SELECT * FROM alumnos WHERE id = ?', (id_alumno,)).fetchone()
+    alumno = repo_alumnos.obtener_por_id(id_alumno)
 
-    incidencias_raw = conn.execute('''
-        SELECT i.*, s.visto, s.enterado, s.comentario_padre, s.firmado_por
-        FROM   incidencias i
-        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
-        WHERE  i.id_alumno = ?
-        ORDER  BY i.fecha ASC
-    ''', (id_alumno,)).fetchall()
-
-    incidencias = []
-    for idx, inc in enumerate(incidencias_raw, start=1):
-        inc = dict(inc)
-        inc['numero'] = idx
-        incidencias.append(inc)
-    incidencias.reverse()
+    incidencias = repo_incidencias.de_alumno(id_alumno)
 
     calificaciones = conn.execute('''
         SELECT * FROM calificaciones WHERE id_alumno = ?
@@ -172,9 +146,12 @@ def admin_expediente(id_alumno):
                            calificaciones = calificaciones,
                            perfil         = perfil,
                            actividades    = actividades,
-                           id_alumno      = id_alumno)
-
-
+                           id_alumno      = id_alumno,
+                           tipos          = repo_incidencias.TIPOS,
+                           niveles        = repo_incidencias.NIVELES,
+                           tipos_map      = repo_incidencias.TIPOS_MAP,
+                           niveles_map    = repo_incidencias.NIVELES_MAP)
+    
 # ── Nueva incidencia ──
 
 @admin_bp.route('/nueva_incidencia/<int:id_alumno>', methods=['POST'])
@@ -184,17 +161,14 @@ def nueva_incidencia(id_alumno):
 
     tipo        = request.form['tipo']
     descripcion = request.form['descripcion'].strip()
-    conn        = get_db()
-    conn.execute(
-        'INSERT INTO incidencias (id_alumno, tipo, descripcion) VALUES (?, ?, ?)',
-        (id_alumno, tipo, descripcion)
+    repo_incidencias.crear(
+        id_alumno      = id_alumno,
+        tipo           = tipo,
+        descripcion    = descripcion,
+        accion_docente = request.form.get('accion_docente', '').strip(),
+         nivel          = request.form.get('nivel', 'informativo')
     )
-    conn.commit()
-
-    alumno = conn.execute(
-        'SELECT nombre, correo_padre FROM alumnos WHERE id = ?', (id_alumno,)
-    ).fetchone()
-    conn.close()
+    alumno = repo_alumnos.obtener_por_id(id_alumno)
 
     if alumno and alumno['correo_padre']:
         asunto = f"Nueva notificación — {alumno['nombre']}"
@@ -375,27 +349,19 @@ def expediente_pdf(id_alumno):
         return redirect(url_for('admin.admin_panel'))
 
     conn   = get_db()
-    alumno = conn.execute('SELECT * FROM alumnos WHERE id = ?', (id_alumno,)).fetchone()
+    alumno = repo_alumnos.obtener_por_id(id_alumno)
 
-    incidencias_raw = conn.execute('''
-        SELECT i.*, s.visto, s.fecha_visto, s.enterado, s.fecha_enterado,
-               s.comentario_padre, s.firmado_por
-        FROM incidencias i
-        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
-        WHERE i.id_alumno = ?
-        ORDER BY i.fecha ASC
-    ''', (id_alumno,)).fetchall()
+    incidencias = repo_incidencias.de_alumno(id_alumno, mas_recientes_primero=False)
 
-    incidencias = []
-    for idx, inc in enumerate(incidencias_raw, start=1):
-        inc = dict(inc)
-        inc['numero'] = idx
-        incidencias.append(inc)
 
     calificaciones = conn.execute('''
         SELECT * FROM calificaciones WHERE id_alumno = ?
         ORDER BY trimestre
     ''', (id_alumno,)).fetchall()
+    
+    perfil = conn.execute(
+        'SELECT * FROM perfil_alumno WHERE id_alumno = ?', (id_alumno,)
+    ).fetchone()
 
     conn.close()
 
@@ -418,9 +384,61 @@ def expediente_pdf(id_alumno):
     normal       = ParagraphStyle('normal', fontSize=9, fontName='Helvetica',
                                   spaceAfter=4, textColor=colors.HexColor('#2d3436'))
 
-    story.append(Paragraph(f"Expediente — {alumno['nombre']}", titulo_style))
-    story.append(Paragraph(f"CURP: {alumno['curp']}  |  Generado: {__import__('datetime').datetime.now().strftime('%d/%m/%Y %H:%M')}", sub_style))
 
+
+    # ── Encabezado institucional ──
+    inst_style = ParagraphStyle('inst', fontSize=9, fontName='Helvetica-Bold',
+                                spaceAfter=2, alignment=1,
+                                textColor=colors.HexColor('#636e72'))
+    doc_style  = ParagraphStyle('doc', fontSize=8, fontName='Helvetica',
+                                spaceAfter=14, alignment=1,
+                                textColor=colors.HexColor('#b2bec3'))
+
+    story.append(Paragraph(ESCUELA_NOMBRE.upper(), inst_style))
+    story.append(Paragraph(
+        f"{GRUPO_NOMBRE}  ·  Docente: {DOCENTE_NOMBRE}  ·  Ciclo escolar "
+        f"{datetime.now().year}-{datetime.now().year + 1}", doc_style))
+
+    story.append(Paragraph("Expediente del alumno", titulo_style))
+
+    # ── Ficha de identificación ──
+    ficha = [
+        ['Alumno',   alumno['nombre'],                              'CURP',     alumno['curp']],
+        ['Tutor',    alumno.get('nombre_tutor') or 'No registrado', 'Contacto', alumno.get('correo_padre') or '—'],
+    ]
+
+    tabla_ficha = Table(ficha, colWidths=[0.8*inch, 2.2*inch, 0.8*inch, 2.2*inch])
+    tabla_ficha.setStyle(TableStyle([
+        ('BACKGROUND',  (0,0), (0,-1), colors.HexColor('#f8f9fa')),
+        ('BACKGROUND',  (2,0), (2,-1), colors.HexColor('#f8f9fa')),
+        ('FONTNAME',    (0,0), (0,-1), 'Helvetica-Bold'),
+        ('FONTNAME',    (2,0), (2,-1), 'Helvetica-Bold'),
+        ('FONTSIZE',    (0,0), (-1,-1), 8),
+        ('TEXTCOLOR',   (0,0), (0,-1), colors.HexColor('#636e72')),
+        ('TEXTCOLOR',   (2,0), (2,-1), colors.HexColor('#636e72')),
+        ('GRID',        (0,0), (-1,-1), 0.3, colors.HexColor('#dee2e6')),
+        ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
+        ('PADDING',     (0,0), (-1,-1), 5),
+    ]))
+    story.append(tabla_ficha)
+    story.append(Spacer(1, 6))
+
+    # ── Resumen ──
+    firmadas   = sum(1 for i in incidencias if i.get('enterado'))
+    pendientes = len(incidencias) - firmadas
+
+    resumen_style = ParagraphStyle('res', fontSize=8, fontName='Helvetica',
+                                   spaceAfter=16,
+                                   textColor=colors.HexColor('#636e72'))
+    story.append(Paragraph(
+        f"Total de incidencias: <b>{len(incidencias)}</b>  ·  "
+        f"Firmadas por el tutor: <b>{firmadas}</b>  ·  "
+        f"Pendientes de firma: <b>{pendientes}</b>  ·  "
+        f"Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}",
+        resumen_style))
+    
+    
+    
     # Incidencias
     story.append(Paragraph("Incidencias", h2_style))
     if incidencias:
@@ -479,6 +497,54 @@ def expediente_pdf(id_alumno):
     else:
         story.append(Paragraph("Sin calificaciones registradas.", normal))
 
+# Perfil de habilidades
+    story.append(Paragraph("Perfil de habilidades", h2_style))
+    if perfil:
+        def barra(valor, ancho=2.4*inch, alto=11):
+            d = Drawing(ancho, alto)
+            d.add(Rect(0, 0, ancho, alto,
+                       fillColor=colors.HexColor('#f0eee5'),
+                       strokeColor=colors.HexColor('#dee2e6'),
+                       strokeWidth=0.5))
+            if valor > 0:
+                d.add(Rect(0, 0, ancho * min(valor, 100) / 100, alto,
+                           fillColor=colors.HexColor('#ff6b35'),
+                           strokeColor=None))
+            return d
+
+        areas = [
+            ('logico',    'Lógico-matemático'),
+            ('fisico',    'Físico-deportivo'),
+            ('artistico', 'Artístico'),
+            ('social',    'Social'),
+            ('lenguaje',  'Lenguaje'),
+        ]
+
+        data3 = [['Área', 'Nivel', 'Representación']]
+        for campo, etiqueta in areas:
+            valor = perfil[campo] or 0
+            data3.append([etiqueta, f'{valor}%', barra(valor)])
+
+        tabla3 = Table(data3, colWidths=[2.0*inch, 0.7*inch, 2.6*inch])
+        tabla3.setStyle(TableStyle([
+            ('BACKGROUND',  (0,0), (-1,0), colors.HexColor('#2c3e50')),
+            ('TEXTCOLOR',   (0,0), (-1,0), colors.white),
+            ('FONTNAME',    (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE',    (0,0), (-1,-1), 8),
+            ('ALIGN',       (1,0), (1,-1), 'CENTER'),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f8f9fa')]),
+            ('GRID',        (0,0), (-1,-1), 0.3, colors.HexColor('#dee2e6')),
+            ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
+            ('LEFTPADDING', (2,1), (2,-1), 6),
+            ('PADDING',     (0,0), (-1,-1), 5),
+        ]))
+        story.append(tabla3)
+
+        if perfil['nota']:
+            story.append(Spacer(1, 8))
+            story.append(Paragraph(f"<b>Observación de la maestra:</b> {perfil['nota']}", normal))
+    else:
+        story.append(Paragraph("Perfil sin registrar.", normal))
     doc.build(story)
     buffer.seek(0)
 
@@ -592,27 +658,11 @@ def admin_todas_incidencias():
         return redirect(url_for('admin.admin_panel'))
 
     filtro = request.args.get('filtro', 'todo')
-    conn   = get_db()
-
-    incidencias = conn.execute('''
-        SELECT i.*, a.nombre AS nombre_alumno, a.curp,
-               s.visto, s.fecha_visto, s.enterado, s.fecha_enterado,
-               s.comentario_padre, s.firmado_por
-        FROM incidencias i
-        JOIN alumnos a ON i.id_alumno = a.id
-        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
-        ORDER BY i.fecha DESC
-    ''').fetchall()
-
-    if filtro == 'pendientes':
-        incidencias = [i for i in incidencias if not i['enterado']]
-    elif filtro == 'firmadas':
-        incidencias = [i for i in incidencias if i['enterado']]
-
-    conn.close()
     return render_template('admin_todas_incidencias.html',
-                           incidencias = incidencias,
-                           filtro      = filtro)
+                           incidencias = repo_incidencias.todas(filtro),
+                           filtro      = filtro,
+                           tipos_map   = repo_incidencias.TIPOS_MAP,
+                           niveles_map = repo_incidencias.NIVELES_MAP)
 # ═══════════ TABLA DE CALIFICACIONES ═══════════
 
 MATERIAS = [
@@ -737,7 +787,6 @@ def generar_password():
     """Contraseña simple de dictar por teléfono. Ej: luna-4821"""
     return f"{random.choice(PALABRAS)}-{random.randint(1000, 9999)}"
 
-
 @admin_bp.route('/alumno/<int:id_alumno>/password', methods=['POST'])
 def resetear_password(id_alumno):
     if not session.get('admin'):
@@ -748,20 +797,11 @@ def resetear_password(id_alumno):
         flash('La contraseña debe tener al menos 6 caracteres')
         return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
 
-    conn = get_db()
-    conn.execute(
-        'UPDATE alumnos SET password_hash = ? WHERE id = ?',
-        (hash_password(nueva), id_alumno)
-    )
-    conn.commit()
-    alumno = conn.execute(
-        'SELECT nombre FROM alumnos WHERE id = ?', (id_alumno,)
-    ).fetchone()
-    conn.close()
+    repo_alumnos.actualizar_password(id_alumno, hash_password(nueva))
+    alumno = repo_alumnos.obtener_por_id(id_alumno)
 
     flash(f'Contraseña de {alumno["nombre"]} restablecida. Nueva contraseña: {nueva} ✓')
     return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
-
 
 # ═══════════ ALTA MASIVA POR CSV ═══════════
 
@@ -801,13 +841,10 @@ def importar_alumnos():
                 errores.append(f'Fila {num}: el CURP debe tener 10 caracteres ({curp})')
                 continue
 
-            try:
-                conn.execute('''
-                    INSERT INTO alumnos (curp, nombre, password_hash, correo_padre)
-                    VALUES (?, ?, ?, ?)
-                ''', (curp, nombre, hash_password(passwd), correo))
+
+            if repo_alumnos.crear(curp, nombre, hash_password(passwd), correo):
                 creados.append({'curp': curp, 'nombre': nombre, 'password': passwd})
-            except Exception:
+            else:
                 errores.append(f'Fila {num}: el CURP {curp} ya existe')
 
         conn.commit()
@@ -831,4 +868,22 @@ def plantilla_csv():
     respuesta = make_response('\ufeff' + salida.getvalue())
     respuesta.headers['Content-Type'] = 'text/csv; charset=utf-8'
     respuesta.headers['Content-Disposition'] = 'attachment; filename=plantilla_alumnos.csv'
+    return respuesta
+
+@admin_bp.route('/incidencia/<int:id_incidencia>/acta')
+def acta_pdf(id_incidencia):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    inc = repo_incidencias.obtener(id_incidencia)
+    if not inc:
+        flash('No se encontró la incidencia')
+        return redirect(url_for('admin.admin_dashboard'))
+
+    alumno    = repo_alumnos.obtener_por_id(inc['id_alumno'])
+    pdf, folio = acta_incidencia(inc, alumno)
+
+    respuesta = make_response(pdf)
+    respuesta.headers['Content-Type']        = 'application/pdf'
+    respuesta.headers['Content-Disposition'] = f'inline; filename=acta_{folio}.pdf'
     return respuesta
