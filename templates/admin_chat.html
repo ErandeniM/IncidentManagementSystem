@@ -63,7 +63,8 @@
 
     <!-- Header -->
     <div class="chat-header">
-        <a href="{{ url_for('admin.admin_mensajes') }}" class="back-btn">
+        {% set desde = request.args.get('desde') %}
+        <a href="{{ url_for('admin.admin_alumnos') if desde == 'alumnos' else url_for('admin.admin_mensajes') }}" class="back-btn">
             <i class="ti ti-arrow-left" style="font-size:20px;"></i>
         </a>
         <div class="parent-avatar">{{ alumno.nombre[:2] | upper }}</div>

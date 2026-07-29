@@ -85,7 +85,10 @@
 
 {% block encabezado %}
 <div class="expediente-header">
-    <a href="{{ url_for('admin.admin_dashboard') }}" class="exp-back"><i class="ti ti-arrow-left" style="font-size:20px;"></i></a>
+{% set desde = request.args.get('desde') %}
+    <a href="{{ url_for('admin.admin_alumnos') if desde == 'alumnos' else url_for('admin.admin_dashboard') }}" class="exp-back">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
     <div class="avatar avatar-alumno av-1">{{ alumno.nombre[:2] | upper }}</div>
     <div class="alumno-detail">
         <div class="alumno-name">{{ alumno.nombre }}</div>

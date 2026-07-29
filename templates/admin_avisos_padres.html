@@ -72,7 +72,7 @@
     {% for av in avisos %}
     <div class="aviso-card" data-tipo="{{ av.tipo }}">
         <div class="aviso-header-row">
-            <div class="avatar aviso-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ av.nombre_alumno[:2] | upper }}</div>
+            <div class="avatar aviso-avatar" style="background:{{ av.id_alumno | color_avatar }}">{{ av.nombre_alumno[:2] | upper }}</div>
             <div class="aviso-info">
                 <div class="aviso-alumno">{{ av.nombre_alumno }}</div>
                 <div class="aviso-time">

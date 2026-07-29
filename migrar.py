@@ -24,6 +24,10 @@ COLUMNAS = [
     ('actividades_recomendadas', 'id_docente', 'INTEGER DEFAULT 1'),
     ('incidencias',              'accion_docente', 'TEXT'),
     ('incidencias',              'nivel',          "TEXT DEFAULT 'informativo'"),
+    ('incidencia_seguimiento',   'acepto_declaracion', 'INTEGER DEFAULT 0'),
+    ('mensajes',                 'ref_tipo',       'TEXT'),
+    ('mensajes',                 'ref_id',         'INTEGER'),
+    ('mensajes',                 'ref_titulo',     'TEXT'),
 ]
 
 

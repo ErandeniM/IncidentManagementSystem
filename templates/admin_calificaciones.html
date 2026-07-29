@@ -157,7 +157,7 @@
                 <tr class="fila {% if a.completo %}guardada{% endif %}" data-id="{{ a.id }}">
                     <td class="col-alumno">
                         <div class="alumno-cell">
-                            <div class="avatar alumno-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ a.nombre[:2] | upper }}</div>
+                           <div class="avatar alumno-avatar" style="background:{{ a.id | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
                             <div class="alumno-nombre">{{ a.nombre }}</div>
                             <i class="ti ti-circle-check-filled alumno-check"></i>
                         </div>

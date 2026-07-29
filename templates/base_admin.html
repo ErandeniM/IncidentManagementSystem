@@ -143,8 +143,9 @@
             <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item {% if activo == 'inicio' %}active{% endif %}">
                 <i class="ti ti-home nav-icon"></i><span>Inicio</span>
             </a>
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item {% if activo == 'alumnos' %}active{% endif %}">
+            <a href="{{ url_for('admin.admin_alumnos') }}" class="nav-item {% if activo == 'alumnos' %}active{% endif %}">
                 <i class="ti ti-users nav-icon"></i><span>Alumnos</span>
+            </a>
             </a>
             <a href="{{ url_for('admin.admin_calificaciones') }}" class="nav-item {% if activo == 'calificaciones' %}active{% endif %}">
                 <i class="ti ti-chart-bar nav-icon"></i><span>Calificaciones</span>

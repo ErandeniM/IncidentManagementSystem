@@ -70,6 +70,17 @@
         .send-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0f8fd6;}
         .send-btn i{font-size:22px;}
 
+
+        /* Referencia a una publicación */
+        .ref-activa{background:#f7f7f7;border-left:3px solid #1cb0f6;border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+        .ref-activa > i{color:#afafaf;flex-shrink:0;}
+        .ref-activa-texto{flex:1;min-width:0;}
+        .ref-activa-label{font-size:10px;font-weight:800;color:#afafaf;text-transform:uppercase;letter-spacing:.05em;}
+        .ref-activa-titulo{font-size:12px;font-weight:800;color:#3c3c3c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .ref-quitar{width:24px;height:24px;background:#e5e5e5;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
+        .ref-quitar:hover{background:#d5d5d5;}
+        .ref-burbuja{background:rgba(255,255,255,.65);border-left:3px solid #0f8fd6;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:800;color:#0a3a6b;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+
         /* Responsive */
         @media (max-width:600px){
             .chat-header{padding:12px 14px;}
@@ -93,11 +104,8 @@
         </div>
         <div class="teacher-info">
             <div class="teacher-name">
-                	Docente {{ DOCENTE }}i
+                	Docente {{ DOCENTE }}
                 <span class="verified"><i class="ti ti-check" style="font-size:10px;"></i></span>
-            </div>
-            <div class="teacher-status">
-                <span class="status-dot"></span> En línea
             </div>
         </div>
     </div>
@@ -121,6 +129,12 @@
 
                 {% if msg.remitente == 'padre' %}
                 <div class="message msg-padre">
+                    {% if msg.ref_titulo %}
+                    <div class="ref-burbuja">
+                        <i class="ti ti-corner-down-right" style="font-size:11px;"></i>
+                        {{ msg.ref_titulo }}
+                    </div>
+                    {% endif %}
                     <div class="message-text">{{ msg.contenido }}</div>
                     <div class="message-time">
                         {{ msg.fecha | hora_local if msg.fecha else '' }}
@@ -167,7 +181,25 @@
 
     <!-- Input area -->
     <div class="input-area">
+        {% if ref_titulo %}
+        <div class="ref-activa">
+            <i class="ti ti-corner-down-right" style="font-size:16px;"></i>
+            <div class="ref-activa-texto">
+                <div class="ref-activa-label">Preguntando sobre</div>
+                <div class="ref-activa-titulo">{{ ref_titulo }}</div>
+            </div>
+            <a href="{{ url_for('alumno.chat_maestra') }}" class="ref-quitar" title="Quitar referencia">
+                <i class="ti ti-x" style="font-size:16px;"></i>
+            </a>
+        </div>
+        {% endif %}
+
         <form method="POST" class="input-form" id="chatForm">
+            {% if ref_titulo %}
+            <input type="hidden" name="ref_tipo"   value="{{ ref_tipo }}">
+            <input type="hidden" name="ref_id"     value="{{ ref_id }}">
+            <input type="hidden" name="ref_titulo" value="{{ ref_titulo }}">
+            {% endif %}
             <textarea name="contenido"
                       class="message-input"
                       id="messageInput"

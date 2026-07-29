@@ -27,6 +27,7 @@ CREATE TABLE incidencia_seguimiento (
     comentario_padre TEXT,
     fecha_comentario TIMESTAMP,
     firmado_por TEXT,
+    acepto_declaracion INTEGER DEFAULT 0,
     FOREIGN KEY(id_incidencia) REFERENCES incidencias(id)
 );
 
@@ -92,7 +93,10 @@ CREATE TABLE mensajes (
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     visto BOOLEAN DEFAULT 0,
     fecha_visto TIMESTAMP,
-    FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
+    FOREIGN KEY(id_alumno) REFERENCES alumnos(id),
+    ref_tipo TEXT,
+    ref_id INTEGER,
+    ref_titulo TEXT,
 );
 
 CREATE TABLE avisos_padre (

@@ -139,24 +139,29 @@ def marcar_visto(id_incidencia):
                 visto = 1, fecha_visto = excluded.fecha_visto
         ''', (id_incidencia, ahora()))
 
-
 def firmar(id_incidencia, comentario, firmado_por):
-    """Registra la firma de enterado con la respuesta del tutor."""
+    """
+    Registra la firma de enterado.
+    Solo se llama cuando el tutor aceptó la declaración, así que
+    `acepto_declaracion` queda en 1.
+    """
     momento = ahora()
     with conexion() as conn:
         conn.execute('''
             INSERT INTO incidencia_seguimiento
                 (id_incidencia, enterado, fecha_enterado,
-                 comentario_padre, fecha_comentario, firmado_por)
-            VALUES (?, 1, ?, ?, ?, ?)
+                 comentario_padre, fecha_comentario, firmado_por,
+                 acepto_declaracion)
+            VALUES (?, 1, ?, ?, ?, ?, 1)
             ON CONFLICT(id_incidencia) DO UPDATE SET
-                enterado         = 1,
-                fecha_enterado   = excluded.fecha_enterado,
-                comentario_padre = excluded.comentario_padre,
-                fecha_comentario = excluded.fecha_comentario,
-                firmado_por      = excluded.firmado_por
+                enterado           = 1,
+                fecha_enterado     = excluded.fecha_enterado,
+                comentario_padre   = excluded.comentario_padre,
+                fecha_comentario   = excluded.fecha_comentario,
+                firmado_por        = excluded.firmado_por,
+                acepto_declaracion = 1
         ''', (id_incidencia, momento, comentario, momento, firmado_por))
-
+        
 def pertenece_a(id_incidencia, id_alumno):
     """Verifica que una incidencia sea de ese alumno."""
     with conexion() as conn:
@@ -208,3 +213,10 @@ def etiqueta_nivel(clave):
 
 TIPOS_MAP = {c: {'etiqueta': e, 'icono': i, 'color': col} for c, e, i, col in TIPOS}
 NIVELES_MAP = {c: {'etiqueta': e, 'color': col} for c, e, col in NIVELES}
+
+TEXTO_DECLARACION = (
+    'Declaro que fui informado de esta incidencia, que la he leído '
+    'completa y que mi respuesta es auténtica.'
+)
+
+MINIMO_RESPUESTA = 15

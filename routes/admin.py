@@ -18,9 +18,9 @@ from seguridad import esta_bloqueado, registrar_fallo, limpiar
 from repositorios import alumnos as repo_alumnos
 from repositorios import accesos as repo_accesos
 from repositorios import incidencias as repo_incidencias
+from repositorios import mensajes as repo_mensajes, avisos as repo_avisos
 from reportlab.graphics.shapes import Drawing, Rect
 from documentos import acta_incidencia
-
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
@@ -62,18 +62,12 @@ def admin_dashboard():
     conn = get_db()
 
     alumnos = repo_alumnos.obtener_todos()
-
+    
     # Mensajes de padres no vistos
-    mensajes_pendientes = conn.execute('''
-        SELECT COUNT(*) AS n FROM mensajes
-        WHERE remitente = 'padre' AND visto = 0
-    ''').fetchone()['n']
+    mensajes_pendientes = repo_mensajes.contar_no_leidos_maestra()
 
     # Avisos de padres no vistos
-    avisos_pendientes = conn.execute('''
-        SELECT COUNT(*) AS n FROM avisos_padre
-        WHERE visto_maestra = 0
-    ''').fetchone()['n']
+    avisos_pendientes = repo_avisos.contar_pendientes_de_padres()
 
     # Incidencias sin firmar
     incidencias_sin_firmar = repo_incidencias.contar_sin_firmar()
@@ -559,70 +553,25 @@ def expediente_pdf(id_alumno):
 def admin_mensajes():
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
-
-    conn = get_db()
-
-    # Listar alumnos con mensajes, con conteo de no leídos por la maestra
-    conversaciones = conn.execute('''
-        SELECT a.id, a.nombre, a.curp,
-               MAX(m.fecha) AS ultima_fecha,
-               (SELECT contenido FROM mensajes
-                WHERE id_alumno = a.id
-                ORDER BY fecha DESC LIMIT 1) AS ultimo_mensaje,
-               (SELECT remitente FROM mensajes
-                WHERE id_alumno = a.id
-                ORDER BY fecha DESC LIMIT 1) AS ultimo_remitente,
-               SUM(CASE WHEN m.remitente = 'padre' AND m.visto = 0 THEN 1 ELSE 0 END) AS no_leidos
-        FROM alumnos a
-        INNER JOIN mensajes m ON m.id_alumno = a.id
-        GROUP BY a.id
-        ORDER BY ultima_fecha DESC
-    ''').fetchall()
-
-    conn.close()
-    return render_template('admin_mensajes.html', conversaciones=conversaciones)
-
+    return render_template('admin_mensajes.html',
+                           conversaciones = repo_mensajes.conversaciones())
 
 @admin_bp.route('/mensajes/<int:id_alumno>', methods=['GET', 'POST'])
 def admin_chat(id_alumno):
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
 
-    conn = get_db()
-
     if request.method == 'POST':
         contenido = request.form.get('contenido', '').strip()
         if contenido:
-            conn.execute('''
-                INSERT INTO mensajes (id_alumno, remitente, contenido)
-                VALUES (?, 'maestra', ?)
-            ''', (id_alumno, contenido))
-            conn.commit()
-        conn.close()
+            repo_mensajes.enviar(id_alumno, 'maestra', contenido)
         return redirect(url_for('admin.admin_chat', id_alumno=id_alumno))
 
-    # Marcar mensajes del padre como vistos por la maestra
-    conn.execute('''
-        UPDATE mensajes SET visto = 1, fecha_visto = CURRENT_TIMESTAMP
-        WHERE id_alumno = ? AND remitente = 'padre' AND visto = 0
-    ''', (id_alumno,))
-    conn.commit()
+    repo_mensajes.marcar_vistos(id_alumno, 'padre')
 
-    alumno = conn.execute(
-        'SELECT * FROM alumnos WHERE id = ?', (id_alumno,)
-    ).fetchone()
-
-    mensajes = conn.execute('''
-        SELECT * FROM mensajes
-        WHERE id_alumno = ?
-        ORDER BY fecha ASC
-    ''', (id_alumno,)).fetchall()
-
-    conn.close()
     return render_template('admin_chat.html',
-                           alumno   = alumno,
-                           mensajes = mensajes)
-
+                           alumno   = repo_alumnos.obtener_por_id(id_alumno),
+                           mensajes = repo_mensajes.conversacion(id_alumno))
 # ═══════════ AVISOS DE PADRES ═══════════
 
 @admin_bp.route('/avisos-padres')
@@ -887,3 +836,9 @@ def acta_pdf(id_incidencia):
     respuesta.headers['Content-Type']        = 'application/pdf'
     respuesta.headers['Content-Disposition'] = f'inline; filename=acta_{folio}.pdf'
     return respuesta
+
+@admin_bp.route('/alumnos')
+def admin_alumnos():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+    return render_template('admin_alumnos.html', alumnos=repo_alumnos.obtener_todos())

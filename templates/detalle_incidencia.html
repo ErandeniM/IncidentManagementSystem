@@ -55,7 +55,18 @@
         .respuesta-text{font-size:14px;font-weight:700;color:#3c3c3c;line-height:1.5;font-style:italic;}
         .respuesta-time{font-size:11px;font-weight:700;color:#58a002;margin-top:8px;display:flex;align-items:center;gap:4px;}
         .flash{margin-bottom:16px;padding:12px 16px;border-radius:14px;font-size:13px;font-weight:800;background:#ffe0d0;border:2px solid #ff9600;color:#cc5028;box-shadow:0 3px 0 #ff6b35;display:flex;align-items:center;gap:8px;}
-    </style>
+        .declaracion{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;background:#fff8e5;border-bottom:2px solid #ffe89c;cursor:pointer;}
+        .declaracion.marcada{background:#e8f9d5;border-bottom-color:#89e219;}
+        .declaracion input{display:none;}
+        .caja{width:26px;height:26px;border:3px solid #e0a800;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:transparent;font-size:16px;transition:all .15s;}
+        .declaracion.marcada .caja{background:#58cc02;border-color:#43a800;color:#fff;}
+        .declaracion-texto{font-size:13px;font-weight:800;color:#8a5a00;line-height:1.4;}
+        .declaracion.marcada .declaracion-texto{color:#2d4a02;}
+        .contador{padding:0 18px 10px;font-size:11px;font-weight:800;color:#afafaf;}
+        .contador.ok{color:#58cc02;}
+        .firma-btn:disabled{background:#e5e5e5;color:#afafaf;box-shadow:0 4px 0 #d5d5d5;cursor:not-allowed;}
+   
+   </style>
 </head>
 <body>
 
@@ -141,19 +152,65 @@
                     <i class="ti ti-pencil" style="font-size:14px;vertical-align:-2px;"></i>
                     Firma de enterado
                 </div>
-                <div class="firma-sub">Escribe tu respuesta para cerrar esta incidencia</div>
+                <div class="firma-sub">Marca la casilla y escribe tu respuesta</div>
             </div>
-            <form method="POST" action="{{ url_for('alumno.comentar', id_incidencia=inc.id) }}">
-                <textarea name="comentario" class="firma-textarea" required
-                    placeholder="Ejemplo: Gracias por avisar, en casa hablaré con ella..."></textarea>
-                <button type="submit" class="firma-btn">
-                    <i class="ti ti-check" style="font-size:18px;"></i> Firmar enterado
+            <form method="POST" action="{{ url_for('alumno.comentar', id_incidencia=inc.id) }}" id="formFirma">
+
+                <label class="declaracion" id="cajaDeclaracion">
+                    <input type="checkbox" name="acepto_declaracion" id="chkDeclaracion" required>
+                    <span class="caja"><i class="ti ti-check"></i></span>
+                    <span class="declaracion-texto">{{ declaracion }}</span>
+                </label>
+
+                <textarea name="comentario" class="firma-textarea" id="txtRespuesta"
+                          required minlength="{{ minimo }}"
+                          placeholder="Escribe tu respuesta. Por ejemplo: Gracias por avisar, en casa hablaré con ella sobre lo que pasó..."></textarea>
+
+                <div class="contador" id="contador">
+                    Mínimo {{ minimo }} caracteres
+                </div>
+
+                <button type="submit" class="firma-btn" id="btnFirmar" disabled>
+                    <i class="ti ti-writing-sign" style="font-size:18px;"></i> Enviar firma y respuesta
                 </button>
             </form>
         </div>
         {% endif %}
     </div>
 </div>
+<script>
+    var chk    = document.getElementById('chkDeclaracion');
+    var txt    = document.getElementById('txtRespuesta');
+    var btn    = document.getElementById('btnFirmar');
+    var caja   = document.getElementById('cajaDeclaracion');
+    var cont   = document.getElementById('contador');
+    var minimo = {{ minimo|default(15) }};
 
+    function revisar() {
+        if (!chk) return;
+        var largo = txt.value.trim().length;
+        var listo = chk.checked && largo >= minimo;
+
+        caja.classList.toggle('marcada', chk.checked);
+        btn.disabled = !listo;
+
+        if (largo === 0) {
+            cont.textContent = 'Mínimo ' + minimo + ' caracteres';
+            cont.classList.remove('ok');
+        } else if (largo < minimo) {
+            cont.textContent = 'Faltan ' + (minimo - largo) + ' caracteres';
+            cont.classList.remove('ok');
+        } else {
+            cont.textContent = 'Respuesta lista ✓';
+            cont.classList.add('ok');
+        }
+    }
+
+    if (chk) {
+        chk.addEventListener('change', revisar);
+        txt.addEventListener('input', revisar);
+        revisar();
+    }
+</script>
 </body>
 </html>

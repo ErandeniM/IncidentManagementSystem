@@ -19,6 +19,14 @@
     .conv.unread .conv-preview{color:#3c3c3c;font-weight:800;}
     .preview-sender{color:#afafaf;font-weight:700;}
     .conv-badge{background:#ff4b4b;color:#fff;font-size:11px;font-weight:900;padding:3px 9px;border-radius:20px;box-shadow:0 2px 0 #d33;flex-shrink:0;min-width:24px;text-align:center;}
+    .search-box{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:16px;}
+    .search-box input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;background:transparent;}
+    .search-box input::placeholder{color:#c4c4c4;}
+    .search-box i{color:#afafaf;font-size:20px;}
+    .conv.nuevo{border-style:dashed;background:#fefcf5;}
+    .conv.nuevo .conv-preview{color:#afafaf;font-style:italic;}
+    .sin-resultados{text-align:center;padding:30px;color:#afafaf;font-size:13px;font-weight:800;}
+
 </style>
 {% endblock %}
 
@@ -44,19 +52,30 @@
 
 {% block contenido %}
 
+<div class="search-box">
+    <i class="ti ti-search"></i>
+    <input type="text" id="buscador" placeholder="Buscar alumno por nombre o CURP..." oninput="filtrar()">
+</div>
+
 {% if conversaciones %}
     {% for conv in conversaciones %}
-    <a href="{{ url_for('admin.admin_chat', id_alumno=conv.id) }}"
-       class="conv {% if conv.no_leidos and conv.no_leidos > 0 %}unread{% endif %}">
-        <div class="avatar conv-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ conv.nombre[:2] | upper }}</div>
+  <a href="{{ url_for('admin.admin_chat', id_alumno=conv.id) }}"
+       class="conv {% if conv.no_leidos and conv.no_leidos > 0 %}unread{% elif not conv.total_mensajes %}nuevo{% endif %}"
+       data-nombre="{{ conv.nombre | lower }}"
+       data-curp="{{ conv.curp | lower }}">
+       <div class="avatar conv-avatar" style="background:{{ conv.id | color_avatar }}">{{ conv.nombre[:2] | upper }}</div>
         <div class="conv-body">
             <div class="conv-top">
                 <div class="conv-name">{{ conv.nombre }}</div>
                 <div class="conv-time">{{ conv.ultima_fecha[:16] if conv.ultima_fecha else '' }}</div>
             </div>
             <div class="conv-preview">
-                {% if conv.ultimo_remitente == 'maestra' %}<span class="preview-sender">Tú:</span>{% endif %}
-                {{ conv.ultimo_mensaje }}
+                {% if conv.total_mensajes %}
+                    {% if conv.ultimo_remitente == 'maestra' %}<span class="preview-sender">Tú:</span>{% endif %}
+                    {{ conv.ultimo_mensaje }}
+                {% else %}
+                    Toca para iniciar la conversación
+                {% endif %}
             </div>
         </div>
         {% if conv.no_leidos and conv.no_leidos > 0 %}
@@ -64,6 +83,10 @@
         {% endif %}
     </a>
     {% endfor %}
+ <div class="sin-resultados" id="sinResultados" style="display:none;">
+        Ningún alumno coincide con la búsqueda
+    </div>
+    
 {% else %}
 <div class="empty">
     <div class="empty-icon"><i class="ti ti-message-off"></i></div>
@@ -72,4 +95,20 @@
 </div>
 {% endif %}
 
+{% endblock %}
+{% block js_extra %}
+<script>
+    function filtrar() {
+        var texto = document.getElementById('buscador').value.toLowerCase();
+        var visibles = 0;
+
+        document.querySelectorAll('.conv').forEach(function(c) {
+            var coincide = c.dataset.nombre.includes(texto) || c.dataset.curp.includes(texto);
+            c.style.display = coincide ? 'flex' : 'none';
+            if (coincide) visibles++;
+        });
+
+        document.getElementById('sinResultados').style.display = visibles ? 'none' : 'block';
+    }
+</script>
 {% endblock %}

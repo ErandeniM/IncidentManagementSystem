@@ -99,7 +99,8 @@
        class="alumno-card"
        data-nombre="{{ alumno.nombre | lower }}"
        data-curp="{{ alumno.curp | lower }}">
-        <div class="avatar alumno-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ alumno.nombre[:2] | upper }}</div>
+
+       <div class="avatar alumno-avatar" style="background:{{ alumno.id | color_avatar }}">{{ alumno.nombre[:2] | upper }}</div>
         <div class="alumno-info">
             <div class="alumno-nombre">{{ alumno.nombre }}</div>
             <div class="alumno-curp">{{ alumno.curp }}</div>

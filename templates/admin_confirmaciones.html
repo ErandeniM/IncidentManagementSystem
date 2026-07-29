@@ -87,7 +87,7 @@
         {% if confirmados %}
             {% for p in confirmados %}
             <div class="persona ok">
-                <div class="avatar persona-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ p.nombre[:2] | upper }}</div>
+               <div class="avatar persona-avatar" style="background:{{ p.id | color_avatar }}">{{ p.nombre[:2] | upper }}</div>
                 <div class="persona-info">
                     <div class="persona-nombre">{{ p.nombre }}</div>
                     <div class="persona-sub">{{ p.curp }}</div>
@@ -114,7 +114,7 @@
         {% if pendientes %}
             {% for p in pendientes %}
             <div class="persona pend">
-                <div class="avatar persona-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ p.nombre[:2] | upper }}</div>
+                <div class="avatar persona-avatar" style="background:{{ p.id | color_avatar }}">{{ p.nombre[:2] | upper }}</div>
                 <div class="persona-info">
                     <div class="persona-nombre">{{ p.nombre }}</div>
                     <div class="persona-sub">{{ p.curp }}</div>

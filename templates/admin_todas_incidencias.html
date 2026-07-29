@@ -70,7 +70,7 @@
     <a href="{{ url_for('admin.admin_expediente', id_alumno=inc.id_alumno) }}"
        class="inc-card {% if not inc.enterado %}pendiente{% else %}firmada{% endif %}">
         <div class="inc-header-row">
-            <div class="avatar inc-avatar av-{{ (loop.index0 % 6) + 1 }}">{{ inc.nombre_alumno[:2] | upper }}</div>
+            <div class="avatar inc-avatar" style="background:{{ inc.id_alumno | color_avatar }}">{{ inc.nombre_alumno[:2] | upper }}</div>
             <div class="inc-info">
                 <div class="inc-alumno">{{ inc.nombre_alumno }}</div>
                 <div class="inc-time">

@@ -3,6 +3,7 @@ from database import get_db, hash_password, verificar_password
 from repositorios import alumnos as repo_alumnos
 from repositorios import accesos as repo_accesos
 from repositorios import incidencias as repo_incidencias
+from repositorios import mensajes as repo_mensajes
 
 
 alumno_bp = Blueprint('alumno', __name__)
@@ -132,9 +133,12 @@ def ver_incidencia(id_incidencia):
     if not inc['visto']:
         repo_incidencias.marcar_visto(id_incidencia)
 
-    return render_template('detalle_incidencia.html', inc=inc,tipos_map      = repo_incidencias.TIPOS_MAP,
-                           niveles_map    = repo_incidencias.NIVELES_MAP,)
-
+    return render_template('detalle_incidencia.html',
+                           inc          = inc,
+                           tipos_map    = repo_incidencias.TIPOS_MAP,
+                           niveles_map  = repo_incidencias.NIVELES_MAP,
+                           declaracion  = repo_incidencias.TEXTO_DECLARACION,
+                           minimo       = repo_incidencias.MINIMO_RESPUESTA)
 
 # ═══════════ COMENTAR / FIRMA DE ENTERADO ═══════════
 
@@ -144,8 +148,15 @@ def comentar(id_incidencia):
         return redirect(url_for('auth.login'))
 
     comentario = request.form.get('comentario', '').strip()
-    if not comentario:
-        flash('La respuesta es obligatoria para marcar como enterado')
+    acepto     = request.form.get('acepto_declaracion')
+    minimo     = repo_incidencias.MINIMO_RESPUESTA
+
+    if not acepto:
+        flash('Debes marcar la casilla para firmar de enterado')
+        return redirect(url_for('alumno.ver_incidencia', id_incidencia=id_incidencia))
+
+    if len(comentario) < minimo:
+        flash(f'Escribe una respuesta de al menos {minimo} caracteres')
         return redirect(url_for('alumno.ver_incidencia', id_incidencia=id_incidencia))
 
     alumno_id = session['alumno_id']
@@ -157,10 +168,9 @@ def comentar(id_incidencia):
             comentario    = comentario,
             firmado_por   = tutor or f'Tutor de {session["nombre"]}'
         )
-        flash('Respuesta registrada ✓')
+        flash('Firma y respuesta registradas ✓')
 
     return redirect(url_for('alumno.panel_alumno'))
-
 # ═══════════ CHAT: PREGUNTAR A LA MAESTRA ═══════════
 
 @alumno_bp.route('/chat', methods=['GET', 'POST'])
@@ -169,39 +179,30 @@ def chat_maestra():
         return redirect(url_for('auth.login'))
 
     alumno_id = session['alumno_id']
-    conn      = get_db()
 
     if request.method == 'POST':
         contenido = request.form.get('contenido', '').strip()
         if contenido:
-            conn.execute('''
-                INSERT INTO mensajes (id_alumno, remitente, contenido)
-                VALUES (?, 'padre', ?)
-            ''', (alumno_id, contenido))
-            conn.commit()
-        conn.close()
+            repo_mensajes.enviar(
+                id_alumno  = alumno_id,
+                remitente  = 'padre',
+                contenido  = contenido,
+                ref_tipo   = request.form.get('ref_tipo') or None,
+                ref_id     = request.form.get('ref_id') or None,
+                ref_titulo = request.form.get('ref_titulo') or None
+            )
         return redirect(url_for('alumno.chat_maestra'))
 
-    conn.execute('''
-        UPDATE mensajes SET visto = 1, fecha_visto = CURRENT_TIMESTAMP
-        WHERE id_alumno = ? AND remitente = 'maestra' AND visto = 0
-    ''', (alumno_id,))
-    conn.commit()
+    repo_mensajes.marcar_vistos(alumno_id, 'maestra')
 
-    mensajes = conn.execute('''
-        SELECT * FROM mensajes
-        WHERE id_alumno = ?
-        ORDER BY fecha ASC
-    ''', (alumno_id,)).fetchall()
-
-    mensajes_nuevos = 0
-
-    conn.close()
     return render_template('chat_padre.html',
                            nombre          = session['nombre'],
-                           mensajes        = mensajes,
-                           mensajes_nuevos = mensajes_nuevos)
-    
+                           mensajes        = repo_mensajes.conversacion(alumno_id),
+                           mensajes_nuevos = 0,
+                           ref_tipo        = request.args.get('ref_tipo'),
+                           ref_id          = request.args.get('ref_id'),
+                           ref_titulo      = request.args.get('ref_titulo'))
+ 
 # ═══════════ AVISAR A LA MAESTRA ═══════════
 
 @alumno_bp.route('/avisar', methods=['GET', 'POST'])
