@@ -108,6 +108,8 @@
         .warn-box{background:#fff8e5;border:2px solid #ffc107;border-radius:12px;padding:10px 14px;font-size:12px;font-weight:700;color:#8a5a00;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
         .warn-box i{font-size:16px;color:#e07800;}
 
+        
+
         /* ══ RESPONSIVE ══ */
         @media (max-width:900px){
             .layout{grid-template-columns:1fr;}
@@ -134,8 +136,9 @@
             <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
             <div>
                 <div class="brand-title">Panel docente</div>
-                <div class="brand-sub">Maestra {{ DOCENTE }}</div>
+                <div class="brand-sub">Docente {{ DOCENTE }}</div>
             </div>
+           
         </div>
 
         <div class="sidebar-section">
@@ -151,6 +154,10 @@
                 <i class="ti ti-chart-bar nav-icon"></i><span>Calificaciones</span>
             </a>
         </div>
+
+        <a href="{{ url_for('admin.admin_tareas') }}" class="nav-item {% if activo == 'tareas' %}active{% endif %}">
+                <i class="ti ti-notebook nav-icon"></i><span>Tareas de entrega</span>
+            </a>
 
         <div class="sidebar-section">
             <div class="sidebar-label">Comunicación</div>

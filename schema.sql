@@ -133,5 +133,26 @@ CREATE TABLE incidencias (
     nivel TEXT DEFAULT 'informativo',
     id_docente INTEGER DEFAULT 1,
     FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
-    
+
+);
+CREATE TABLE tareas_entrega (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    descripcion TEXT,
+    materia TEXT,
+    fecha_asignada TIMESTAMP,
+    fecha_entrega DATE,
+    id_docente INTEGER DEFAULT 1
+);
+
+CREATE TABLE entregas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_tarea INTEGER NOT NULL,
+    id_alumno INTEGER NOT NULL,
+    estado TEXT DEFAULT 'pendiente',
+    nota TEXT,
+    fecha_registro TIMESTAMP,
+    UNIQUE(id_tarea, id_alumno),
+    FOREIGN KEY(id_tarea) REFERENCES tareas_entrega(id) ON DELETE CASCADE,
+    FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
 );

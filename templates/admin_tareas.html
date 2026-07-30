@@ -1,0 +1,214 @@
+{% extends "base_admin.html" %}
+{% set activo = 'tareas' %}
+
+{% block titulo %}Tareas de entrega{% endblock %}
+
+{% block css_extra %}
+<style>
+    .grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
+
+    .tarea-card{background:#fff;border:2px solid #e5e5e5;border-radius:18px;padding:16px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:12px;}
+    .tarea-card.vencida{border-color:#ffc107;box-shadow:0 3px 0 #e0a800;}
+    .tarea-card.completa{border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
+
+    .tarea-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;}
+    .tarea-titulo{font-size:16px;font-weight:900;color:#3c3c3c;flex:1;}
+    .tarea-materia{font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;background:#dcf4ff;color:#0f8fd6;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+    .tarea-desc{font-size:13px;font-weight:700;color:#777;line-height:1.4;margin-bottom:10px;}
+
+    .tarea-fechas{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-weight:800;color:#777;margin-bottom:12px;}
+    .tarea-fechas i{font-size:13px;vertical-align:-2px;}
+    .entrega-hoy{color:#e07800;}
+    .entrega-vencida{color:#ff4b4b;}
+
+    .barra-wrap{margin-bottom:12px;}
+    .barra-top{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#777;margin-bottom:5px;}
+    .barra-bg{background:#f0eee5;height:12px;border-radius:20px;overflow:hidden;border:1px solid #e5e5e5;display:flex;}
+    .barra-ok{background:#58cc02;height:100%;}
+    .barra-inc{background:#ffc107;height:100%;}
+    .barra-no{background:#ff4b4b;height:100%;}
+
+    .leyenda{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;font-weight:800;color:#777;margin-bottom:12px;}
+    .leyenda span{display:flex;align-items:center;gap:4px;}
+    .punto{width:9px;height:9px;border-radius:3px;display:inline-block;}
+
+    .tarea-acciones{display:flex;gap:6px;flex-wrap:wrap;}
+    .btn-mini{padding:7px 12px;border-radius:10px;font-size:11px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-family:inherit;text-transform:uppercase;letter-spacing:.03em;border:none;}
+
+    @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="topbar">
+    <div>
+        <div class="page-title">Tareas de entrega</div>
+        <div class="page-sub">Publica tareas con fecha y lleva el registro de cumplimiento</div>
+    </div>
+    <div class="page-icon ic-verde"><i class="ti ti-notebook" style="font-size:22px;"></i></div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="grid">
+
+    <div class="card">
+        <div class="card-title"><i class="ti ti-plus" style="color:#58cc02;"></i> Nueva tarea</div>
+        <form action="{{ url_for('admin.nueva_tarea') }}" method="POST">
+            <label class="form-label">Título</label>
+            <input type="text" name="titulo" class="form-input" required
+                   placeholder="Ej: Ejercicios de fracciones">
+
+            <label class="form-label">Instrucciones</label>
+            <textarea name="descripcion" class="form-input"
+                      placeholder="Qué deben hacer, en qué páginas, con qué material..."></textarea>
+
+            <label class="form-label">Materia</label>
+            <select name="materia" class="form-input">
+                {% for m in materias %}
+                <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="form-label">Fecha de entrega</label>
+            <input type="date" name="fecha_entrega" class="form-input">
+
+            <button type="submit" class="btn-save">
+                <i class="ti ti-send" style="font-size:16px;"></i> Publicar tarea
+            </button>
+        </form>
+    </div>
+
+    <div>
+        <div class="list-title" style="padding:0 4px;">
+            Tareas publicadas
+            <span class="count-chip">{{ tareas | length }}</span>
+        </div>
+
+        {% if tareas %}
+            {% for t in tareas %}
+            {% set total = t.total_alumnos or 1 %}
+            <div class="tarea-card {% if t.revisados == t.total_alumnos %}completa{% endif %}">
+                <div class="tarea-top">
+                    <div class="tarea-titulo">{{ t.titulo }}</div>
+                    <span class="tarea-materia">{{ t.materia or 'General' }}</span>
+                </div>
+
+                {% if t.descripcion %}
+                <div class="tarea-desc">{{ t.descripcion }}</div>
+                {% endif %}
+
+                <div class="tarea-fechas">
+                    <span><i class="ti ti-calendar-plus"></i> Asignada {{ t.fecha_asignada[:10] if t.fecha_asignada else '—' }}</span>
+                    {% if t.fecha_entrega %}
+                    <span><i class="ti ti-calendar-check"></i> Entrega {{ t.fecha_entrega }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="barra-wrap">
+                    <div class="barra-top">
+                        <span>Revisados: {{ t.revisados }} de {{ t.total_alumnos }}</span>
+                        <span style="color:#58cc02;">{{ t.porcentaje }}% cumplió</span>
+                    </div>
+                    <div class="barra-bg">
+                        <div class="barra-ok"  style="width:{{ t.cumplieron * 100 // total }}%"></div>
+                        <div class="barra-inc" style="width:{{ t.incompletas * 100 // total }}%"></div>
+                        <div class="barra-no"  style="width:{{ t.no_cumplieron * 100 // total }}%"></div>
+                    </div>
+                </div>
+
+                <div class="leyenda">
+                    <span><span class="punto" style="background:#58cc02;"></span> Cumplió {{ t.cumplieron }}</span>
+                    <span><span class="punto" style="background:#ffc107;"></span> Incompleta {{ t.incompletas }}</span>
+                    <span><span class="punto" style="background:#ff4b4b;"></span> No cumplió {{ t.no_cumplieron }}</span>
+                    <span><span class="punto" style="background:#e5e5e5;"></span> Sin revisar {{ t.total_alumnos - t.revisados }}</span>
+                </div>
+
+                <div class="tarea-acciones">
+                    <a href="{{ url_for('admin.revisar_tarea', id_tarea=t.id) }}" class="btn-mini btn-verde">
+                        <i class="ti ti-checklist" style="font-size:13px;"></i> Revisar
+                    </a>
+                    <button class="btn-mini btn-amarillo"
+                            onclick="abrirEditar({{ t.id }}, this.dataset.titulo, this.dataset.desc, this.dataset.materia, this.dataset.entrega)"
+                            data-titulo="{{ t.titulo }}"
+                            data-desc="{{ t.descripcion or '' }}"
+                            data-materia="{{ t.materia or 'General' }}"
+                            data-entrega="{{ t.fecha_entrega or '' }}">
+                        <i class="ti ti-pencil" style="font-size:13px;"></i> Editar
+                    </button>
+                    <form method="POST" action="{{ url_for('admin.eliminar_tarea', id_tarea=t.id) }}"
+                          style="margin:0;" onsubmit="return confirm('¿Eliminar esta tarea y todos sus registros?');">
+                        <button type="submit" class="btn-mini btn-rojo">
+                            <i class="ti ti-trash" style="font-size:13px;"></i> Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty">
+            <div class="empty-icon"><i class="ti ti-notebook-off"></i></div>
+            <div class="empty-title">No hay tareas publicadas</div>
+            <div class="empty-text">Crea la primera con el formulario de la izquierda.</div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block modales %}
+<div class="modal-bg" id="modalEditar">
+    <div class="modal">
+        <div class="modal-header azul">
+            <div class="modal-icon"><i class="ti ti-pencil" style="font-size:22px;"></i></div>
+            <div class="modal-title">Editar tarea</div>
+            <button class="modal-close" onclick="cerrarEditar()"><i class="ti ti-x" style="font-size:18px;"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="formEditar" method="POST">
+                <label class="form-label">Título</label>
+                <input type="text" name="titulo" id="edTitulo" class="form-input" required>
+
+                <label class="form-label">Instrucciones</label>
+                <textarea name="descripcion" id="edDesc" class="form-input"></textarea>
+
+                <label class="form-label">Materia</label>
+                <select name="materia" id="edMateria" class="form-input">
+                    {% for m in materias %}
+                    <option value="{{ m }}">{{ m }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="form-label">Fecha de entrega</label>
+                <input type="date" name="fecha_entrega" id="edEntrega" class="form-input">
+
+                <button type="submit" class="btn-save azul">
+                    <i class="ti ti-check" style="font-size:16px;"></i> Guardar cambios
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    function abrirEditar(id, titulo, desc, materia, entrega) {
+        document.getElementById('edTitulo').value  = titulo;
+        document.getElementById('edDesc').value    = desc;
+        document.getElementById('edMateria').value = materia;
+        document.getElementById('edEntrega').value = entrega;
+        document.getElementById('formEditar').action = '/admin/tareas/' + id + '/editar';
+        document.getElementById('modalEditar').classList.add('active');
+    }
+    function cerrarEditar() {
+        document.getElementById('modalEditar').classList.remove('active');
+    }
+    document.getElementById('modalEditar').addEventListener('click', function(e) {
+        if (e.target === this) cerrarEditar();
+    });
+</script>
+{% endblock %}

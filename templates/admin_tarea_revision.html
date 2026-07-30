@@ -1,0 +1,183 @@
+{% extends "base_admin.html" %}
+{% set activo = 'tareas' %}
+
+{% block titulo %}Revisar tarea{% endblock %}
+
+{% block css_extra %}
+<style>
+    .tarea-box{background:#e8f9d5;border:2px solid #89e219;border-radius:18px;padding:16px 18px;box-shadow:0 3px 0 #58cc02;margin-bottom:16px;}
+    .tarea-titulo{font-size:18px;font-weight:900;color:#2d4a02;}
+    .tarea-desc{font-size:13px;font-weight:700;color:#3c5c10;line-height:1.4;margin-top:6px;}
+    .tarea-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-weight:800;color:#58a002;margin-top:10px;}
+    .tarea-meta i{font-size:13px;vertical-align:-2px;}
+
+    .resumen{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+    .res-card{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:12px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
+    .res-num{font-size:24px;font-weight:900;line-height:1;}
+    .res-label{font-size:10px;font-weight:900;color:#777;text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
+
+    .acciones-masivas{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+    .acciones-label{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.05em;}
+
+    .fila{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;flex-wrap:wrap;}
+    .fila-avatar{width:44px;height:44px;border-radius:14px;font-size:14px;}
+    .fila-nombre{flex:1;min-width:130px;font-size:14px;font-weight:900;color:#3c3c3c;}
+
+    .botones-estado{display:flex;gap:5px;flex-wrap:wrap;}
+    .btn-estado{padding:8px 12px;border-radius:11px;font-size:11px;font-weight:900;cursor:pointer;border:2px solid #e5e5e5;background:#fff;color:#afafaf;font-family:inherit;display:inline-flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.02em;transition:all .12s;}
+    .btn-estado:hover{border-color:#c4c4c4;}
+    .btn-estado.activo{color:#fff;border-color:transparent;box-shadow:0 3px 0 rgba(0,0,0,.2);}
+    .btn-estado i{font-size:13px;}
+
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#58cc02;color:#fff;padding:12px 22px;border-radius:16px;font-size:13px;font-weight:900;box-shadow:0 4px 0 #43a800;opacity:0;transition:all .25s;z-index:100;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.err{background:#ff4b4b;box-shadow:0 4px 0 #d33;}
+
+    @media (max-width:900px){
+        .resumen{grid-template-columns:repeat(2,1fr);}
+        .botones-estado{width:100%;}
+        .btn-estado{flex:1;justify-content:center;}
+    }
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="topbar">
+    <a href="{{ url_for('admin.admin_tareas') }}" class="back-btn">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
+    <div>
+        <div class="page-title">Revisar entregas</div>
+        <div class="page-sub">Marca el estado de cada alumno — se guarda solo</div>
+    </div>
+    <div class="page-icon ic-verde"><i class="ti ti-checklist" style="font-size:22px;"></i></div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="tarea-box">
+    <div class="tarea-titulo">{{ tarea.titulo }}</div>
+    {% if tarea.descripcion %}
+    <div class="tarea-desc">{{ tarea.descripcion }}</div>
+    {% endif %}
+    <div class="tarea-meta">
+        <span><i class="ti ti-book"></i> {{ tarea.materia or 'General' }}</span>
+        {% if tarea.fecha_entrega %}
+        <span><i class="ti ti-calendar-check"></i> Entrega {{ tarea.fecha_entrega }}</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="resumen">
+    {% for clave, etiqueta, color, icono in estados %}
+    <div class="res-card">
+        <div class="res-num" style="color:{{ color }};" id="num-{{ clave }}">0</div>
+        <div class="res-label">{{ etiqueta }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="acciones-masivas">
+    <span class="acciones-label">Marcar a todos:</span>
+    {% for clave, etiqueta, color, icono in estados %}
+    {% if clave != 'pendiente' %}
+    <form method="POST" action="{{ url_for('admin.marcar_todos_entrega', id_tarea=tarea.id) }}"
+          style="margin:0;" onsubmit="return confirm('¿Marcar a TODO el grupo como {{ etiqueta }}?');">
+        <input type="hidden" name="estado" value="{{ clave }}">
+        <button type="submit" class="btn-estado" style="border-color:{{ color }};color:{{ color }};">
+            <i class="ti {{ icono }}"></i> {{ etiqueta }}
+        </button>
+    </form>
+    {% endif %}
+    {% endfor %}
+</div>
+
+{% if alumnos %}
+    {% for a in alumnos %}
+    <div class="fila" data-alumno="{{ a.id }}">
+        <div class="avatar fila-avatar" style="background:{{ a.id | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
+        <div class="fila-nombre">{{ a.nombre }}</div>
+        <div class="botones-estado">
+            {% for clave, etiqueta, color, icono in estados %}
+            <button class="btn-estado {% if a.estado == clave %}activo{% endif %}"
+                    data-estado="{{ clave }}"
+                    data-color="{{ color }}"
+                    style="{% if a.estado == clave %}background:{{ color }};{% endif %}"
+                    onclick="marcar(this, {{ a.id }})">
+                <i class="ti {{ icono }}"></i> {{ etiqueta }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="empty">
+    <div class="empty-icon"><i class="ti ti-users-off"></i></div>
+    <div class="empty-title">No hay alumnos registrados</div>
+    <div class="empty-text">Registra alumnos para poder revisar entregas.</div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block modales %}
+<div class="toast" id="toast"><span id="toastMsg">Guardado</span></div>
+{% endblock %}
+
+{% block js_extra %}
+<script>
+const ID_TAREA = {{ tarea.id }};
+
+function toast(msg, err) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+function contar() {
+    const conteo = {};
+    document.querySelectorAll('.fila').forEach(f => {
+        const activo = f.querySelector('.btn-estado.activo');
+        const estado = activo ? activo.dataset.estado : 'pendiente';
+        conteo[estado] = (conteo[estado] || 0) + 1;
+    });
+    document.querySelectorAll('[id^="num-"]').forEach(el => {
+        const clave = el.id.replace('num-', '');
+        el.textContent = conteo[clave] || 0;
+    });
+}
+
+async function marcar(boton, idAlumno) {
+    const fila = boton.closest('.fila');
+
+    fila.querySelectorAll('.btn-estado').forEach(b => {
+        b.classList.remove('activo');
+        b.style.background = '';
+    });
+    boton.classList.add('activo');
+    boton.style.background = boton.dataset.color;
+    contar();
+
+    try {
+        const r = await fetch('{{ url_for("admin.marcar_entrega") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id_tarea:  ID_TAREA,
+                id_alumno: idAlumno,
+                estado:    boton.dataset.estado
+            })
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error();
+    } catch (e) {
+        toast('No se pudo guardar', true);
+    }
+}
+
+contar();
+</script>
+{% endblock %}

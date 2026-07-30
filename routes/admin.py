@@ -19,8 +19,13 @@ from repositorios import alumnos as repo_alumnos
 from repositorios import accesos as repo_accesos
 from repositorios import incidencias as repo_incidencias
 from repositorios import mensajes as repo_mensajes, avisos as repo_avisos
+from repositorios import tareas as repo_tareas
+from repositorios import academico as repo_academico
+from repositorios import busqueda as repo_busqueda
+
 from reportlab.graphics.shapes import Drawing, Rect
 from documentos import acta_incidencia
+
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
@@ -54,31 +59,48 @@ def admin_logout():
 
 # ── Dashboard ──
 
+def _trimestre_actual():
+    """Trimestre según el mes, para el ciclo escolar mexicano."""
+    mes = datetime.now().month
+    if mes in (9, 10, 11):
+        return 1
+    if mes in (12, 1, 2, 3):
+        return 2
+    return 3
+
+
 @admin_bp.route('/dashboard')
 def admin_dashboard():
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
 
-    conn = get_db()
+    alumnos   = repo_alumnos.obtener_todos()
+    trimestre = _trimestre_actual()
 
-    alumnos = repo_alumnos.obtener_todos()
-    
-    # Mensajes de padres no vistos
-    mensajes_pendientes = repo_mensajes.contar_no_leidos_maestra()
+    # Calificaciones del trimestre en curso
+    tabla   = repo_academico.tabla_trimestre(trimestre)
+    resumen = repo_academico.resumen_trimestre(tabla)
 
-    # Avisos de padres no vistos
-    avisos_pendientes = repo_avisos.contar_pendientes_de_padres()
+    # Tareas pendientes de revisar
+    tareas       = repo_tareas.todas()
+    por_revisar  = sum((t['total_alumnos'] or 0) - t['revisados'] for t in tareas)
+    materias_incompletas = sum(
+        1 for campo, _ in repo_academico.MATERIAS
+        if resumen['por_materia'][campo] is None
+    )
 
-    # Incidencias sin firmar
-    incidencias_sin_firmar = repo_incidencias.contar_sin_firmar()
-
-    conn.close()
     return render_template('admin_dashboard.html',
-                           alumnos                = alumnos,
-                           mensajes_pendientes    = mensajes_pendientes,
-                           avisos_pendientes      = avisos_pendientes,
-                           incidencias_sin_firmar = incidencias_sin_firmar)
-
+        alumnos                = alumnos,
+        mensajes_pendientes    = repo_mensajes.contar_no_leidos_maestra(),
+        avisos_pendientes      = repo_avisos.contar_pendientes_de_padres(),
+        incidencias_sin_firmar = repo_incidencias.contar_sin_firmar(),
+        trimestre              = trimestre,
+        resumen                = resumen,
+        materias               = repo_academico.MATERIAS,
+        conversaciones         = repo_mensajes.conversaciones()[:5],
+        avisos_recientes       = repo_avisos.todos()[:4],
+        tareas_por_revisar     = por_revisar,
+        materias_incompletas   = materias_incompletas)
 
 @admin_bp.route('/nuevo_alumno', methods=['POST'])
 def nuevo_alumno():
@@ -101,6 +123,7 @@ def nuevo_alumno():
         flash('Error: ese CURP ya existe')
 
     return redirect(url_for('admin.admin_dashboard'))
+
 @admin_bp.route('/accesos')
 def admin_accesos():
     if not session.get('admin'):
@@ -842,3 +865,107 @@ def admin_alumnos():
     if not session.get('admin'):
         return redirect(url_for('admin.admin_panel'))
     return render_template('admin_alumnos.html', alumnos=repo_alumnos.obtener_todos())
+
+# ═══════════ TAREAS DE ENTREGA ═══════════
+
+@admin_bp.route('/tareas')
+def admin_tareas():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+    return render_template('admin_tareas.html',
+                           tareas   = repo_tareas.todas(),
+                           materias = repo_tareas.MATERIAS)
+
+
+@admin_bp.route('/tareas/nueva', methods=['POST'])
+def nueva_tarea():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_tareas.crear(
+        titulo        = request.form['titulo'].strip(),
+        descripcion   = request.form.get('descripcion', '').strip(),
+        materia       = request.form.get('materia', 'General'),
+        fecha_entrega = request.form.get('fecha_entrega') or None
+    )
+    flash('Tarea publicada ✓')
+    return redirect(url_for('admin.admin_tareas'))
+
+
+@admin_bp.route('/tareas/<int:id_tarea>/editar', methods=['POST'])
+def editar_tarea(id_tarea):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_tareas.editar(
+        id_tarea      = id_tarea,
+        titulo        = request.form['titulo'].strip(),
+        descripcion   = request.form.get('descripcion', '').strip(),
+        materia       = request.form.get('materia', 'General'),
+        fecha_entrega = request.form.get('fecha_entrega') or None
+    )
+    flash('Tarea actualizada ✓')
+    return redirect(url_for('admin.admin_tareas'))
+
+
+@admin_bp.route('/tareas/<int:id_tarea>/eliminar', methods=['POST'])
+def eliminar_tarea(id_tarea):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_tareas.eliminar(id_tarea)
+    flash('Tarea eliminada')
+    return redirect(url_for('admin.admin_tareas'))
+
+
+@admin_bp.route('/tareas/<int:id_tarea>/revisar')
+def revisar_tarea(id_tarea):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    tarea = repo_tareas.obtener(id_tarea)
+    if not tarea:
+        flash('No se encontró la tarea')
+        return redirect(url_for('admin.admin_tareas'))
+
+    return render_template('admin_tarea_revision.html',
+                           tarea       = tarea,
+                           alumnos     = repo_tareas.lista_revision(id_tarea),
+                           estados     = repo_tareas.ESTADOS,
+                           estados_map = repo_tareas.ESTADOS_MAP)
+
+
+@admin_bp.route('/tareas/marcar', methods=['POST'])
+def marcar_entrega():
+    if not session.get('admin'):
+        return jsonify({'ok': False}), 403
+
+    d = request.get_json()
+    repo_tareas.marcar(
+        id_tarea  = d.get('id_tarea'),
+        id_alumno = d.get('id_alumno'),
+        estado    = d.get('estado'),
+        nota      = (d.get('nota') or '').strip()
+    )
+    return jsonify({'ok': True})
+
+
+@admin_bp.route('/tareas/<int:id_tarea>/marcar-todos', methods=['POST'])
+def marcar_todos_entrega(id_tarea):
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    n = repo_tareas.marcar_todos(id_tarea, request.form.get('estado', 'cumplio'))
+    flash(f'{n} alumno(s) marcados ✓')
+    return redirect(url_for('admin.revisar_tarea', id_tarea=id_tarea))
+
+@admin_bp.route('/buscar')
+def admin_buscar():
+    if not session.get('admin'):
+        return redirect(url_for('admin.admin_panel'))
+
+    consulta = request.args.get('q', '').strip()
+    return render_template('admin_buscar.html',
+                           consulta  = consulta,
+                           r         = repo_busqueda.buscar(consulta),
+                           tipos_map = repo_incidencias.TIPOS_MAP)

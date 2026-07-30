@@ -4,7 +4,9 @@ from repositorios import alumnos as repo_alumnos
 from repositorios import accesos as repo_accesos
 from repositorios import incidencias as repo_incidencias
 from repositorios import mensajes as repo_mensajes
-
+from repositorios import tareas as repo_tareas
+from repositorios import avisos as repo_avisos
+from repositorios import academico as repo_academico
 
 alumno_bp = Blueprint('alumno', __name__)
 
@@ -18,50 +20,21 @@ def panel_alumno():
 
     alumno_id = session['alumno_id']
     filtro    = request.args.get('filtro', 'todo')
-    conn      = get_db()
-    
 
-    # ═══ INCIDENCIAS ═══
-    incidencias_raw = conn.execute('''
-        SELECT i.*, s.visto, s.fecha_visto, s.enterado, s.fecha_enterado,
-               s.comentario_padre, s.fecha_comentario
-        FROM   incidencias i
-        LEFT JOIN incidencia_seguimiento s ON i.id = s.id_incidencia
-        WHERE  i.id_alumno = ?
-        ORDER  BY i.fecha ASC
-    ''', (alumno_id,)).fetchall()
-
-    incidencias = []
-    for idx, inc in enumerate(incidencias_raw, start=1):
-        inc = dict(inc)
-        inc['numero'] = idx
-        incidencias.append(inc)
-    incidencias.reverse()
-
-    # ═══ AVISOS Y TAREAS ═══
-    avisos = conn.execute('''
-        SELECT a.*,
-            CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS confirmado_por_padre
-        FROM avisos a
-        LEFT JOIN avisos_confirmaciones c
-            ON c.id_aviso = a.id AND c.id_alumno = ?
-        WHERE a.activo = 1
-        ORDER BY a.fecha DESC
-    ''', (alumno_id,)).fetchall()
-
-    actividades = conn.execute('''
-        SELECT * FROM actividades_recomendadas
-        WHERE  id_alumno = ?
-        ORDER  BY fecha DESC
-    ''', (alumno_id,)).fetchall()
+    # ═══ DATOS ═══
+    incidencias    = repo_incidencias.de_alumno(alumno_id)
+    avisos         = repo_avisos.activos_para(alumno_id)
+    actividades    = repo_academico.actividades_de(alumno_id)
+    tareas         = repo_tareas.de_alumno(alumno_id)
+    calificaciones = repo_academico.calificaciones_de(alumno_id)
+    perfil         = repo_academico.perfil_de(alumno_id)
 
     # ═══ FEED UNIFICADO ═══
     publicaciones = []
 
     for inc in incidencias:
-        tipo_pub = 'logro' if inc['tipo'] in ('logro', 'Logro') else 'incidencia'
         publicaciones.append({
-            'tipo_pub': tipo_pub,
+            'tipo_pub': 'logro' if inc['tipo'] in ('logro', 'Logro') else 'incidencia',
             'fecha':    inc['fecha'],
             'datos':    inc
         })
@@ -70,14 +43,21 @@ def panel_alumno():
         publicaciones.append({
             'tipo_pub': 'aviso',
             'fecha':    av['fecha'],
-            'datos':    dict(av)
+            'datos':    av
         })
 
     for act in actividades:
         publicaciones.append({
             'tipo_pub': 'tarea',
-            'fecha':    act['fecha'] if 'fecha' in act.keys() else '',
-            'datos':    dict(act)
+            'fecha':    act.get('fecha') or '',
+            'datos':    act
+        })
+
+    for tar in tareas:
+        publicaciones.append({
+            'tipo_pub': 'tarea_entrega',
+            'fecha':    tar.get('fecha_asignada') or '',
+            'datos':    tar
         })
 
     publicaciones.sort(key=lambda x: x['fecha'] or '', reverse=True)
@@ -90,20 +70,11 @@ def panel_alumno():
     elif filtro == 'avisos':
         publicaciones = [p for p in publicaciones if p['tipo_pub'] == 'aviso']
     elif filtro == 'tareas':
-        publicaciones = [p for p in publicaciones if p['tipo_pub'] == 'tarea']
+        publicaciones = [p for p in publicaciones
+                         if p['tipo_pub'] in ('tarea', 'tarea_entrega')]
 
-    # ═══ OTROS DATOS ═══
-    calificaciones = conn.execute('''
-         SELECT * FROM calificaciones
-        WHERE  id_alumno = ?
-        ORDER  BY trimestre
-    ''', (alumno_id,)).fetchall()
-
-    perfil = conn.execute(
-        'SELECT * FROM perfil_alumno WHERE id_alumno = ?', (alumno_id,)
-    ).fetchone()
     sin_firmar = sum(1 for i in incidencias if not i['enterado'])
-    conn.close()
+
     return render_template('alumno.html',
                            nombre         = session['nombre'],
                            incidencias    = incidencias,
@@ -113,11 +84,10 @@ def panel_alumno():
                            actividades    = actividades,
                            avisos         = avisos,
                            filtro         = filtro,
-                           sin_firmar = sin_firmar,
+                           sin_firmar     = sin_firmar,
                            tipos_map      = repo_incidencias.TIPOS_MAP,
-                           niveles_map    = repo_incidencias.NIVELES_MAP,)
-    
-
+                           niveles_map    = repo_incidencias.NIVELES_MAP,
+                           estados_map    = repo_tareas.ESTADOS_MAP)
 
 # ═══════════ DETALLE DE INCIDENCIA ═══════════
 
