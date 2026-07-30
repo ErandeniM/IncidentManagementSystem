@@ -75,7 +75,9 @@ def panel_alumno():
             'datos':    tar
         })
 
-    publicaciones.sort(key=lambda x: x['fecha'] or '', reverse=True)
+    # Lo que requiere acción del padre va primero
+    publicaciones.sort(key=lambda p: p['tipo_pub'] == 'incidencia'
+                       and not p['datos'].get('enterado'), reverse=True)
 
     # ── Filtros ──
     if filtro == 'incidencias':

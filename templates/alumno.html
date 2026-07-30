@@ -151,10 +151,10 @@
         <div class="greeting-sub">Papá / mamá de {{ nombre }}</div>
     </div>
     <div class="topbar-actions">
-        <a href="{{ url_for('alumno.panel_alumno') }}?filtro=incidencias" class="icon-btn">
+       <button class="icon-btn" onclick="alternarNotif()" style="cursor:pointer;">
             <i class="ti ti-bell"></i>
-            {% if sin_firmar > 0 %}<span class="notif-dot">{{ sin_firmar }}</span>{% endif %}
-        </a>
+            {% if pendientes.total %}<span class="notif-dot">{{ pendientes.total }}</span>{% endif %}
+        </button>
         <a href="{{ url_for('alumno.chat_maestra') }}" class="icon-btn">
             <i class="ti ti-message-circle"></i>
             {% if mensajes_nuevos is defined and mensajes_nuevos > 0 %}

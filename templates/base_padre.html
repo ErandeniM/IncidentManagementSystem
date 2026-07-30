@@ -79,6 +79,37 @@
         .flash-ok{background:#e8f9d5;border:2px solid #89e219;color:#58a002;}
         .flash-err{background:#ffe0d0;border:2px solid #ff9600;color:#cc5028;}
 
+        /* ══ MENÚ DE NOTIFICACIONES ══ */
+        .notif-fondo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:90;}
+        .notif-fondo.abierto{display:block;}
+        .notif-panel{display:none;position:fixed;top:80px;right:24px;width:360px;max-width:calc(100vw - 32px);max-height:70vh;background:#fff;border:2px solid #e5e5e5;border-radius:20px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:100;flex-direction:column;overflow:hidden;}
+        .notif-panel.abierto{display:flex;}
+
+        .notif-header{padding:16px 18px;border-bottom:2px solid #f0eee5;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+        .notif-titulo{font-size:16px;font-weight:900;color:#3c3c3c;}
+        .notif-sub{font-size:11px;font-weight:700;color:#777;margin-top:2px;}
+        .notif-cerrar{width:30px;height:30px;background:#f2f2f2;border:none;border-radius:9px;color:#777;cursor:pointer;margin-left:auto;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .notif-cerrar:hover{background:#e5e5e5;}
+
+        .notif-body{overflow-y:auto;padding:10px;}
+        .notif-item{display:flex;align-items:center;gap:11px;padding:10px;border-radius:12px;text-decoration:none;color:inherit;}
+        .notif-item:hover{background:#fefcf5;}
+        .notif-icono{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+        .notif-texto{flex:1;min-width:0;}
+        .notif-item-titulo{font-size:13px;font-weight:900;color:#3c3c3c;}
+        .notif-item-detalle{font-size:11px;font-weight:700;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}
+        .notif-fecha{font-size:10px;font-weight:800;color:#afafaf;flex-shrink:0;}
+
+        .notif-vacio{text-align:center;padding:34px 20px;}
+        .notif-vacio i{font-size:42px;color:#58cc02;margin-bottom:8px;}
+        .notif-vacio-titulo{font-size:14px;font-weight:900;color:#3c3c3c;}
+        .notif-vacio-texto{font-size:12px;font-weight:700;color:#777;margin-top:3px;}
+
+        @media (max-width:600px){
+            .notif-panel{top:auto;bottom:80px;right:16px;left:16px;width:auto;max-height:60vh;}
+        }
+
+
         /* ══ RESPONSIVE ══ */
         @media (max-width:900px){
             .layout{grid-template-columns:1fr;}
@@ -168,7 +199,54 @@
             </a>
         </div>
     </aside>
+<!-- Menú de notificaciones -->
+    {% if pendientes is defined %}
+    <div class="notif-fondo" id="notifFondo" onclick="cerrarNotif()"></div>
+    <div class="notif-panel" id="notifPanel">
+        <div class="notif-header">
+            <div>
+                <div class="notif-titulo">Novedades</div>
+                <div class="notif-sub">
+                    {% if pendientes.total %}
+                        {{ pendientes.total }} cosa(s) por revisar
+                    {% else %}
+                        No tienes nada pendiente
+                    {% endif %}
+                </div>
+            </div>
+            <button class="notif-cerrar" onclick="cerrarNotif()">
+                <i class="ti ti-x" style="font-size:18px;"></i>
+            </button>
+        </div>
 
+        <div class="notif-body">
+            {% if pendientes.lista %}
+                {% for n in pendientes.lista %}
+                <a class="notif-item" href="
+                    {%- if n.tipo == 'incidencia' -%}{{ url_for('alumno.ver_incidencia', id_incidencia=n.id) }}
+                    {%- elif n.tipo == 'mensaje' -%}{{ url_for('alumno.chat_maestra') }}
+                    {%- elif n.tipo == 'aviso' -%}{{ url_for('alumno.panel_alumno') }}?filtro=avisos
+                    {%- else -%}{{ url_for('alumno.panel_alumno') }}?filtro=tareas{%- endif -%}">
+                    <div class="notif-icono" style="background:{{ n.color }};">
+                        <i class="ti {{ n.icono }}" style="font-size:17px;"></i>
+                    </div>
+                    <div class="notif-texto">
+                        <div class="notif-item-titulo">{{ n.titulo }}</div>
+                        <div class="notif-item-detalle">{{ n.detalle }}</div>
+                    </div>
+                    <span class="notif-fecha">{{ n.fecha[:10] if n.fecha else '' }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="notif-vacio">
+                    <i class="ti ti-circle-check"></i>
+                    <div class="notif-vacio-titulo">Todo al día</div>
+                    <div class="notif-vacio-texto">No hay nada pendiente por ahora</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
     <main class="{% block clase_main %}main{% endblock %}">
         {% block encabezado %}{% endblock %}
 
@@ -192,5 +270,16 @@
 {% block modales %}{% endblock %}
 {% block js_extra %}{% endblock %}
 
+
+<script>
+    function alternarNotif() {
+        document.getElementById('notifPanel').classList.toggle('abierto');
+        document.getElementById('notifFondo').classList.toggle('abierto');
+    }
+    function cerrarNotif() {
+        document.getElementById('notifPanel').classList.remove('abierto');
+        document.getElementById('notifFondo').classList.remove('abierto');
+    }
+</script>
 </body>
 </html>

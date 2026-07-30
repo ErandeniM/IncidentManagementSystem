@@ -7,6 +7,8 @@ from database import init_db
 from routes.auth import auth_bp
 from routes.alumno import alumno_bp
 from routes.admin import admin_bp
+from flask import Flask, session
+from repositorios import pendientes as repo_pendientes
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -51,6 +53,13 @@ def inyectar_datos_escuela():
         'GRUPO':   GRUPO_NOMBRE,
         'ESCUELA': ESCUELA_NOMBRE,
     }
+    
+@app.context_processor
+def inyectar_pendientes():
+    """Novedades del padre, para el menú de la campana."""
+    if 'alumno_id' not in session:
+        return {}
+    return {'pendientes': repo_pendientes.resumen(session['alumno_id'])}
     
 @app.template_filter('color_avatar')
 def color_avatar(valor):
