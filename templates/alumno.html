@@ -131,6 +131,15 @@
     .btn-preguntar{background:#fff;color:#0f8fd6;border:2px solid #7dd3fc;box-shadow:0 3px 0 #1cb0f6;}
     .btn-preguntar:hover{background:#dcf4ff;}
 
+    /* Publicaciones urgentes firmadas */
+    .post-urgente.firmada{border-color:#d5d5d5;box-shadow:0 3px 0 #c4c4c4;opacity:.72;display:none;}
+    .post-urgente.firmada .urgente-strip{background:linear-gradient(90deg,#c4c4c4,#a3a3a3);}
+    .post-urgente.firmada .post-title,.post-urgente.firmada .post-time{color:#777;}
+    .post-urgente.firmada .post-footer{background:#f7f7f7;border-top-color:#e5e5e5;}
+    .post-urgente.firmada.visible{display:block;}
+    .btn-historial{width:100%;padding:13px;background:#fff;border:2px dashed #c4c4c4;border-radius:16px;font-size:13px;font-weight:900;color:#777;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;}
+    .btn-historial:hover{background:#fefcf5;border-color:#afafaf;}
+
 
 </style>
 {% endblock %}
@@ -211,7 +220,7 @@
     {% elif pub.tipo_pub == 'incidencia' %}
     {% set inc = pub.datos %}
     {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'icono': 'ti-alert-triangle'}) %}
-    <div class="post post-urgente">
+    <div class="post post-urgente {% if inc.enterado %}firmada{% endif %}">
         <div class="urgente-strip">
             <div class="urgente-strip-icon"><i class="ti ti-alert-circle" style="font-size:16px;"></i></div>
             {% if inc.enterado %}Ya firmaste{% else %}Requiere tu firma{% endif %}
@@ -369,6 +378,15 @@
 
 {% endfor %}
 
+{% set firmadas = publicaciones | selectattr('tipo_pub', 'equalto', 'incidencia') | map(attribute='datos') | selectattr('enterado') | list %}
+{% if firmadas %}
+<button class="btn-historial" id="btnHistorial" onclick="alternarHistorial()">
+    <i class="ti ti-history" style="font-size:17px;"></i>
+    <span id="txtHistorial">Ver {{ firmadas | length }} incidencia(s) ya firmada(s)</span>
+</button>
+{% endif %}
+
+
 {% else %}
 <div class="empty-state">
     <div class="empty-icon"><i class="ti ti-mood-smile"></i></div>
@@ -377,4 +395,24 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    function cerrarModalAviso() {
+        var m = document.getElementById('modalAvisoBg');
+        if (m) m.classList.add('hidden');
+    }
+
+    function alternarHistorial() {
+        var firmadas = document.querySelectorAll('.post-urgente.firmada');
+        var abierto  = firmadas.length && firmadas[0].classList.contains('visible');
+
+        firmadas.forEach(function(f) { f.classList.toggle('visible', !abierto); });
+
+        document.getElementById('txtHistorial').textContent = abierto
+            ? 'Ver ' + firmadas.length + ' incidencia(s) ya firmada(s)'
+            : 'Ocultar incidencias firmadas';
+    }
+</script>
 {% endblock %}

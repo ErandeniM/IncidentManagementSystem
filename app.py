@@ -57,9 +57,9 @@ def color_avatar(valor):
     """
     Color estable y único por alumno, derivado de su id.
 
-    Usa el ángulo áureo (137.5°) para saltar por el círculo cromático:
-    así dos ids consecutivos siempre caen en tonos bien separados,
-    y no se repiten hasta pasar de 100 alumnos.
+    Usa el ángulo áureo para saltar por el círculo cromático, así dos ids
+    consecutivos caen en tonos bien separados y no se repiten hasta pasar
+    de 100 alumnos. Si el valor no sirve, devuelve un azul neutro.
     """
     try:
         tono = (int(valor) * 137) % 360
@@ -67,7 +67,6 @@ def color_avatar(valor):
         tono = 210
     return (f'linear-gradient(135deg, hsl({tono},72%,58%), '
             f'hsl({(tono + 18) % 360},70%,45%))')
-
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(alumno_bp)

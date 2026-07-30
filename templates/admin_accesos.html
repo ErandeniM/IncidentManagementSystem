@@ -70,7 +70,7 @@
         {% for a in accesos %}
         <div class="acceso-row">
             
-            <div class="avatar acceso-avatar" style="background:{{ a.id | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
+            <div class="avatar acceso-avatar" style="background:{{ a.id_alumno | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
             <div class="acceso-info">
                 <div class="acceso-nombre">{{ a.nombre }}</div>
                 <div class="acceso-curp">{{ a.curp }}</div>

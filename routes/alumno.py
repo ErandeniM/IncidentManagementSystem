@@ -280,8 +280,10 @@ def configuracion():
                 id_alumno    = alumno_id,
                 nombre_tutor = request.form.get('nombre_tutor', '').strip(),
                 correo_padre = request.form.get('correo_padre', '').strip(),
-                notif_correo = request.form.get('notif_correo')
-            )
+                notif_correo = request.form.get('notif_correo',
+                accesos = repo_accesos.ultimos_de_alumno(alumno_id, 1))
+                )
+            
             flash('Datos actualizados ✓')
 
         elif accion == 'password':
@@ -308,3 +310,11 @@ def configuracion():
                            nombre  = session['nombre'],
                            alumno  = repo_alumnos.obtener_por_id(alumno_id),
                            accesos = repo_accesos.ultimos_de_alumno(alumno_id))
+@alumno_bp.route('/accesos')
+def mis_accesos():
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    return render_template('mis_accesos.html',
+                           nombre  = session['nombre'],
+                           accesos = repo_accesos.ultimos_de_alumno(session['alumno_id'], 50))

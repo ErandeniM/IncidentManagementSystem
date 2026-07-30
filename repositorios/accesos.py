@@ -30,7 +30,7 @@ def todos(limite=100):
     """Historial completo para el panel de la maestra."""
     with conexion() as conn:
         filas = conn.execute('''
-            SELECT a.nombre, a.curp, r.fecha, r.ip
+            SELECT a.id AS id_alumno, a.nombre, a.curp, r.fecha, r.ip
             FROM registro_accesos r
             JOIN alumnos a ON r.id_alumno = a.id
             ORDER BY r.fecha DESC

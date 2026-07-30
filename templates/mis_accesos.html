@@ -1,0 +1,54 @@
+{% extends "base_padre.html" %}
+{% set activo = 'config' %}
+
+{% block titulo %}Mis accesos{% endblock %}
+
+{% block css_extra %}
+<style>
+    .acceso-row{display:flex;align-items:center;gap:10px;padding:11px 13px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;margin-bottom:8px;}
+    .acceso-icon{width:34px;height:34px;border-radius:11px;background:#dcf4ff;color:#0f8fd6;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .acceso-fecha{flex:1;font-size:13px;font-weight:800;color:#3c3c3c;}
+    .acceso-ip{font-size:10px;font-weight:700;color:#afafaf;font-family:monospace;background:#f2f2f2;padding:3px 9px;border-radius:8px;}
+    .nota-privacidad{background:#dcf4ff;border:2px solid #7dd3fc;border-radius:14px;padding:12px 16px;font-size:12px;font-weight:700;color:#0a3a6b;line-height:1.5;margin-bottom:16px;display:flex;gap:10px;}
+    .nota-privacidad i{color:#1cb0f6;font-size:18px;flex-shrink:0;}
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="topbar">
+    <a href="{{ url_for('alumno.configuracion') }}" class="back-btn">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
+    <div>
+        <div class="page-title">Mis accesos</div>
+        <div class="page-sub">{{ accesos | length }} ingreso(s) registrado(s)</div>
+    </div>
+    <div class="page-icon ic-azul"><i class="ti ti-history" style="font-size:22px;"></i></div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="nota-privacidad">
+    <i class="ti ti-shield-check"></i>
+    <div>Este registro existe para tu seguridad. Si ves un ingreso que no reconoces, cambia tu contraseña y avísale a la maestra.</div>
+</div>
+
+<div class="card">
+    {% if accesos %}
+        {% for a in accesos %}
+        <div class="acceso-row">
+            <div class="acceso-icon"><i class="ti ti-clock" style="font-size:16px;"></i></div>
+            <div class="acceso-fecha">{{ a.fecha[:16] if a.fecha else '' }}</div>
+            <div class="acceso-ip">{{ a.ip or '—' }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-mini">
+            <i class="ti ti-login"></i>
+            <div class="empty-mini-title">Sin accesos registrados</div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

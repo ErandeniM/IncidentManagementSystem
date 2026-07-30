@@ -46,47 +46,25 @@
 
 <!-- Datos de contacto -->
 <div class="card">
-    <div class="card-title"><i class="ti ti-user-circle" style="color:#ff9600;"></i> Datos de contacto</div>
-    <div class="card-sub">Así te identifica la maestra cuando firmas o escribes</div>
+    <div class="card-title"><i class="ti ti-login" style="color:#a855f7;"></i> Último acceso</div>
+    <div class="card-sub">El sistema registra cuándo entras, para tu seguridad y la de la maestra</div>
 
-    <div class="cuenta-box">
-        <div class="cuenta-avatar">{{ nombre[:2] | upper }}</div>
-        <div>
-            <div class="cuenta-nombre">Cuenta de {{ nombre }}</div>
-            <div class="cuenta-curp">{{ alumno.curp }}</div>
+    {% if accesos %}
+        <div class="acceso-row">
+            <div class="acceso-icon"><i class="ti ti-clock" style="font-size:16px;"></i></div>
+            <div class="acceso-fecha">{{ accesos[0].fecha[:16] if accesos[0].fecha else '' }}</div>
+            <div class="acceso-ip">{{ accesos[0].ip or '—' }}</div>
         </div>
-    </div>
-
-    <form method="POST">
-        <input type="hidden" name="accion" value="datos">
-
-        <label class="form-label">Tu nombre completo</label>
-        <input type="text" name="nombre_tutor" class="form-input"
-               value="{{ alumno.nombre_tutor or '' }}"
-               placeholder="Ej: Ana López Ramírez">
-        <div class="form-hint">
-            <i class="ti ti-info-circle" style="font-size:12px;"></i>
-            Quedará registrado junto a las incidencias que firmes
+        <a href="{{ url_for('alumno.mis_accesos') }}" class="btn-save azul"
+           style="text-decoration:none;margin-top:12px;">
+            <i class="ti ti-history" style="font-size:17px;"></i> Ver todos mis accesos
+        </a>
+    {% else %}
+        <div class="empty-mini">
+            <i class="ti ti-login"></i>
+            <div class="empty-mini-title">Sin accesos registrados</div>
         </div>
-
-        <label class="form-label">Correo de contacto</label>
-        <input type="email" name="correo_padre" class="form-input"
-               value="{{ alumno.correo_padre or '' }}"
-               placeholder="tucorreo@gmail.com">
-
-        <label class="toggle-row">
-            <input type="checkbox" name="notif_correo" {% if alumno.notif_correo %}checked{% endif %}>
-            <span class="toggle-track"><span class="toggle-knob"></span></span>
-            <span>
-                <span class="toggle-title">Avisos por correo</span><br>
-                <span class="toggle-sub">Recibir un correo cuando haya algo nuevo</span>
-            </span>
-        </label>
-
-        <button type="submit" class="btn-save">
-            <i class="ti ti-check" style="font-size:17px;"></i> Guardar cambios
-        </button>
-    </form>
+    {% endif %}
 </div>
 
 <!-- Contraseña -->
@@ -115,7 +93,7 @@
 <!-- Accesos -->
 <div class="card">
     <div class="card-title"><i class="ti ti-login" style="color:#a855f7;"></i> Tus últimos accesos</div>
-    <div class="card-sub">El sistema registra cuándo entras, para tu seguridad y la de la maestra</div>
+    <div class="card-sub">Esta información se utiliza para proteger tu cuenta y detectar accesos no reconocidos. Solo puede consultarla personal autorizado.</div>
 
     {% if accesos %}
         {% for a in accesos %}
