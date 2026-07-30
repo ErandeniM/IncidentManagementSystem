@@ -1,35 +1,42 @@
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib import colors
-from flask import make_response
+"""
+Rutas del panel de la maestra.
+
+Ninguna función de este archivo escribe SQL: todo el acceso a datos
+pasa por la capa de repositorios.
+"""
+
 import csv
 import io
 import random
 from datetime import datetime
-from config import ADMIN_PASSWORD_HASH, DOCENTE_NOMBRE, GRUPO_NOMBRE, ESCUELA_NOMBRE
+
+from flask import (Blueprint, render_template, request, redirect,
+                   url_for, session, flash, jsonify, make_response)
 from werkzeug.security import check_password_hash
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
-from database import get_db, hash_password
-from email_utils import enviar_correo
+from config import ADMIN_PASSWORD_HASH
+from database import hash_password
 from seguridad import esta_bloqueado, registrar_fallo, limpiar
+from documentos import acta_incidencia, expediente_completo
+import notificaciones
+
 from repositorios import alumnos as repo_alumnos
 from repositorios import accesos as repo_accesos
 from repositorios import incidencias as repo_incidencias
-from repositorios import mensajes as repo_mensajes, avisos as repo_avisos
-from repositorios import tareas as repo_tareas
+from repositorios import avisos as repo_avisos
+from repositorios import mensajes as repo_mensajes
 from repositorios import academico as repo_academico
+from repositorios import tareas as repo_tareas
 from repositorios import busqueda as repo_busqueda
-
-from reportlab.graphics.shapes import Drawing, Rect
-from documentos import acta_incidencia
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
-# ── Login / Logout ──
+def _es_admin():
+    return session.get('admin')
+
+
+# ═══════════ ACCESO ═══════════
 
 @admin_bp.route('', methods=['GET', 'POST'])
 def admin_panel():
@@ -51,13 +58,14 @@ def admin_panel():
 
     return render_template('admin_login.html')
 
+
 @admin_bp.route('/logout')
 def admin_logout():
     session.pop('admin', None)
     return redirect(url_for('admin.admin_panel'))
 
 
-# ── Dashboard ──
+# ═══════════ DASHBOARD ═══════════
 
 def _trimestre_actual():
     """Trimestre según el mes, para el ciclo escolar mexicano."""
@@ -71,26 +79,23 @@ def _trimestre_actual():
 
 @admin_bp.route('/dashboard')
 def admin_dashboard():
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
-    alumnos   = repo_alumnos.obtener_todos()
     trimestre = _trimestre_actual()
+    tabla     = repo_academico.tabla_trimestre(trimestre)
+    resumen   = repo_academico.resumen_trimestre(tabla)
 
-    # Calificaciones del trimestre en curso
-    tabla   = repo_academico.tabla_trimestre(trimestre)
-    resumen = repo_academico.resumen_trimestre(tabla)
+    tareas      = repo_tareas.todas()
+    por_revisar = sum((t['total_alumnos'] or 0) - t['revisados'] for t in tareas)
 
-    # Tareas pendientes de revisar
-    tareas       = repo_tareas.todas()
-    por_revisar  = sum((t['total_alumnos'] or 0) - t['revisados'] for t in tareas)
     materias_incompletas = sum(
         1 for campo, _ in repo_academico.MATERIAS
         if resumen['por_materia'][campo] is None
     )
 
     return render_template('admin_dashboard.html',
-        alumnos                = alumnos,
+        alumnos                = repo_alumnos.obtener_todos(),
         mensajes_pendientes    = repo_mensajes.contar_no_leidos_maestra(),
         avisos_pendientes      = repo_avisos.contar_pendientes_de_padres(),
         incidencias_sin_firmar = repo_incidencias.contar_sin_firmar(),
@@ -102,666 +107,51 @@ def admin_dashboard():
         tareas_por_revisar     = por_revisar,
         materias_incompletas   = materias_incompletas)
 
-@admin_bp.route('/nuevo_alumno', methods=['POST'])
-def nuevo_alumno():
-    if not session.get('admin'):
+
+@admin_bp.route('/buscar')
+def admin_buscar():
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
-    curp   = request.form['curp'].strip().upper()
+    consulta = request.args.get('q', '').strip()
+    return render_template('admin_buscar.html',
+                           consulta  = consulta,
+                           r         = repo_busqueda.buscar(consulta),
+                           tipos_map = repo_incidencias.TIPOS_MAP)
+
+
+# ═══════════ ALUMNOS ═══════════
+
+@admin_bp.route('/alumnos')
+def admin_alumnos():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+    return render_template('admin_alumnos.html',
+                           alumnos = repo_alumnos.obtener_todos())
+
+
+@admin_bp.route('/nuevo_alumno', methods=['POST'])
+def nuevo_alumno():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
     nombre = request.form['nombre'].strip()
 
-    id_nuevo = repo_alumnos.crear(
-        curp          = curp,
+    creado = repo_alumnos.crear(
+        curp          = request.form['curp'].strip().upper(),
         nombre        = nombre,
         password_hash = hash_password(request.form['password']),
         correo_padre  = request.form.get('correo_padre', '').strip()
     )
 
-    if id_nuevo:
-        flash(f'Alumno {nombre} registrado correctamente ✓')
-    else:
-        flash('Error: ese CURP ya existe')
+    flash(f'Alumno {nombre} registrado correctamente ✓' if creado
+          else 'Error: ese CURP ya existe')
+    return redirect(url_for('admin.admin_alumnos'))
 
-    return redirect(url_for('admin.admin_dashboard'))
-
-@admin_bp.route('/accesos')
-def admin_accesos():
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    return render_template('admin_accesos.html', accesos=repo_accesos.todos())
-
-# ── Expediente del alumno ──
-
-@admin_bp.route('/alumno/<int:id_alumno>')
-def admin_expediente(id_alumno):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-
-    conn   = get_db()
-    alumno = repo_alumnos.obtener_por_id(id_alumno)
-
-    incidencias = repo_incidencias.de_alumno(id_alumno)
-
-    calificaciones = conn.execute('''
-        SELECT * FROM calificaciones WHERE id_alumno = ?
-        ORDER BY trimestre
-    ''', (id_alumno,)).fetchall()
-
-    perfil = conn.execute(
-        'SELECT * FROM perfil_alumno WHERE id_alumno = ?', (id_alumno,)
-    ).fetchone()
-
-    actividades = conn.execute('''
-        SELECT * FROM actividades_recomendadas WHERE id_alumno = ?
-        ORDER BY completada ASC, fecha DESC
-    ''', (id_alumno,)).fetchall()
-
-    conn.close()
-    return render_template('admin_expediente.html',
-                           alumno         = alumno,
-                           incidencias    = incidencias,
-                           calificaciones = calificaciones,
-                           perfil         = perfil,
-                           actividades    = actividades,
-                           id_alumno      = id_alumno,
-                           tipos          = repo_incidencias.TIPOS,
-                           niveles        = repo_incidencias.NIVELES,
-                           tipos_map      = repo_incidencias.TIPOS_MAP,
-                           niveles_map    = repo_incidencias.NIVELES_MAP)
-    
-# ── Nueva incidencia ──
-
-@admin_bp.route('/nueva_incidencia/<int:id_alumno>', methods=['POST'])
-def nueva_incidencia(id_alumno):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-incidencias')
-
-    tipo        = request.form['tipo']
-    descripcion = request.form['descripcion'].strip()
-    repo_incidencias.crear(
-        id_alumno      = id_alumno,
-        tipo           = tipo,
-        descripcion    = descripcion,
-        accion_docente = request.form.get('accion_docente', '').strip(),
-         nivel          = request.form.get('nivel', 'informativo')
-    )
-    alumno = repo_alumnos.obtener_por_id(id_alumno)
-
-    if alumno and alumno['correo_padre']:
-        asunto = f"Nueva notificación — {alumno['nombre']}"
-        cuerpo = f"""
-        <div style="font-family:sans-serif; max-width:500px; margin:0 auto;">
-            <div style="background:linear-gradient(135deg,#ff8c42,#ff6b6b); padding:1.5rem; border-radius:12px 12px 0 0;">
-                <h2 style="color:#fff; margin:0;">📋 Nueva notificación escolar</h2>
-            </div>
-            <div style="background:#fff; padding:1.5rem; border:1px solid #f0f0f0; border-radius:0 0 12px 12px;">
-                <p style="color:#636e72;">Se ha registrado una nueva notificación para <strong>{alumno['nombre']}</strong>.</p>
-                <div style="background:#fff8f0; border-left:4px solid #ff8c42; padding:1rem; border-radius:0 8px 8px 0; margin:1rem 0;">
-                    <strong style="color:#2d3436;">Tipo:</strong> {tipo}<br>
-                </div>
-                <p style="color:#636e72;">Ingresa al portal para ver el detalle completo y registrar tu firma de enterado.</p>
-                <p style="color:#b2bec3; font-size:.8rem; margin-top:2rem;">
-                    Este es un mensaje automático del sistema escolar.
-                </p>
-            </div>
-        </div>
-        """
-        enviar_correo(alumno['correo_padre'], asunto, cuerpo)
-
-    flash('Incidencia registrada ✓')
-   
-    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
-
-
-# ── Nueva calificación ──
-
-
-# ── Guardar perfil de personalidad ──
-
-@admin_bp.route('/guardar_perfil/<int:id_alumno>', methods=['POST'])
-def guardar_perfil(id_alumno):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    conn = get_db()
-    conn.execute('''
-        INSERT INTO perfil_alumno
-            (id_alumno, logico, fisico, artistico, social, lenguaje, nota, actualizado)
-        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(id_alumno) DO UPDATE SET
-            logico      = excluded.logico,
-            fisico      = excluded.fisico,
-            artistico   = excluded.artistico,
-            social      = excluded.social,
-            lenguaje    = excluded.lenguaje,
-            nota        = excluded.nota,
-            actualizado = CURRENT_TIMESTAMP
-    ''', (id_alumno,
-          int(request.form.get('logico',    0)),
-          int(request.form.get('fisico',    0)),
-          int(request.form.get('artistico', 0)),
-          int(request.form.get('social',    0)),
-          int(request.form.get('lenguaje',  0)),
-          request.form.get('nota', '').strip()))
-    conn.commit()
-    conn.close()
-    flash('Perfil actualizado ✓')
-    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-perfil')
-
-# ── Nueva actividad recomendada ──
-
-@admin_bp.route('/nueva_actividad/<int:id_alumno>', methods=['POST'])
-def nueva_actividad(id_alumno):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    conn = get_db()
-    conn.execute('''
-        INSERT INTO actividades_recomendadas (id_alumno, actividad, categoria)
-        VALUES (?, ?, ?)
-    ''', (id_alumno,
-          request.form['actividad'].strip(),
-          request.form.get('categoria', 'General')))
-    conn.commit()
-    conn.close()
-    flash('Actividad agregada ✓')
-    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-actividades')
-
-
-# ── Avisos ──
-
-@admin_bp.route('/avisos')
-def admin_avisos():
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    conn   = get_db()
-    avisos = conn.execute('SELECT * FROM avisos ORDER BY fecha DESC').fetchall()
-    conn.close()
-    return render_template('admin_avisos.html', avisos=avisos)
-
-
-@admin_bp.route('/nuevo_aviso', methods=['POST'])
-def nuevo_aviso():
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    titulo    = request.form['titulo']
-    contenido = request.form['contenido']
-    conn      = get_db()
-    conn.execute(
-        'INSERT INTO avisos (titulo, contenido) VALUES (?, ?)',
-        (titulo, contenido)
-    )
-    conn.commit()
-    conn.close()
-    flash('Aviso publicado ✓')
-    return redirect(url_for('admin.admin_avisos'))
-
-# ═══════════ EDITAR AVISO ═══════════
-@admin_bp.route('/aviso/editar/<int:id_aviso>', methods=['POST'])
-def editar_aviso(id_aviso):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    titulo    = request.form['titulo']
-    contenido = request.form['contenido']
-    conn      = get_db()
-    conn.execute('''
-        UPDATE avisos
-        SET titulo = ?, contenido = ?, fecha_actualizado = CURRENT_TIMESTAMP
-        WHERE id = ?
-    ''', (titulo, contenido, id_aviso))
-    # Reset de confirmaciones: los padres deben volver a confirmar
-    conn.execute('DELETE FROM avisos_confirmaciones WHERE id_aviso = ?', (id_aviso,))
-    conn.commit()
-    conn.close()
-    flash('Aviso actualizado. Los padres deberán confirmar nuevamente.')
-    return redirect(url_for('admin.admin_avisos'))
-
-
-# ═══════════ ELIMINAR AVISO ═══════════
-@admin_bp.route('/aviso/eliminar/<int:id_aviso>', methods=['POST'])
-def eliminar_aviso(id_aviso):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    conn = get_db()
-    conn.execute('DELETE FROM avisos_confirmaciones WHERE id_aviso = ?', (id_aviso,))
-    conn.execute('DELETE FROM avisos WHERE id = ?', (id_aviso,))
-    conn.commit()
-    conn.close()
-    flash('Aviso eliminado')
-    return redirect(url_for('admin.admin_avisos'))
-
-
-# ═══════════ VER CONFIRMACIONES DE UN AVISO ═══════════
-@admin_bp.route('/aviso/confirmaciones/<int:id_aviso>')
-def ver_confirmaciones(id_aviso):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    conn = get_db()
-    aviso = conn.execute('SELECT * FROM avisos WHERE id = ?', (id_aviso,)).fetchone()
-
-    confirmados = conn.execute('''
-        SELECT a.id, a.nombre, a.curp, c.fecha_confirmado
-        FROM alumnos a
-        JOIN avisos_confirmaciones c ON c.id_alumno = a.id
-        WHERE c.id_aviso = ?
-        ORDER BY c.fecha_confirmado DESC
-    ''', (id_aviso,)).fetchall()
-
-    pendientes = conn.execute('''
-        SELECT a.id, a.nombre, a.curp
-        FROM alumnos a
-        WHERE a.id NOT IN (
-            SELECT id_alumno FROM avisos_confirmaciones WHERE id_aviso = ?
-        )
-        ORDER BY a.nombre
-    ''', (id_aviso,)).fetchall()
-
-    conn.close()
-    return render_template('admin_confirmaciones.html',
-                           aviso       = aviso,
-                           confirmados = confirmados,
-                           pendientes  = pendientes)
-# ── Generar PDF del expediente ──
-@admin_bp.route('/alumno/<int:id_alumno>/pdf')
-def expediente_pdf(id_alumno):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-
-    conn   = get_db()
-    alumno = repo_alumnos.obtener_por_id(id_alumno)
-
-    incidencias = repo_incidencias.de_alumno(id_alumno, mas_recientes_primero=False)
-
-
-    calificaciones = conn.execute('''
-        SELECT * FROM calificaciones WHERE id_alumno = ?
-        ORDER BY trimestre
-    ''', (id_alumno,)).fetchall()
-    
-    perfil = conn.execute(
-        'SELECT * FROM perfil_alumno WHERE id_alumno = ?', (id_alumno,)
-    ).fetchone()
-
-    conn.close()
-
-    # Generar PDF
-    buffer = io.BytesIO()
-    doc    = SimpleDocTemplate(buffer, pagesize=letter,
-                               rightMargin=inch, leftMargin=inch,
-                               topMargin=inch, bottomMargin=inch)
-    styles = getSampleStyleSheet()
-    story  = []
-
-    # Título
-    titulo_style = ParagraphStyle('titulo', fontSize=18, fontName='Helvetica-Bold',
-                                  spaceAfter=6, textColor=colors.HexColor('#2c3e50'))
-    sub_style    = ParagraphStyle('sub', fontSize=10, fontName='Helvetica',
-                                  spaceAfter=20, textColor=colors.HexColor('#636e72'))
-    h2_style     = ParagraphStyle('h2', fontSize=13, fontName='Helvetica-Bold',
-                                  spaceBefore=16, spaceAfter=8,
-                                  textColor=colors.HexColor('#2c3e50'))
-    normal       = ParagraphStyle('normal', fontSize=9, fontName='Helvetica',
-                                  spaceAfter=4, textColor=colors.HexColor('#2d3436'))
-
-
-
-    # ── Encabezado institucional ──
-    inst_style = ParagraphStyle('inst', fontSize=9, fontName='Helvetica-Bold',
-                                spaceAfter=2, alignment=1,
-                                textColor=colors.HexColor('#636e72'))
-    doc_style  = ParagraphStyle('doc', fontSize=8, fontName='Helvetica',
-                                spaceAfter=14, alignment=1,
-                                textColor=colors.HexColor('#b2bec3'))
-
-    story.append(Paragraph(ESCUELA_NOMBRE.upper(), inst_style))
-    story.append(Paragraph(
-        f"{GRUPO_NOMBRE}  ·  Docente: {DOCENTE_NOMBRE}  ·  Ciclo escolar "
-        f"{datetime.now().year}-{datetime.now().year + 1}", doc_style))
-
-    story.append(Paragraph("Expediente del alumno", titulo_style))
-
-    # ── Ficha de identificación ──
-    ficha = [
-        ['Alumno',   alumno['nombre'],                              'CURP',     alumno['curp']],
-        ['Tutor',    alumno.get('nombre_tutor') or 'No registrado', 'Contacto', alumno.get('correo_padre') or '—'],
-    ]
-
-    tabla_ficha = Table(ficha, colWidths=[0.8*inch, 2.2*inch, 0.8*inch, 2.2*inch])
-    tabla_ficha.setStyle(TableStyle([
-        ('BACKGROUND',  (0,0), (0,-1), colors.HexColor('#f8f9fa')),
-        ('BACKGROUND',  (2,0), (2,-1), colors.HexColor('#f8f9fa')),
-        ('FONTNAME',    (0,0), (0,-1), 'Helvetica-Bold'),
-        ('FONTNAME',    (2,0), (2,-1), 'Helvetica-Bold'),
-        ('FONTSIZE',    (0,0), (-1,-1), 8),
-        ('TEXTCOLOR',   (0,0), (0,-1), colors.HexColor('#636e72')),
-        ('TEXTCOLOR',   (2,0), (2,-1), colors.HexColor('#636e72')),
-        ('GRID',        (0,0), (-1,-1), 0.3, colors.HexColor('#dee2e6')),
-        ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
-        ('PADDING',     (0,0), (-1,-1), 5),
-    ]))
-    story.append(tabla_ficha)
-    story.append(Spacer(1, 6))
-
-    # ── Resumen ──
-    firmadas   = sum(1 for i in incidencias if i.get('enterado'))
-    pendientes = len(incidencias) - firmadas
-
-    resumen_style = ParagraphStyle('res', fontSize=8, fontName='Helvetica',
-                                   spaceAfter=16,
-                                   textColor=colors.HexColor('#636e72'))
-    story.append(Paragraph(
-        f"Total de incidencias: <b>{len(incidencias)}</b>  ·  "
-        f"Firmadas por el tutor: <b>{firmadas}</b>  ·  "
-        f"Pendientes de firma: <b>{pendientes}</b>  ·  "
-        f"Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}",
-        resumen_style))
-    
-    
-    
-    # Incidencias
-    story.append(Paragraph("Incidencias", h2_style))
-    if incidencias:
-        data = [['#', 'Tipo', 'Fecha', 'Visto', 'Enterado', 'Respuesta del padre']]
-        for inc in incidencias:
-            data.append([
-                str(inc['numero']),
-                inc['tipo'] or '—',
-                inc['fecha'][:10] if inc['fecha'] else '—',
-                inc['fecha_visto'][:16] if inc.get('fecha_visto') else '✗',
-                inc['fecha_enterado'][:16] if inc.get('fecha_enterado') else '✗',
-                (inc['comentario_padre'] or '—')[:60]
-            ])
-        tabla = Table(data, colWidths=[0.3*inch, 0.8*inch, 0.9*inch, 1.2*inch, 1.2*inch, 2.1*inch])
-        tabla.setStyle(TableStyle([
-            ('BACKGROUND',  (0,0), (-1,0), colors.HexColor('#2c3e50')),
-            ('TEXTCOLOR',   (0,0), (-1,0), colors.white),
-            ('FONTNAME',    (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE',    (0,0), (-1,-1), 8),
-            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f8f9fa')]),
-            ('GRID',        (0,0), (-1,-1), 0.3, colors.HexColor('#dee2e6')),
-            ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
-            ('PADDING',     (0,0), (-1,-1), 4),
-        ]))
-        story.append(tabla)
-    else:
-        story.append(Paragraph("Sin incidencias registradas.", normal))
-
-# Calificaciones
-    story.append(Paragraph("Calificaciones", h2_style))
-    if calificaciones:
-        data2 = [['Trim.', 'Lenguajes', 'Ciencias', 'Ética', 'Comunitario', 'Faltas', 'Prom.']]
-        for cal in calificaciones:
-            notas  = [cal['lenguajes'], cal['ciencias'], cal['etica'], cal['comunitario']]
-            llenas = [n for n in notas if n is not None]
-            prom   = round(sum(llenas) / len(llenas), 1) if llenas else '—'
-            data2.append([
-                str(cal['trimestre']),
-                *[('—' if n is None else str(int(n))) for n in notas],
-                str(cal['inasistencias'] or 0),
-                str(prom)
-            ])
-        tabla2 = Table(data2, colWidths=[0.5*inch, 1*inch, 1*inch, 1*inch, 1.1*inch, 0.6*inch, 0.6*inch])
-        tabla2.setStyle(TableStyle([
-            ('BACKGROUND',  (0,0), (-1,0), colors.HexColor('#2c3e50')),
-            ('TEXTCOLOR',   (0,0), (-1,0), colors.white),
-            ('FONTNAME',    (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE',    (0,0), (-1,-1), 8),
-            ('ALIGN',       (0,0), (-1,-1), 'CENTER'),
-            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f8f9fa')]),
-            ('GRID',        (0,0), (-1,-1), 0.3, colors.HexColor('#dee2e6')),
-            ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
-            ('PADDING',     (0,0), (-1,-1), 4),
-        ]))
-        story.append(tabla2)
-    else:
-        story.append(Paragraph("Sin calificaciones registradas.", normal))
-
-# Perfil de habilidades
-    story.append(Paragraph("Perfil de habilidades", h2_style))
-    if perfil:
-        def barra(valor, ancho=2.4*inch, alto=11):
-            d = Drawing(ancho, alto)
-            d.add(Rect(0, 0, ancho, alto,
-                       fillColor=colors.HexColor('#f0eee5'),
-                       strokeColor=colors.HexColor('#dee2e6'),
-                       strokeWidth=0.5))
-            if valor > 0:
-                d.add(Rect(0, 0, ancho * min(valor, 100) / 100, alto,
-                           fillColor=colors.HexColor('#ff6b35'),
-                           strokeColor=None))
-            return d
-
-        areas = [
-            ('logico',    'Lógico-matemático'),
-            ('fisico',    'Físico-deportivo'),
-            ('artistico', 'Artístico'),
-            ('social',    'Social'),
-            ('lenguaje',  'Lenguaje'),
-        ]
-
-        data3 = [['Área', 'Nivel', 'Representación']]
-        for campo, etiqueta in areas:
-            valor = perfil[campo] or 0
-            data3.append([etiqueta, f'{valor}%', barra(valor)])
-
-        tabla3 = Table(data3, colWidths=[2.0*inch, 0.7*inch, 2.6*inch])
-        tabla3.setStyle(TableStyle([
-            ('BACKGROUND',  (0,0), (-1,0), colors.HexColor('#2c3e50')),
-            ('TEXTCOLOR',   (0,0), (-1,0), colors.white),
-            ('FONTNAME',    (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE',    (0,0), (-1,-1), 8),
-            ('ALIGN',       (1,0), (1,-1), 'CENTER'),
-            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f8f9fa')]),
-            ('GRID',        (0,0), (-1,-1), 0.3, colors.HexColor('#dee2e6')),
-            ('VALIGN',      (0,0), (-1,-1), 'MIDDLE'),
-            ('LEFTPADDING', (2,1), (2,-1), 6),
-            ('PADDING',     (0,0), (-1,-1), 5),
-        ]))
-        story.append(tabla3)
-
-        if perfil['nota']:
-            story.append(Spacer(1, 8))
-            story.append(Paragraph(f"<b>Observación de la maestra:</b> {perfil['nota']}", normal))
-    else:
-        story.append(Paragraph("Perfil sin registrar.", normal))
-    doc.build(story)
-    buffer.seek(0)
-
-    response = make_response(buffer.read())
-    response.headers['Content-Type']        = 'application/pdf'
-    response.headers['Content-Disposition'] = f'attachment; filename=expediente_{alumno["curp"]}.pdf'
-    return response
-
-# ═══════════ MENSAJES DE PADRES ═══════════
-
-@admin_bp.route('/mensajes')
-def admin_mensajes():
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-    return render_template('admin_mensajes.html',
-                           conversaciones = repo_mensajes.conversaciones())
-
-@admin_bp.route('/mensajes/<int:id_alumno>', methods=['GET', 'POST'])
-def admin_chat(id_alumno):
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-
-    if request.method == 'POST':
-        contenido = request.form.get('contenido', '').strip()
-        if contenido:
-            repo_mensajes.enviar(id_alumno, 'maestra', contenido)
-        return redirect(url_for('admin.admin_chat', id_alumno=id_alumno))
-
-    repo_mensajes.marcar_vistos(id_alumno, 'padre')
-
-    return render_template('admin_chat.html',
-                           alumno   = repo_alumnos.obtener_por_id(id_alumno),
-                           mensajes = repo_mensajes.conversacion(id_alumno))
-# ═══════════ AVISOS DE PADRES ═══════════
-
-@admin_bp.route('/avisos-padres')
-def admin_avisos_padres():
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-
-    conn = get_db()
-
-    # Marcar como vistos al entrar
-    conn.execute('''
-        UPDATE avisos_padre SET visto_maestra = 1, fecha_visto = CURRENT_TIMESTAMP
-        WHERE visto_maestra = 0
-    ''')
-    conn.commit()
-
-    avisos = conn.execute('''
-        SELECT ap.*, a.nombre AS nombre_alumno
-        FROM avisos_padre ap
-        JOIN alumnos a ON ap.id_alumno = a.id
-        ORDER BY ap.fecha_creado DESC
-        LIMIT 100
-    ''').fetchall()
-
-    conn.close()
-    return render_template('admin_avisos_padres.html', avisos=avisos)
-
-# ═══════════ TODAS LAS INCIDENCIAS DEL GRUPO ═══════════
-
-@admin_bp.route('/incidencias')
-def admin_todas_incidencias():
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-
-    filtro = request.args.get('filtro', 'todo')
-    return render_template('admin_todas_incidencias.html',
-                           incidencias = repo_incidencias.todas(filtro),
-                           filtro      = filtro,
-                           tipos_map   = repo_incidencias.TIPOS_MAP,
-                           niveles_map = repo_incidencias.NIVELES_MAP)
-# ═══════════ TABLA DE CALIFICACIONES ═══════════
-
-MATERIAS = [
-    ('lenguajes',   'Lenguajes'),
-    ('ciencias',    'Saberes y Pensamiento Científico'),
-    ('etica',       'Ética, Naturaleza y Sociedades'),
-    ('comunitario', 'De lo Humano y lo Comunitario'),
-]
-
-
-@admin_bp.route('/calificaciones')
-def admin_calificaciones():
-    if not session.get('admin'):
-        return redirect(url_for('admin.admin_panel'))
-
-    trimestre = request.args.get('trimestre', 1, type=int)
-    if trimestre not in (1, 2, 3):
-        trimestre = 1
-
-    conn = get_db()
-    filas = conn.execute('''
-        SELECT a.id, a.nombre, a.curp,
-               c.lenguajes, c.ciencias, c.etica, c.comunitario,
-               c.inasistencias, c.observaciones, c.fecha_actualizacion
-        FROM alumnos a
-        LEFT JOIN calificaciones c
-            ON c.id_alumno = a.id AND c.trimestre = ?
-        ORDER BY a.nombre
-    ''', (trimestre,)).fetchall()
-    conn.close()
-
-    alumnos   = []
-    completos = 0
-    sumas     = {k: [] for k, _ in MATERIAS}
-
-    for f in filas:
-        f = dict(f)
-        notas  = [f[k] for k, _ in MATERIAS]
-        llenas = [n for n in notas if n is not None]
-        f['completo'] = len(llenas) == len(MATERIAS)
-        f['promedio'] = round(sum(llenas) / len(llenas), 1) if llenas else None
-        if f['completo']:
-            completos += 1
-        for k, _ in MATERIAS:
-            if f[k] is not None:
-                sumas[k].append(f[k])
-        alumnos.append(f)
-
-    total        = len(alumnos)
-    avance       = round(completos * 100 / total) if total else 0
-    prom_materia = {k: (round(sum(v) / len(v), 1) if v else None) for k, v in sumas.items()}
-    todas        = [n for v in sumas.values() for n in v]
-    prom_grupo   = round(sum(todas) / len(todas), 1) if todas else None
-
-    return render_template('admin_calificaciones.html',
-                           alumnos      = alumnos,
-                           trimestre    = trimestre,
-                           materias     = MATERIAS,
-                           completos    = completos,
-                           total        = total,
-                           avance       = avance,
-                           prom_materia = prom_materia,
-                           prom_grupo   = prom_grupo)
-
-
-@admin_bp.route('/calificaciones/guardar', methods=['POST'])
-def guardar_calificaciones():
-    if not session.get('admin'):
-        return jsonify({'ok': False}), 403
-
-    d = request.get_json()
-
-    def num(v):
-        if v is None or v == '':
-            return None
-        try:
-            return float(v)
-        except (ValueError, TypeError):
-            return None
-
-    conn = get_db()
-    conn.execute('''
-        INSERT INTO calificaciones
-            (id_alumno, trimestre, lenguajes, ciencias, etica, comunitario,
-             inasistencias, observaciones, fecha_actualizacion)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(id_alumno, trimestre) DO UPDATE SET
-            lenguajes           = excluded.lenguajes,
-            ciencias            = excluded.ciencias,
-            etica               = excluded.etica,
-            comunitario         = excluded.comunitario,
-            inasistencias       = excluded.inasistencias,
-            observaciones       = excluded.observaciones,
-            fecha_actualizacion = CURRENT_TIMESTAMP
-    ''', (
-        d.get('id_alumno'),
-        d.get('trimestre'),
-        num(d.get('lenguajes')),
-        num(d.get('ciencias')),
-        num(d.get('etica')),
-        num(d.get('comunitario')),
-        int(d.get('inasistencias') or 0),
-        (d.get('observaciones') or '').strip(),
-    ))
-    conn.commit()
-    conn.close()
-
-    notas  = [num(d.get(k)) for k, _ in MATERIAS]
-    llenas = [n for n in notas if n is not None]
-    return jsonify({
-        'ok':       True,
-        'completo': len(llenas) == len(MATERIAS),
-        'promedio': round(sum(llenas) / len(llenas), 1) if llenas else None
-    })
-    
-# ═══════════ RESETEAR CONTRASEÑA DE UN PADRE ═══════════
-
-PALABRAS = ['casa', 'sol', 'luna', 'flor', 'mar', 'nube', 'arbol', 'rio', 'cielo', 'campo']
-
-
-def generar_password():
-    """Contraseña simple de dictar por teléfono. Ej: luna-4821"""
-    return f"{random.choice(PALABRAS)}-{random.randint(1000, 9999)}"
 
 @admin_bp.route('/alumno/<int:id_alumno>/password', methods=['POST'])
 def resetear_password(id_alumno):
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
     nueva = request.form.get('password_nueva', '').strip()
@@ -772,79 +162,111 @@ def resetear_password(id_alumno):
     repo_alumnos.actualizar_password(id_alumno, hash_password(nueva))
     alumno = repo_alumnos.obtener_por_id(id_alumno)
 
-    flash(f'Contraseña de {alumno["nombre"]} restablecida. Nueva contraseña: {nueva} ✓')
+    flash(f'Contraseña de {alumno["nombre"]} restablecida. '
+          f'Nueva contraseña: {nueva} ✓')
     return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
 
-# ═══════════ ALTA MASIVA POR CSV ═══════════
 
-@admin_bp.route('/alumnos/importar', methods=['GET', 'POST'])
-def importar_alumnos():
-    if not session.get('admin'):
+@admin_bp.route('/accesos')
+def admin_accesos():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+    return render_template('admin_accesos.html', accesos=repo_accesos.todos())
+
+
+# ═══════════ EXPEDIENTE ═══════════
+
+@admin_bp.route('/alumno/<int:id_alumno>')
+def admin_expediente(id_alumno):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
-    resultados = None
-
-    if request.method == 'POST':
-        archivo = request.files.get('archivo')
-        if not archivo or not archivo.filename:
-            flash('No seleccionaste ningún archivo')
-            return redirect(url_for('admin.importar_alumnos'))
-
-        try:
-            contenido = archivo.read().decode('utf-8-sig')
-        except UnicodeDecodeError:
-            archivo.seek(0)
-            contenido = archivo.read().decode('latin-1')
-
-        lector = csv.DictReader(io.StringIO(contenido))
-        conn   = get_db()
-        creados, errores = [], []
-
-        for num, fila in enumerate(lector, start=2):
-            curp   = (fila.get('curp')   or '').strip().upper()
-            nombre = (fila.get('nombre') or '').strip()
-            correo = (fila.get('correo') or '').strip()
-            passwd = (fila.get('contrasena') or '').strip() or generar_password()
-
-            if not curp or not nombre:
-                errores.append(f'Fila {num}: falta CURP o nombre')
-                continue
-            if len(curp) != 10:
-                errores.append(f'Fila {num}: el CURP debe tener 10 caracteres ({curp})')
-                continue
+    return render_template('admin_expediente.html',
+        alumno         = repo_alumnos.obtener_por_id(id_alumno),
+        incidencias    = repo_incidencias.de_alumno(id_alumno),
+        calificaciones = repo_academico.calificaciones_de(id_alumno),
+        perfil         = repo_academico.perfil_de(id_alumno),
+        actividades    = repo_academico.actividades_de(id_alumno, pendientes_primero=True),
+        id_alumno      = id_alumno,
+        tipos          = repo_incidencias.TIPOS,
+        niveles        = repo_incidencias.NIVELES,
+        tipos_map      = repo_incidencias.TIPOS_MAP,
+        niveles_map    = repo_incidencias.NIVELES_MAP)
 
 
-            if repo_alumnos.crear(curp, nombre, hash_password(passwd), correo):
-                creados.append({'curp': curp, 'nombre': nombre, 'password': passwd})
-            else:
-                errores.append(f'Fila {num}: el CURP {curp} ya existe')
-
-        conn.commit()
-        conn.close()
-        resultados = {'creados': creados, 'errores': errores}
-
-    return render_template('admin_importar.html', resultados=resultados)
-
-
-@admin_bp.route('/alumnos/plantilla-csv')
-def plantilla_csv():
-    if not session.get('admin'):
+@admin_bp.route('/alumno/<int:id_alumno>/pdf')
+def expediente_pdf(id_alumno):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
-    salida = io.StringIO()
-    escritor = csv.writer(salida)
-    escritor.writerow(['curp', 'nombre', 'correo', 'contrasena'])
-    escritor.writerow(['MABC010101', 'María G.', 'mama.maria@gmail.com', ''])
-    escritor.writerow(['LOPZ020202', 'Juan P.', 'papa.juan@gmail.com', ''])
+    alumno = repo_alumnos.obtener_por_id(id_alumno)
+    if not alumno:
+        flash('No se encontró el alumno')
+        return redirect(url_for('admin.admin_alumnos'))
 
-    respuesta = make_response('\ufeff' + salida.getvalue())
-    respuesta.headers['Content-Type'] = 'text/csv; charset=utf-8'
-    respuesta.headers['Content-Disposition'] = 'attachment; filename=plantilla_alumnos.csv'
+    pdf = expediente_completo(
+        alumno         = alumno,
+        incidencias    = repo_incidencias.de_alumno(id_alumno, mas_recientes_primero=False),
+        calificaciones = repo_academico.calificaciones_de(id_alumno),
+        perfil         = repo_academico.perfil_de(id_alumno)
+    )
+
+    respuesta = make_response(pdf)
+    respuesta.headers['Content-Type'] = 'application/pdf'
+    respuesta.headers['Content-Disposition'] = \
+        f'attachment; filename=expediente_{alumno["curp"]}.pdf'
     return respuesta
+
+
+# ═══════════ INCIDENCIAS ═══════════
+
+@admin_bp.route('/nueva_incidencia/<int:id_alumno>', methods=['POST'])
+def nueva_incidencia(id_alumno):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    tipo = request.form['tipo']
+
+    repo_incidencias.crear(
+        id_alumno      = id_alumno,
+        tipo           = tipo,
+        descripcion    = request.form['descripcion'].strip(),
+        accion_docente = request.form.get('accion_docente', '').strip(),
+        nivel          = request.form.get('nivel', 'informativo')
+    )
+
+    alumno = repo_alumnos.obtener_por_id(id_alumno)
+    notificaciones.avisar_a_padre(
+        id_alumno = id_alumno,
+        asunto    = f'Nueva notificación — {alumno["nombre"]}',
+        titulo    = 'Nueva notificación escolar',
+        mensaje   = (f'Se registró una notificación de tipo '
+                     f'<b>{repo_incidencias.etiqueta_tipo(tipo)}</b> para '
+                     f'<b>{alumno["nombre"]}</b>. Ingresa al portal para leer '
+                     f'el detalle y registrar tu firma de enterado.'),
+        tipo      = 'logro' if tipo == 'logro' else 'incidencia'
+    )
+
+    flash('Incidencia registrada ✓')
+    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno))
+
+
+@admin_bp.route('/incidencias')
+def admin_todas_incidencias():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    filtro = request.args.get('filtro', 'todo')
+    return render_template('admin_todas_incidencias.html',
+                           incidencias = repo_incidencias.todas(filtro),
+                           filtro      = filtro,
+                           tipos_map   = repo_incidencias.TIPOS_MAP,
+                           niveles_map = repo_incidencias.NIVELES_MAP)
+
 
 @admin_bp.route('/incidencia/<int:id_incidencia>/acta')
 def acta_pdf(id_incidencia):
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
     inc = repo_incidencias.obtener(id_incidencia)
@@ -852,25 +274,228 @@ def acta_pdf(id_incidencia):
         flash('No se encontró la incidencia')
         return redirect(url_for('admin.admin_dashboard'))
 
-    alumno    = repo_alumnos.obtener_por_id(inc['id_alumno'])
+    alumno     = repo_alumnos.obtener_por_id(inc['id_alumno'])
     pdf, folio = acta_incidencia(inc, alumno)
 
     respuesta = make_response(pdf)
-    respuesta.headers['Content-Type']        = 'application/pdf'
+    respuesta.headers['Content-Type'] = 'application/pdf'
     respuesta.headers['Content-Disposition'] = f'inline; filename=acta_{folio}.pdf'
     return respuesta
 
-@admin_bp.route('/alumnos')
-def admin_alumnos():
-    if not session.get('admin'):
+
+# ═══════════ PERFIL Y ACTIVIDADES ═══════════
+
+@admin_bp.route('/guardar_perfil/<int:id_alumno>', methods=['POST'])
+def guardar_perfil(id_alumno):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
-    return render_template('admin_alumnos.html', alumnos=repo_alumnos.obtener_todos())
+
+    repo_academico.guardar_perfil(
+        id_alumno = id_alumno,
+        valores   = {campo: request.form.get(campo, 0)
+                     for campo, _ in repo_academico.AREAS},
+        nota      = request.form.get('nota', '').strip()
+    )
+    flash('Perfil actualizado ✓')
+    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-perfil')
+
+
+@admin_bp.route('/nueva_actividad/<int:id_alumno>', methods=['POST'])
+def nueva_actividad(id_alumno):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    actividad = request.form['actividad'].strip()
+    categoria = request.form.get('categoria', 'General')
+
+    if request.form.get('todo_el_grupo'):
+        n = repo_academico.crear_actividad_para_todos(actividad, categoria)
+        flash(f'Actividad asignada a {n} alumno(s) ✓')
+    else:
+        repo_academico.crear_actividad(id_alumno, actividad, categoria)
+        flash('Actividad agregada ✓')
+
+    return redirect(url_for('admin.admin_expediente', id_alumno=id_alumno) + '#tab-actividades')
+
+
+# ═══════════ CALIFICACIONES ═══════════
+
+@admin_bp.route('/calificaciones')
+def admin_calificaciones():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    trimestre = request.args.get('trimestre', 1, type=int)
+    if trimestre not in (1, 2, 3):
+        trimestre = 1
+
+    alumnos = repo_academico.tabla_trimestre(trimestre)
+    resumen = repo_academico.resumen_trimestre(alumnos)
+
+    return render_template('admin_calificaciones.html',
+                           alumnos      = alumnos,
+                           trimestre    = trimestre,
+                           materias     = repo_academico.MATERIAS,
+                           completos    = resumen['completos'],
+                           total        = resumen['total'],
+                           avance       = resumen['avance'],
+                           prom_materia = resumen['por_materia'],
+                           prom_grupo   = resumen['promedio'])
+
+
+@admin_bp.route('/calificaciones/guardar', methods=['POST'])
+def guardar_calificaciones():
+    if not _es_admin():
+        return jsonify({'ok': False}), 403
+
+    d = request.get_json()
+
+    def num(v):
+        try:
+            return float(v) if v not in (None, '') else None
+        except (ValueError, TypeError):
+            return None
+
+    notas = {campo: num(d.get(campo)) for campo, _ in repo_academico.MATERIAS}
+
+    repo_academico.guardar_calificaciones(
+        id_alumno     = d.get('id_alumno'),
+        trimestre     = d.get('trimestre'),
+        notas         = notas,
+        inasistencias = int(d.get('inasistencias') or 0),
+        observaciones = (d.get('observaciones') or '').strip()
+    )
+
+    llenas = [n for n in notas.values() if n is not None]
+    return jsonify({
+        'ok':       True,
+        'completo': len(llenas) == len(repo_academico.MATERIAS),
+        'promedio': round(sum(llenas) / len(llenas), 1) if llenas else None
+    })
+
+
+# ═══════════ AVISOS ═══════════
+
+@admin_bp.route('/avisos')
+def admin_avisos():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+    return render_template('admin_avisos.html', avisos=repo_avisos.todos())
+
+
+@admin_bp.route('/nuevo_aviso', methods=['POST'])
+def nuevo_aviso():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    titulo    = request.form['titulo'].strip()
+    contenido = request.form['contenido'].strip()
+
+    repo_avisos.crear(titulo, contenido)
+    notificaciones.avisar_a_todos(
+        asunto  = f'Aviso escolar — {titulo}',
+        titulo  = titulo,
+        mensaje = contenido,
+        tipo    = 'aviso'
+    )
+
+    flash('Aviso publicado ✓')
+    return redirect(url_for('admin.admin_avisos'))
+
+
+@admin_bp.route('/aviso/editar/<int:id_aviso>', methods=['POST'])
+def editar_aviso(id_aviso):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    titulo    = request.form['titulo'].strip()
+    contenido = request.form['contenido'].strip()
+
+    repo_avisos.editar(id_aviso, titulo, contenido)
+    notificaciones.avisar_a_todos(
+        asunto  = f'Aviso actualizado — {titulo}',
+        titulo  = f'Aviso actualizado: {titulo}',
+        mensaje = f'{contenido}<br><br><i>Este aviso fue modificado, '
+                  f'por eso te pedimos confirmarlo de nuevo.</i>',
+        tipo    = 'aviso'
+    )
+
+    flash('Aviso actualizado. Los padres deberán confirmar nuevamente.')
+    return redirect(url_for('admin.admin_avisos'))
+
+
+@admin_bp.route('/aviso/eliminar/<int:id_aviso>', methods=['POST'])
+def eliminar_aviso(id_aviso):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_avisos.eliminar(id_aviso)
+    flash('Aviso eliminado')
+    return redirect(url_for('admin.admin_avisos'))
+
+
+@admin_bp.route('/aviso/confirmaciones/<int:id_aviso>')
+def ver_confirmaciones(id_aviso):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    return render_template('admin_confirmaciones.html',
+                           aviso       = repo_avisos.obtener(id_aviso),
+                           confirmados = repo_avisos.quien_confirmo(id_aviso),
+                           pendientes  = repo_avisos.quien_falta(id_aviso))
+
+
+@admin_bp.route('/avisos-padres')
+def admin_avisos_padres():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_avisos.marcar_vistos_por_maestra()
+    return render_template('admin_avisos_padres.html',
+                           avisos = repo_avisos.todos_de_padres())
+
+
+# ═══════════ MENSAJES ═══════════
+
+@admin_bp.route('/mensajes')
+def admin_mensajes():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+    return render_template('admin_mensajes.html',
+                           conversaciones = repo_mensajes.conversaciones())
+
+
+@admin_bp.route('/mensajes/<int:id_alumno>', methods=['GET', 'POST'])
+def admin_chat(id_alumno):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    if request.method == 'POST':
+        contenido = request.form.get('contenido', '').strip()
+        if contenido:
+            repo_mensajes.enviar(id_alumno, 'maestra', contenido)
+            notificaciones.avisar_a_padre(
+                id_alumno = id_alumno,
+                asunto    = 'Nuevo mensaje de la maestra',
+                titulo    = 'Tienes un mensaje nuevo',
+                mensaje   = 'La maestra te respondió en el chat privado. '
+                            'Ingresa al portal para leerlo.',
+                tipo      = 'mensaje'
+            )
+        return redirect(url_for('admin.admin_chat', id_alumno=id_alumno))
+
+    repo_mensajes.marcar_vistos(id_alumno, 'padre')
+
+    return render_template('admin_chat.html',
+                           alumno   = repo_alumnos.obtener_por_id(id_alumno),
+                           mensajes = repo_mensajes.conversacion(id_alumno))
+
 
 # ═══════════ TAREAS DE ENTREGA ═══════════
 
 @admin_bp.route('/tareas')
 def admin_tareas():
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
     return render_template('admin_tareas.html',
                            tareas   = repo_tareas.todas(),
@@ -879,22 +504,34 @@ def admin_tareas():
 
 @admin_bp.route('/tareas/nueva', methods=['POST'])
 def nueva_tarea():
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
+    titulo  = request.form['titulo'].strip()
+    entrega = request.form.get('fecha_entrega') or None
+
     repo_tareas.crear(
-        titulo        = request.form['titulo'].strip(),
+        titulo        = titulo,
         descripcion   = request.form.get('descripcion', '').strip(),
         materia       = request.form.get('materia', 'General'),
-        fecha_entrega = request.form.get('fecha_entrega') or None
+        fecha_entrega = entrega
     )
+
+    notificaciones.avisar_a_todos(
+        asunto  = f'Nueva tarea — {titulo}',
+        titulo  = titulo,
+        mensaje = (request.form.get('descripcion', '').strip() or 'Nueva tarea publicada.')
+                  + (f'<br><br><b>Fecha de entrega:</b> {entrega}' if entrega else ''),
+        tipo    = 'tarea'
+    )
+
     flash('Tarea publicada ✓')
     return redirect(url_for('admin.admin_tareas'))
 
 
 @admin_bp.route('/tareas/<int:id_tarea>/editar', methods=['POST'])
 def editar_tarea(id_tarea):
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
     repo_tareas.editar(
@@ -910,7 +547,7 @@ def editar_tarea(id_tarea):
 
 @admin_bp.route('/tareas/<int:id_tarea>/eliminar', methods=['POST'])
 def eliminar_tarea(id_tarea):
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
     repo_tareas.eliminar(id_tarea)
@@ -920,7 +557,7 @@ def eliminar_tarea(id_tarea):
 
 @admin_bp.route('/tareas/<int:id_tarea>/revisar')
 def revisar_tarea(id_tarea):
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
     tarea = repo_tareas.obtener(id_tarea)
@@ -937,7 +574,7 @@ def revisar_tarea(id_tarea):
 
 @admin_bp.route('/tareas/marcar', methods=['POST'])
 def marcar_entrega():
-    if not session.get('admin'):
+    if not _es_admin():
         return jsonify({'ok': False}), 403
 
     d = request.get_json()
@@ -952,20 +589,80 @@ def marcar_entrega():
 
 @admin_bp.route('/tareas/<int:id_tarea>/marcar-todos', methods=['POST'])
 def marcar_todos_entrega(id_tarea):
-    if not session.get('admin'):
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
     n = repo_tareas.marcar_todos(id_tarea, request.form.get('estado', 'cumplio'))
     flash(f'{n} alumno(s) marcados ✓')
     return redirect(url_for('admin.revisar_tarea', id_tarea=id_tarea))
 
-@admin_bp.route('/buscar')
-def admin_buscar():
-    if not session.get('admin'):
+
+# ═══════════ ALTA MASIVA POR CSV ═══════════
+
+PALABRAS = ['casa', 'sol', 'luna', 'flor', 'mar', 'nube', 'arbol', 'rio', 'cielo', 'campo']
+
+
+def generar_password():
+    """Contraseña simple de dictar por teléfono. Ej: luna-4821"""
+    return f'{random.choice(PALABRAS)}-{random.randint(1000, 9999)}'
+
+
+@admin_bp.route('/alumnos/importar', methods=['GET', 'POST'])
+def importar_alumnos():
+    if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
-    consulta = request.args.get('q', '').strip()
-    return render_template('admin_buscar.html',
-                           consulta  = consulta,
-                           r         = repo_busqueda.buscar(consulta),
-                           tipos_map = repo_incidencias.TIPOS_MAP)
+    resultados = None
+
+    if request.method == 'POST':
+        archivo = request.files.get('archivo')
+        if not archivo or not archivo.filename:
+            flash('No seleccionaste ningún archivo')
+            return redirect(url_for('admin.importar_alumnos'))
+
+        try:
+            contenido = archivo.read().decode('utf-8-sig')
+        except UnicodeDecodeError:
+            archivo.seek(0)
+            contenido = archivo.read().decode('latin-1')
+
+        creados, errores = [], []
+
+        for num, fila in enumerate(csv.DictReader(io.StringIO(contenido)), start=2):
+            curp   = (fila.get('curp')   or '').strip().upper()
+            nombre = (fila.get('nombre') or '').strip()
+            correo = (fila.get('correo') or '').strip()
+            passwd = (fila.get('contrasena') or '').strip() or generar_password()
+
+            if not curp or not nombre:
+                errores.append(f'Fila {num}: falta CURP o nombre')
+                continue
+            if len(curp) != 10:
+                errores.append(f'Fila {num}: el CURP debe tener 10 caracteres ({curp})')
+                continue
+
+            if repo_alumnos.crear(curp, nombre, hash_password(passwd), correo):
+                creados.append({'curp': curp, 'nombre': nombre, 'password': passwd})
+            else:
+                errores.append(f'Fila {num}: el CURP {curp} ya existe')
+
+        resultados = {'creados': creados, 'errores': errores}
+
+    return render_template('admin_importar.html', resultados=resultados)
+
+
+@admin_bp.route('/alumnos/plantilla-csv')
+def plantilla_csv():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    salida   = io.StringIO()
+    escritor = csv.writer(salida)
+    escritor.writerow(['curp', 'nombre', 'correo', 'contrasena'])
+    escritor.writerow(['MABC010101', 'María G.', 'mama.maria@gmail.com', ''])
+    escritor.writerow(['LOPZ020202', 'Juan P.', 'papa.juan@gmail.com', ''])
+
+    respuesta = make_response('\ufeff' + salida.getvalue())
+    respuesta.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    respuesta.headers['Content-Disposition'] = 'attachment; filename=plantilla_alumnos.csv'
+    return respuesta
