@@ -18,6 +18,7 @@ from repositorios import avisos as repo_avisos
 from repositorios import mensajes as repo_mensajes
 from repositorios import academico as repo_academico
 from repositorios import tareas as repo_tareas
+from repositorios import busqueda as repo_busqueda
 
 alumno_bp = Blueprint('alumno', __name__)
 
@@ -320,3 +321,16 @@ def mis_accesos():
     return render_template('mis_accesos.html',
                            nombre  = session['nombre'],
                            accesos = repo_accesos.ultimos_de_alumno(session['alumno_id'], 50))
+
+@alumno_bp.route('/buscar')
+def buscar():
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    consulta = request.args.get('q', '').strip()
+    return render_template('buscar_padre.html',
+                           nombre      = session['nombre'],
+                           consulta    = consulta,
+                           r           = repo_busqueda.buscar_del_padre(session['alumno_id'], consulta),
+                           tipos_map   = repo_incidencias.TIPOS_MAP,
+                           estados_map = repo_tareas.ESTADOS_MAP)

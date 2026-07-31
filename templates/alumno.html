@@ -16,7 +16,13 @@
     .ask-box{background:#fff;border:2px solid #e5e5e5;border-radius:18px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:20px;text-decoration:none;}
     .ask-box:hover{background:#fefcf5;}
     .ask-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#58cc02,#43a800);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;border:3px solid #43a800;}
-    .ask-input-fake{flex:1;background:#f7f7f7;border-radius:14px;padding:10px 14px;font-size:13px;font-weight:700;color:#afafaf;}
+    .ask-box{background:#fff;border:2px solid #e5e5e5;border-radius:18px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:20px;}
+    .ask-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1cb0f6,#0f8fd6);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;border:3px solid #0f8fd6;}
+    .ask-input-real{flex:1;min-width:0;background:#f7f7f7;border:2px solid transparent;border-radius:14px;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:700;color:#3c3c3c;outline:none;}
+    .ask-input-real:focus{background:#fff;border-color:#1cb0f6;}
+    .ask-input-real::placeholder{color:#afafaf;font-weight:600;}
+    .ask-send{width:40px;height:40px;background:#1cb0f6;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 3px 0 #0f8fd6;border:none;cursor:pointer;}
+    .ask-send i{font-size:20px;}
     .ask-send{width:40px;height:40px;background:#1cb0f6;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 3px 0 #0f8fd6;}
     .ask-send i{font-size:20px;}
 
@@ -100,7 +106,7 @@
     .post-actividad .post-footer{background:#fffbf0;border-top:2px solid #ffe89c;}
     .actividad-opcional-text{font-size:11px;font-weight:900;color:#e07800;font-style:italic;}
 
-/*tareas nueva implementación*/
+    /*tareas nueva implementación*/
     .post-tarea{background:#fff;border:2px solid #89e219;box-shadow:0 3px 0 #58cc02;}
     .tarea-strip{background:linear-gradient(90deg,#89e219,#58cc02);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
     .post-tarea .post-title{color:#2d4a02;}
@@ -109,7 +115,13 @@
     .tarea-instruccion{margin:0 18px 12px;background:#f4fce4;border:2px dashed #89e219;border-radius:14px;padding:12px;}
     .tarea-instruccion-label{font-size:10px;font-weight:900;color:#58a002;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
     .tarea-instruccion-texto{font-size:13px;font-weight:700;color:#3c5c10;line-height:1.4;}
-
+    
+    /* Tarea revisada */
+    .post-tarea.revisada{border-color:#d5d5d5;box-shadow:0 3px 0 #c4c4c4;opacity:.72;display:none;}
+    .post-tarea.revisada .tarea-strip{background:linear-gradient(90deg,#c4c4c4,#a3a3a3);}
+    .post-tarea.revisada .post-title{color:#777;}
+    .post-tarea.revisada .post-footer{background:#f7f7f7;border-top-color:#e5e5e5;}
+    .post-tarea.revisada.visible{display:block;}
 
     /* Modal avisos */
     .modal-aviso-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
@@ -166,11 +178,12 @@
 {% endblock %}
 {% block contenido %}
 
-<a href="{{ url_for('alumno.chat_maestra') }}" class="ask-box">
-    <div class="ask-avatar"><i class="ti ti-message-2" style="font-size:22px;"></i></div>
-    <div class="ask-input-fake">Pregúntale algo a la maestra en privado...</div>
-    <div class="ask-send"><i class="ti ti-arrow-right"></i></div>
-</a>
+<form action="{{ url_for('alumno.buscar') }}" method="GET" class="ask-box">
+    <div class="ask-avatar"><i class="ti ti-search" style="font-size:22px;"></i></div>
+    <input type="text" name="q" class="ask-input-real"
+           placeholder="Buscar en avisos, tareas, incidencias...">
+    <button type="submit" class="ask-send"><i class="ti ti-arrow-right"></i></button>
+</form>
 
 {% if publicaciones %}
 <div class="day-divider">
@@ -321,7 +334,7 @@
     {% elif pub.tipo_pub == 'tarea_entrega' %}
     {% set tar = pub.datos %}
     {% set e = estados_map.get(tar.estado, {'etiqueta':'Pendiente','color':'#afafaf','icono':'ti-clock'}) %}
-    <div class="post post-tarea">
+    <div class="post post-tarea {% if tar.estado and tar.estado != 'pendiente' %}revisada{% endif %}">
         <div class="tarea-strip">
             <div class="urgente-strip-icon"><i class="ti ti-notebook" style="font-size:16px;"></i></div>
             Tarea de entrega
@@ -386,6 +399,14 @@
 </button>
 {% endif %}
 
+{% set revisadas = publicaciones | selectattr('tipo_pub', 'equalto', 'tarea_entrega') | map(attribute='datos') | rejectattr('estado', 'in', [None, 'pendiente']) | list %}
+{% if revisadas %}
+<button class="btn-historial" onclick="alternarTareas()">
+    <i class="ti ti-checklist" style="font-size:17px;"></i>
+    <span id="txtTareas">Ver {{ revisadas | length }} tarea(s) ya revisada(s)</span>
+</button>
+{% endif %}
+
 
 {% else %}
 <div class="empty-state">
@@ -413,6 +434,17 @@
         document.getElementById('txtHistorial').textContent = abierto
             ? 'Ver ' + firmadas.length + ' incidencia(s) ya firmada(s)'
             : 'Ocultar incidencias firmadas';
+    }
+
+function alternarTareas() {
+        var revisadas = document.querySelectorAll('.post-tarea.revisada');
+        var abierto   = revisadas.length && revisadas[0].classList.contains('visible');
+
+        revisadas.forEach(function(t) { t.classList.toggle('visible', !abierto); });
+
+        document.getElementById('txtTareas').textContent = abierto
+            ? 'Ver ' + revisadas.length + ' tarea(s) ya revisada(s)'
+            : 'Ocultar tareas revisadas';
     }
 </script>
 {% endblock %}

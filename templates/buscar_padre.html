@@ -1,0 +1,196 @@
+{% extends "base_padre.html" %}
+{% set activo = '' %}
+
+{% block titulo %}Búsqueda{% endblock %}
+
+{% block css_extra %}
+<style>
+    .buscador-grande{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:20px;}
+    .buscador-grande input{flex:1;border:none;outline:none;font-family:inherit;font-size:15px;font-weight:700;color:#3c3c3c;background:transparent;}
+    .buscador-grande input::placeholder{color:#c4c4c4;}
+    .buscador-grande i{color:#afafaf;font-size:22px;}
+
+    .grupo{margin-bottom:22px;}
+    .grupo-titulo{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:0 4px 10px;display:flex;align-items:center;gap:8px;}
+    .grupo-chip{background:#e5e5e5;color:#777;font-size:10px;font-weight:900;padding:2px 8px;border-radius:20px;}
+
+    .res{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;text-decoration:none;color:inherit;}
+    .res:hover{background:#fefcf5;}
+    .res-icono{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+    .res-info{flex:1;min-width:0;}
+    .res-titulo{font-size:14px;font-weight:900;color:#3c3c3c;}
+    .res-sub{font-size:11px;font-weight:700;color:#777;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .res-fecha{font-size:10px;font-weight:800;color:#afafaf;flex-shrink:0;}
+    .res-estado{font-size:9px;font-weight:900;padding:3px 8px;border-radius:20px;color:#fff;flex-shrink:0;text-transform:uppercase;letter-spacing:.03em;}
+
+    .sin-nada{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:50px 20px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
+    .sin-nada i{font-size:48px;color:#afafaf;margin-bottom:12px;}
+    .sin-nada-titulo{font-size:16px;font-weight:900;color:#3c3c3c;margin-bottom:4px;}
+    .sin-nada-texto{font-size:13px;font-weight:700;color:#777;}
+
+    .ayuda{background:#dcf4ff;border:2px solid #7dd3fc;border-radius:16px;padding:14px 16px;font-size:12px;font-weight:700;color:#0a3a6b;line-height:1.5;box-shadow:0 3px 0 #1cb0f6;display:flex;gap:10px;}
+    .ayuda i{color:#1cb0f6;font-size:20px;flex-shrink:0;}
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="topbar">
+    <a href="{{ url_for('alumno.panel_alumno') }}" class="back-btn">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
+    <div>
+        <div class="page-title">Búsqueda</div>
+        <div class="page-sub">
+            {% if consulta %}
+                {{ r.total }} resultado(s) para «{{ consulta }}»
+            {% else %}
+                Busca en todo lo que la maestra ha publicado sobre {{ nombre }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="page-icon ic-azul"><i class="ti ti-search" style="font-size:22px;"></i></div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+<form method="GET" class="buscador-grande">
+    <i class="ti ti-search"></i>
+    <input type="text" name="q" value="{{ consulta or '' }}" autofocus
+           placeholder="Escribe una palabra: reunión, tarea, caída...">
+</form>
+
+{% if not consulta %}
+<div class="ayuda">
+    <i class="ti ti-info-circle"></i>
+    <div>
+        Puedes buscar en incidencias, avisos, tareas, actividades y en tus
+        mensajes con la maestra. Solo verás información de {{ nombre }}.
+    </div>
+</div>
+{% endif %}
+
+{% if consulta and r.total == 0 %}
+<div class="sin-nada">
+    <i class="ti ti-mood-empty"></i>
+    <div class="sin-nada-titulo">Sin resultados</div>
+    <div class="sin-nada-texto">No se encontró nada con «{{ consulta }}». Prueba con otra palabra.</div>
+</div>
+{% endif %}
+
+{% if r.incidencias %}
+<div class="grupo">
+    <div class="grupo-titulo">
+        <i class="ti ti-alert-triangle" style="font-size:14px;"></i> Incidencias
+        <span class="grupo-chip">{{ r.incidencias | length }}</span>
+    </div>
+    {% for i in r.incidencias %}
+    {% set t = tipos_map.get(i.tipo, {'etiqueta': i.tipo or 'General', 'icono':'ti-alert-triangle', 'color':'#777777'}) %}
+    <a href="{{ url_for('alumno.ver_incidencia', id_incidencia=i.id) }}" class="res">
+        <div class="res-icono" style="background:{{ t.color }};">
+            <i class="ti {{ t.icono }}" style="font-size:18px;"></i>
+        </div>
+        <div class="res-info">
+            <div class="res-titulo">{{ t.etiqueta }}</div>
+            <div class="res-sub">{{ i.descripcion }}</div>
+        </div>
+        {% if not i.enterado %}
+        <span class="res-estado" style="background:#ff6b35;">Por firmar</span>
+        {% endif %}
+        <span class="res-fecha">{{ i.fecha[:10] if i.fecha else '' }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if r.avisos %}
+<div class="grupo">
+    <div class="grupo-titulo">
+        <i class="ti ti-speakerphone" style="font-size:14px;"></i> Avisos generales
+        <span class="grupo-chip">{{ r.avisos | length }}</span>
+    </div>
+    {% for av in r.avisos %}
+    <a href="{{ url_for('alumno.panel_alumno') }}?filtro=avisos" class="res">
+        <div class="res-icono" style="background:#1cb0f6;">
+            <i class="ti ti-speakerphone" style="font-size:18px;"></i>
+        </div>
+        <div class="res-info">
+            <div class="res-titulo">{{ av.titulo }}</div>
+            <div class="res-sub">{{ av.contenido }}</div>
+        </div>
+        {% if not av.confirmado %}
+        <span class="res-estado" style="background:#1cb0f6;">Por confirmar</span>
+        {% endif %}
+        <span class="res-fecha">{{ av.fecha[:10] if av.fecha else '' }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if r.tareas %}
+<div class="grupo">
+    <div class="grupo-titulo">
+        <i class="ti ti-notebook" style="font-size:14px;"></i> Tareas de entrega
+        <span class="grupo-chip">{{ r.tareas | length }}</span>
+    </div>
+    {% for t in r.tareas %}
+    {% set e = estados_map.get(t.estado, {'etiqueta':'Pendiente','color':'#afafaf'}) %}
+    <a href="{{ url_for('alumno.panel_alumno') }}?filtro=tareas" class="res">
+        <div class="res-icono" style="background:#58cc02;">
+            <i class="ti ti-notebook" style="font-size:18px;"></i>
+        </div>
+        <div class="res-info">
+            <div class="res-titulo">{{ t.titulo }}</div>
+            <div class="res-sub">{{ t.materia or 'General' }}{% if t.fecha_entrega %} · entrega {{ t.fecha_entrega }}{% endif %}</div>
+        </div>
+        <span class="res-estado" style="background:{{ e.color }};">{{ e.etiqueta }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if r.actividades %}
+<div class="grupo">
+    <div class="grupo-titulo">
+        <i class="ti ti-bulb" style="font-size:14px;"></i> Actividades personalizadas
+        <span class="grupo-chip">{{ r.actividades | length }}</span>
+    </div>
+    {% for a in r.actividades %}
+    <a href="{{ url_for('alumno.panel_alumno') }}?filtro=tareas" class="res">
+        <div class="res-icono" style="background:#ffc107;">
+            <i class="ti ti-bulb" style="font-size:18px;"></i>
+        </div>
+        <div class="res-info">
+            <div class="res-titulo">{{ a.categoria or 'General' }}</div>
+            <div class="res-sub">{{ a.actividad }}</div>
+        </div>
+        <span class="res-fecha">{{ a.fecha[:10] if a.fecha else '' }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if r.mensajes %}
+<div class="grupo">
+    <div class="grupo-titulo">
+        <i class="ti ti-messages" style="font-size:14px;"></i> Mensajes
+        <span class="grupo-chip">{{ r.mensajes | length }}</span>
+    </div>
+    {% for m in r.mensajes %}
+    <a href="{{ url_for('alumno.chat_maestra') }}" class="res">
+        <div class="res-icono" style="background:{% if m.remitente == 'maestra' %}#58cc02{% else %}#7dd3fc{% endif %};">
+            <i class="ti ti-message-circle" style="font-size:18px;"></i>
+        </div>
+        <div class="res-info">
+            <div class="res-titulo">
+                {% if m.remitente == 'maestra' %}Maestra {{ DOCENTE }}{% else %}Tú{% endif %}
+            </div>
+            <div class="res-sub">{{ m.contenido }}</div>
+        </div>
+        <span class="res-fecha">{{ m.fecha[:10] if m.fecha else '' }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
