@@ -104,7 +104,10 @@ def panel_alumno():
         mensajes_nuevos = repo_mensajes.contar_no_leidos_padre(alumno_id),
         tipos_map       = repo_incidencias.TIPOS_MAP,
         niveles_map     = repo_incidencias.NIVELES_MAP,
-        estados_map     = repo_tareas.ESTADOS_MAP)
+        estados_map     = repo_tareas.ESTADOS_MAP,
+        promedio        = repo_academico.promedio_general(alumno_id),
+        total_logros    = repo_incidencias.contar_logros(alumno_id),
+        tareas_resumen  = repo_tareas.resumen_alumno(alumno_id))
 
 
 # ═══════════ DETALLE DE INCIDENCIA ═══════════

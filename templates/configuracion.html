@@ -47,7 +47,7 @@
 <!-- Datos de contacto -->
 <div class="card">
     <div class="card-title"><i class="ti ti-login" style="color:#a855f7;"></i> Último acceso</div>
-    <div class="card-sub">El sistema registra cuándo entras, para tu seguridad y la de la maestra</div>
+    <div class="card-sub">Esta información se utiliza para proteger tu cuenta y detectar accesos no reconocidos. Solo puede consultarla personal autorizado.</div>
 
     {% if accesos %}
         <div class="acceso-row">
@@ -90,30 +90,5 @@
     </form>
 </div>
 
-<!-- Accesos -->
-<div class="card">
-    <div class="card-title"><i class="ti ti-login" style="color:#a855f7;"></i> Tus últimos accesos</div>
-    <div class="card-sub">Esta información se utiliza para proteger tu cuenta y detectar accesos no reconocidos. Solo puede consultarla personal autorizado.</div>
-
-    {% if accesos %}
-        {% for a in accesos %}
-        <div class="acceso-row">
-            <div class="acceso-icon"><i class="ti ti-clock" style="font-size:16px;"></i></div>
-            <div class="acceso-fecha">{{ a.fecha[:16] if a.fecha else '' }}</div>
-            <div class="acceso-ip">{{ a.ip or '—' }}</div>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div class="empty-mini">
-            <i class="ti ti-login"></i>
-            <div class="empty-mini-title">Sin accesos registrados</div>
-        </div>
-    {% endif %}
-</div>
-
-<div class="privacy-box">
-    <i class="ti ti-shield-check"></i>
-    <div>Tu información solo la ve la maestra de tu hijo/a. No se comparte con otros padres ni con terceros.</div>
-</div>
 
 {% endblock %}

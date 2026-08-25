@@ -152,6 +152,35 @@
     .btn-historial{width:100%;padding:13px;background:#fff;border:2px dashed #c4c4c4;border-radius:16px;font-size:13px;font-weight:900;color:#777;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;}
     .btn-historial:hover{background:#fefcf5;border-color:#afafaf;}
 
+    /* ══ RESUMEN DEL ALUMNO ══ */
+    .resumen-alumno{background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:20px;padding:18px 20px;margin-bottom:16px;box-shadow:0 4px 0 #cc5028;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+    .resumen-avatar{width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;border:3px solid rgba(255,255,255,.4);flex-shrink:0;}
+    .resumen-info{flex:1;min-width:120px;}
+    .resumen-nombre{font-size:20px;font-weight:900;color:#fff;line-height:1.1;}
+    .resumen-grupo{font-size:12px;font-weight:700;color:rgba(255,255,255,.9);margin-top:2px;}
+    .resumen-chips{display:flex;gap:8px;}
+    .chip-dato{background:rgba(255,255,255,.95);border-radius:14px;padding:9px 14px;text-align:center;text-decoration:none;min-width:62px;box-shadow:0 3px 0 rgba(0,0,0,.15);}
+    .chip-dato:hover{background:#fff;}
+    .chip-num{font-size:19px;font-weight:900;line-height:1;}
+    .chip-label{font-size:9px;font-weight:900;color:#777;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+
+    /* ══ BANDA DE AVISOS ══ */
+    .banda-avisos{background:#dcf4ff;border:2px solid #7dd3fc;border-radius:18px;padding:14px 16px;margin-bottom:20px;box-shadow:0 3px 0 #1cb0f6;}
+    .banda-titulo{font-size:12px;font-weight:900;color:#0f8fd6;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:7px;margin-bottom:10px;}
+    .banda-item{background:#fff;border-radius:14px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;}
+    .banda-item:last-child{margin-bottom:0;}
+    .banda-texto{flex:1;min-width:160px;}
+    .banda-item-titulo{font-size:14px;font-weight:900;color:#0a3a6b;}
+    .banda-item-detalle{font-size:12px;font-weight:700;color:#3c5570;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .banda-editado{background:#ffc107;color:#8a5a00;font-size:9px;font-weight:900;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;margin-right:5px;}
+    .banda-btn{background:#1cb0f6;color:#fff;border:none;border-radius:11px;padding:8px 14px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 #0f8fd6;text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:5px;font-family:inherit;flex-shrink:0;}
+    .banda-btn:hover{background:#0f8fd6;}
+
+    @media (max-width:600px){
+        .resumen-alumno{flex-direction:column;text-align:center;}
+        .resumen-chips{width:100%;}
+        .chip-dato{flex:1;}
+    }
 
 </style>
 {% endblock %}
@@ -184,6 +213,59 @@
            placeholder="Buscar en avisos, tareas, incidencias...">
     <button type="submit" class="ask-send"><i class="ti ti-arrow-right"></i></button>
 </form>
+
+<!-- ══ RESUMEN DEL ALUMNO ══ -->
+<div class="resumen-alumno">
+    <div class="resumen-avatar">{{ nombre[:2] | upper }}</div>
+    <div class="resumen-info">
+        <div class="resumen-nombre">{{ nombre }}</div>
+        <div class="resumen-grupo">{{ GRUPO }}</div>
+    </div>
+    <div class="resumen-chips">
+        <a href="{{ url_for('alumno.mi_perfil') }}" class="chip-dato">
+            <div class="chip-num" style="color:#58cc02;">{{ promedio if promedio else '—' }}</div>
+            <div class="chip-label">Promedio</div>
+        </a>
+        <a href="{{ url_for('alumno.panel_alumno') }}?filtro=tareas" class="chip-dato">
+            <div class="chip-num" style="color:#ff9600;">{{ tareas_resumen.porcentaje }}%</div>
+            <div class="chip-label">Tareas</div>
+        </a>
+        <a href="{{ url_for('alumno.panel_alumno') }}?filtro=logros" class="chip-dato">
+            <div class="chip-num" style="color:#a855f7;">{{ total_logros }}</div>
+            <div class="chip-label">Logros</div>
+        </a>
+    </div>
+</div>
+
+<!-- ══ AVISOS SIN CONFIRMAR ══ -->
+{% set sin_confirmar = publicaciones | selectattr('tipo_pub', 'equalto', 'aviso') | map(attribute='datos') | rejectattr('confirmado_por_padre') | list %}
+{% if sin_confirmar and filtro == 'todo' %}
+<div class="banda-avisos">
+    <div class="banda-titulo">
+        <i class="ti ti-speakerphone" style="font-size:16px;"></i>
+        {{ sin_confirmar | length }} aviso(s) esperan tu confirmación
+    </div>
+    {% for av in sin_confirmar[:3] %}
+    <div class="banda-item">
+        <div class="banda-texto">
+            <div class="banda-item-titulo">
+                {% if av.fecha_actualizado %}<span class="banda-editado">Actualizado</span>{% endif %}
+                {{ av.titulo }}
+            </div>
+            <div class="banda-item-detalle">{{ av.contenido }}</div>
+        </div>
+        <form method="POST" action="{{ url_for('alumno.confirmar_aviso', id_aviso=av.id) }}" style="margin:0;">
+            <button type="submit" class="banda-btn">
+                <i class="ti ti-check" style="font-size:14px;"></i> Confirmar
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
+
 
 {% if publicaciones %}
 <div class="day-divider">
