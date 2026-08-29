@@ -1,0 +1,362 @@
+{% extends "base_admin.html" %}
+{% set activo = 'calendario' %}
+
+{% block titulo %}Calendario{% endblock %}
+
+{% block css_extra %}
+<style>
+    .mes-barra { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .mes-nombre { font-size: 19px; font-weight: 800; color: var(--texto); }
+
+    .mes-flecha {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radio-chico);
+        background: var(--superficie);
+        border: 2px solid var(--borde-fuerte);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--texto-suave);
+        flex-shrink: 0;
+    }
+
+    .rejilla { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 18px; }
+
+    .dia-nombre {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--texto-tenue);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        padding-bottom: 5px;
+    }
+
+    .celda {
+        min-height: 84px;
+        border: 2px solid var(--borde);
+        border-radius: var(--radio-chico);
+        background: var(--superficie);
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        cursor: pointer;
+    }
+
+    .celda:hover { background: var(--superficie-2); border-color: var(--borde-fuerte); }
+    .celda.vacia { background: transparent; border-color: transparent; cursor: default; }
+    .celda.hoy { border-color: var(--coral); border-width: 3px; }
+    .celda.sin-clases { background: var(--superficie-3); }
+    .celda.fin-semana { background: var(--superficie-2); }
+
+    .celda-numero { font-size: 13px; font-weight: 800; color: var(--texto); }
+    .celda.hoy .celda-numero { color: var(--coral-oscuro); }
+    .celda.fin-semana .celda-numero { color: var(--texto-tenue); }
+
+    .celda-evento {
+        font-size: 8px;
+        font-weight: 700;
+        color: #fff;
+        border-radius: 4px;
+        padding: 2px 4px;
+        line-height: 1.25;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .celda-mas { font-size: 8px; font-weight: 700; color: var(--texto-tenue); padding-left: 3px; }
+
+    .evento-fila {
+        display: flex;
+        gap: 11px;
+        align-items: center;
+        background: var(--superficie);
+        border: 2px solid var(--borde);
+        border-left-width: 5px;
+        border-radius: var(--radio);
+        padding: 11px 13px;
+        margin-bottom: 8px;
+    }
+
+    .evento-fecha {
+        width: 44px;
+        border-radius: var(--radio-chico);
+        padding: 6px 0;
+        text-align: center;
+        flex-shrink: 0;
+        color: #fff;
+    }
+
+    .evento-dia { font-size: 16px; font-weight: 800; line-height: 1; }
+    .evento-mes { font-size: 8px; font-weight: 700; letter-spacing: .06em; margin-top: 2px; }
+
+    .leyenda { display: flex; gap: 13px; flex-wrap: wrap; margin-bottom: 14px; }
+    .leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--texto-suave); }
+    .leyenda-muestra { width: 13px; height: 13px; border-radius: 4px; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="barra">
+    <div>
+        <div class="barra-titulo">Calendario escolar</div>
+        <div class="barra-sub">Ciclo 2026-2027 · las familias ven lo mismo que tú</div>
+    </div>
+
+    <button class="btn btn-chico btn-verde" style="margin-left:auto;" onclick="abrirNuevo()">
+        <i class="ti ti-plus"></i> Nuevo evento
+    </button>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="dos-columnas" style="grid-template-columns:1fr 320px;">
+
+    <!-- ══════════ REJILLA ══════════ -->
+    <div>
+        <div class="mes-barra">
+            <a href="{{ url_for('admin.admin_calendario') }}?anio={{ anio }}&mes={{ mes - 1 }}"
+               class="mes-flecha">
+                <i class="ti ti-chevron-left" style="font-size:18px;"></i>
+            </a>
+
+            <div class="mes-nombre">{{ meses[mes - 1] }} {{ anio }}</div>
+
+            <a href="{{ url_for('admin.admin_calendario') }}?anio={{ anio }}&mes={{ mes + 1 }}"
+               class="mes-flecha">
+                <i class="ti ti-chevron-right" style="font-size:18px;"></i>
+            </a>
+
+            <a href="{{ url_for('admin.admin_calendario') }}"
+               class="btn btn-chico btn-borde" style="margin-left:auto;">
+                <i class="ti ti-calendar-due"></i> Hoy
+            </a>
+        </div>
+
+        <div class="leyenda">
+            <span class="leyenda-item">
+                <span class="leyenda-muestra" style="background:var(--coral);"></span> Suspensión
+            </span>
+            <span class="leyenda-item">
+                <span class="leyenda-muestra" style="background:var(--amarillo);"></span> Vacaciones
+            </span>
+            <span class="leyenda-item">
+                <span class="leyenda-muestra" style="background:var(--morado);"></span> Consejo Técnico
+            </span>
+            <span class="leyenda-item">
+                <span class="leyenda-muestra" style="background:var(--azul);"></span> Evaluación
+            </span>
+            <span class="leyenda-item">
+                <span class="leyenda-muestra" style="background:var(--verde);"></span> De la escuela
+            </span>
+        </div>
+
+        <div class="rejilla">
+            {% for d in ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}
+            <div class="dia-nombre">{{ d }}</div>
+            {% endfor %}
+
+            {% for _ in range(hueco) %}
+            <div class="celda vacia"></div>
+            {% endfor %}
+
+            {% for dia in range(1, dias_mes + 1) %}
+            {% set fecha = '%04d-%02d-%02d' | format(anio, mes, dia) %}
+            {% set del_dia = eventos | selectattr('fecha', 'equalto', fecha) | list %}
+            {% set periodo = eventos | selectattr('fecha_fin') | selectattr('fecha', 'le', fecha)
+                             | selectattr('fecha_fin', 'ge', fecha) | list %}
+            {% set todos_dia = del_dia + periodo %}
+            {% set sin_clases = todos_dia | rejectattr('hay_clases') | list %}
+            {% set finde = ((hueco + dia - 1) % 7) >= 5 %}
+
+            <div class="celda {% if fecha == hoy %}hoy{% endif %}
+                        {% if sin_clases %}sin-clases{% elif finde %}fin-semana{% endif %}"
+                 onclick="abrirNuevo('{{ fecha }}')"
+                 title="Agregar evento el {{ fecha }}">
+
+                <div class="celda-numero">{{ dia }}</div>
+
+                {% for e in todos_dia[:2] %}
+                {% set t = tipos_map.get(e.tipo, {'color':'var(--verde)'}) %}
+                <div class="celda-evento" style="background:{{ t.color }};">{{ e.titulo }}</div>
+                {% endfor %}
+
+                {% if todos_dia | length > 2 %}
+                <div class="celda-mas">+{{ todos_dia | length - 2 }} más</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="campo-ayuda">
+            Toca cualquier día para agregar un evento en esa fecha.
+        </div>
+    </div>
+
+
+    <!-- ══════════ ESTE MES ══════════ -->
+    <div>
+        <div class="panel panel-coral">
+            <div class="panel-cabecera">
+                <i class="ti ti-list" style="font-size:19px;"></i>
+                <span class="panel-titulo">{{ meses[mes - 1] }}</span>
+                <span class="panel-marca">{{ eventos | length }}</span>
+            </div>
+
+            <div class="panel-cuerpo">
+                {% if eventos %}
+                    {% for e in eventos %}
+                    {% set t = tipos_map.get(e.tipo, {'etiqueta':'Evento','color':'var(--verde)'}) %}
+                    {% set m = e.fecha[5:7] | int %}
+
+                    <div class="evento-fila" style="border-left-color:{{ t.color }};margin-bottom:8px;">
+                        <div class="evento-fecha" style="background:{{ t.color }};">
+                            <div class="evento-dia">{{ e.fecha[8:10] }}</div>
+                            <div class="evento-mes">
+                                {{ ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][m - 1] }}
+                            </div>
+                        </div>
+
+                        <div style="flex:1;min-width:0;">
+                            <div class="fila-titulo" style="font-size:13px;">{{ e.titulo }}</div>
+                            <div class="fila-sub">
+                                {{ t.etiqueta }}
+                                {% if e.fecha_fin %} · al {{ e.fecha_fin[8:10] }}{% endif %}
+                            </div>
+                            {% if e.detalle %}
+                            <div class="fila-sub">{{ e.detalle }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if e.oficial %}
+                        <i class="ti ti-lock" style="font-size:15px;color:var(--texto-tenue);flex-shrink:0;"
+                           title="Fecha del calendario oficial"></i>
+                        {% else %}
+                        <form method="POST"
+                              action="{{ url_for('admin.eliminar_evento', id_evento=e.id) }}"
+                              style="margin:0;flex-shrink:0;"
+                              onsubmit="return confirm('¿Eliminar este evento?');">
+                            <button type="submit" class="btn btn-chico btn-borde">
+                                <i class="ti ti-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="vacio-mini">
+                        <i class="ti ti-calendar-off" style="color:var(--coral);"></i>
+                        <div class="vacio-mini-titulo">Sin eventos este mes</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if proximos %}
+        <div class="panel panel-azul">
+            <div class="panel-cabecera">
+                <i class="ti ti-calendar-event" style="font-size:19px;"></i>
+                <span class="panel-titulo">Lo que viene</span>
+            </div>
+
+            <div class="panel-cuerpo">
+                {% for e in proximos %}
+                {% set t = tipos_map.get(e.tipo, {'etiqueta':'Evento','color':'var(--verde)'}) %}
+                <div class="fila" style="margin-bottom:7px;padding:9px 11px;">
+                    <div class="indicador-icono" style="background:{{ t.color }};width:32px;height:32px;">
+                        <i class="ti {{ t.icono | default('ti-calendar') }}" style="font-size:16px;"></i>
+                    </div>
+                    <div class="fila-cuerpo">
+                        <div class="fila-titulo" style="font-size:12px;">{{ e.titulo }}</div>
+                        <div class="fila-sub">{{ e.fecha }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block modales %}
+<div class="modal-fondo" id="modalNuevo">
+    <div class="modal" style="border-color:var(--verde);">
+        <div class="modal-cabecera" style="background:var(--verde);">
+            <div class="modal-icono"><i class="ti ti-calendar-plus" style="font-size:22px;"></i></div>
+            <div class="modal-titulo">Nuevo evento</div>
+            <button class="modal-cerrar" onclick="cerrarNuevo()">
+                <i class="ti ti-x" style="font-size:18px;"></i>
+            </button>
+        </div>
+
+        <div class="modal-cuerpo">
+            <form action="{{ url_for('admin.nuevo_evento') }}" method="POST">
+                <label class="campo-etiqueta">Título</label>
+                <input type="text" name="titulo" class="campo" required
+                       placeholder="Ej: Festival del Día de las Madres">
+
+                <label class="campo-etiqueta">Tipo</label>
+                <select name="tipo" class="campo" required>
+                    {% for clave, etiqueta, icono, color, hay_clases in tipos %}
+                    {% if clave not in ('inicio', 'fin', 'receso') %}
+                    <option value="{{ clave }}" {% if clave == 'escuela' %}selected{% endif %}>
+                        {{ etiqueta }}{% if not hay_clases %} — sin clases{% endif %}
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+
+                <div class="campo-fila">
+                    <div>
+                        <label class="campo-etiqueta">Fecha</label>
+                        <input type="date" name="fecha" class="campo" id="fechaInput" required>
+                    </div>
+                    <div>
+                        <label class="campo-etiqueta">Hasta (opcional)</label>
+                        <input type="date" name="fecha_fin" class="campo">
+                    </div>
+                </div>
+                <div class="campo-ayuda">
+                    Deja la segunda vacía si el evento dura un solo día
+                </div>
+
+                <label class="campo-etiqueta">Detalle</label>
+                <textarea name="detalle" class="campo"
+                          placeholder="Hora, lugar, qué tienen que llevar..."></textarea>
+
+                <button type="submit" class="btn btn-ancho btn-verde">
+                    <i class="ti ti-check" style="font-size:17px;"></i> Agregar al calendario
+                </button>
+                <div class="campo-ayuda" style="text-align:center;margin-top:9px;">
+                    Se avisará por correo a los tutores con notificaciones activas
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    function abrirNuevo(fecha) {
+        if (fecha) document.getElementById('fechaInput').value = fecha;
+        document.getElementById('modalNuevo').classList.add('abierto');
+    }
+
+    function cerrarNuevo() {
+        document.getElementById('modalNuevo').classList.remove('abierto');
+    }
+
+    document.getElementById('modalNuevo').addEventListener('click', function (e) {
+        if (e.target === this) cerrarNuevo();
+    });
+</script>
+{% endblock %}

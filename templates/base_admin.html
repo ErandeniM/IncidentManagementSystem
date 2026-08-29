@@ -70,6 +70,11 @@
             <span class="menu-contador">{{ por_revisar }}</span>
             {% endif %}
         </a>
+                <a href="{{ url_for('admin.admin_calendario') }}"
+           class="menu-item {% if activo == 'calendario' %}activo{% endif %}">
+            <span class="menu-icono i-morado"><i class="ti ti-calendar"></i></span>
+            <span>Calendario</span>
+        </a>
 
         <a href="{{ url_for('admin.admin_calificaciones') }}"
            class="menu-item {% if activo == 'calificaciones' %}activo{% endif %}">

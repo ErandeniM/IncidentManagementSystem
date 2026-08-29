@@ -8,6 +8,8 @@ pasa por la capa de repositorios.
 import csv
 import io
 import random
+import calendar
+
 from datetime import datetime
 
 from flask import (Blueprint, render_template, request, redirect,
@@ -129,7 +131,9 @@ def admin_dashboard():
         tarea_pendiente        = tarea_pendiente,
         materias_incompletas   = materias_incompletas,
         tipos                  = repo_incidencias.TIPOS,
-        niveles                = repo_incidencias.NIVELES)
+        niveles                = repo_incidencias.NIVELES,
+        eventos_proximos = repo_eventos.proximos(4),
+        tipos_evento     = repo_eventos.TIPOS_MAP)
 
 @admin_bp.route('/buscar')
 def admin_buscar():
@@ -735,11 +739,12 @@ def admin_ajustes():
         alumnos = repo_alumnos.obtener_todos())
     
 # ═══════════ CALENDARIO ═══════════
-
 @admin_bp.route('/calendario')
 def admin_calendario():
     if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
+
+    import calendar
 
     hoy  = datetime.now(ZoneInfo('America/Hermosillo'))
     anio = request.args.get('anio', hoy.year, type=int)
@@ -750,9 +755,13 @@ def admin_calendario():
     elif mes > 12:
         anio, mes = anio + 1, 1
 
+    hueco, dias_mes = calendar.monthrange(anio, mes)
+
     return render_template('admin_calendario.html',
         anio      = anio,
         mes       = mes,
+        hueco     = hueco,
+        dias_mes  = dias_mes,
         eventos   = repo_eventos.del_mes(anio, mes),
         proximos  = repo_eventos.proximos(5),
         tipos     = repo_eventos.TIPOS,

@@ -126,7 +126,38 @@
 
 
 <!-- ══════════ INDICADORES ══════════ -->
+{% if eventos_proximos %}
+<div class="panel panel-morado">
+    <div class="panel-cabecera">
+        <i class="ti ti-calendar-event" style="font-size:19px;"></i>
+        <span class="panel-titulo">Lo que viene</span>
+    </div>
 
+    <div class="panel-cuerpo">
+        {% for e in eventos_proximos %}
+        {% set t = tipos_evento.get(e.tipo, {'etiqueta':'Evento','color':'var(--verde)','icono':'ti-calendar'}) %}
+        <div class="fila" style="margin-bottom:7px;">
+            <div class="indicador-icono" style="background:{{ t.color }};width:36px;height:36px;">
+                <i class="ti {{ t.icono }}" style="font-size:18px;"></i>
+            </div>
+            <div class="fila-cuerpo">
+                <div class="fila-titulo">{{ e.titulo }}</div>
+                <div class="fila-sub">{{ e.fecha }} · {{ t.etiqueta }}</div>
+            </div>
+            {% if not e.hay_clases %}
+            <span class="etiqueta eti-coral">Sin clases</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('admin.admin_calendario') }}" class="panel-pie" style="color:var(--morado-oscuro);">
+        <i class="ti ti-calendar" style="font-size:15px;"></i>
+        Ver el calendario
+        <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
+    </a>
+</div>
+{% endif %}
 <div class="indicadores">
     <a href="{{ url_for('admin.admin_alumnos') }}" class="indicador">
         <div class="indicador-icono" style="background:var(--azul);box-shadow:0 2px 0 var(--azul-oscuro);">
@@ -237,7 +268,7 @@
     <div class="panel panel-azul">
         <div class="panel-cabecera">
             <i class="ti ti-clock" style="font-size:19px;"></i>
-            <span class="panel-titulo">Lo nuevo</span>
+            <span class="panel-titulo">Comunicación</span>
         </div>
 
         <div class="panel-cuerpo">
