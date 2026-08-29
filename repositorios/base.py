@@ -11,7 +11,21 @@ y la cierra sola — aunque ocurra un error a la mitad.
 from contextlib import contextmanager
 from database import get_db
 from datetime import datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
+ZONA = ZoneInfo('America/Hermosillo')
+
+
+def ahora():
+    """
+    Fecha y hora local, en el formato que usa SQLite.
+
+    Se fija la zona a propósito: datetime.now() sin argumento devuelve
+    la hora del equipo donde corre el programa, así que en un servidor
+    daría UTC y todos los registros quedarían desfasados siete horas.
+    """
+    return datetime.now(ZONA).strftime('%Y-%m-%d %H:%M:%S')
 
 
 @contextmanager

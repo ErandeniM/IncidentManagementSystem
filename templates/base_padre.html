@@ -4,265 +4,122 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block titulo %}{{ nombre }}{% endblock %} — {{ ESCUELA }}</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
-        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
-        .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
 
-        /* ══ SIDEBAR ══ */
-        .sidebar{background:#fff;border-right:3px solid #f0eee5;padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
-        .sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;border-bottom:3px solid #f0eee5;margin-bottom:12px;}
-        .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #cc5028;flex-shrink:0;}
-        .brand-title{font-size:16px;font-weight:900;color:#3c3c3c;}
-        .brand-sub{font-size:11px;font-weight:700;color:#777;}
-        .sidebar-section{margin-bottom:16px;}
-        .sidebar-label{font-size:10px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px 6px;}
-        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#777;text-decoration:none;margin-bottom:2px;position:relative;}
-        .nav-item:hover{background:#fefcf5;color:#3c3c3c;}
-        .nav-item.active{background:#dcf4ff;color:#0f8fd6;}
-        .nav-item.active .nav-icon{color:#1cb0f6;}
-        .nav-icon{font-size:22px;color:#afafaf;flex-shrink:0;}
-        .nav-badge{margin-left:auto;background:#ff4b4b;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:20px;box-shadow:0 2px 0 #d33;}
-        .sidebar-footer{margin-top:auto;padding-top:12px;border-top:3px solid #f0eee5;}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tema.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/comun.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/padre.css') }}">
 
-        /* ══ MAIN ══ */
-        .main{padding:24px 32px 60px;max-width:720px;margin:0 auto;width:100%;}
-
-        /* ══ TOPBAR ══ */
-        .topbar{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
-        .back-btn{width:44px;height:44px;background:#fff;border:2px solid #e5e5e5;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;box-shadow:0 3px 0 #e5e5e5;flex-shrink:0;}
-        .back-btn:hover{background:#fefcf5;}
-        .page-title{font-size:24px;font-weight:900;color:#3c3c3c;line-height:1.1;}
-        .page-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
-        .page-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;margin-left:auto;flex-shrink:0;}
-        .ic-naranja{background:linear-gradient(135deg,#ff9600,#ff6b35);box-shadow:0 3px 0 #cc5028;}
-        .ic-azul{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);box-shadow:0 3px 0 #0f8fd6;}
-        .ic-verde{background:linear-gradient(135deg,#58cc02,#43a800);box-shadow:0 3px 0 #43a800;}
-        .ic-gris{background:linear-gradient(135deg,#a3a3a3,#777);box-shadow:0 3px 0 #555;}
-
-        /* ══ CARDS ══ */
-        .card{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:20px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:16px;}
-        .card-title{font-size:15px;font-weight:900;color:#3c3c3c;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
-        .card-title i{font-size:20px;}
-        .card-sub{font-size:12px;font-weight:700;color:#777;margin-bottom:16px;}
-        .count-chip{margin-left:auto;background:#ff9600;color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px;box-shadow:0 2px 0 #cc5028;}
-
-        /* ══ FORMULARIOS ══ */
-        .form-label{font-size:11px;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:block;}
-        .form-input{width:100%;padding:12px 14px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;outline:none;margin-bottom:14px;}
-        .form-input:focus{border-color:#ff9600;background:#fff;}
-        .form-input::placeholder{color:#c4c4c4;font-weight:600;}
-        textarea.form-input{resize:vertical;min-height:80px;line-height:1.4;}
-        .form-hint{font-size:11px;font-weight:700;color:#afafaf;margin-top:-10px;margin-bottom:14px;display:flex;align-items:center;gap:4px;}
-        .btn-save{width:100%;padding:14px;background:#58cc02;color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #43a800;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
-        .btn-save:hover{background:#43a800;}
-        .btn-save.azul{background:#1cb0f6;box-shadow:0 4px 0 #0f8fd6;}
-        .btn-save.azul:hover{background:#0f8fd6;}
-
-        /* ══ AVATARES ══ */
-        .avatar{border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;flex-shrink:0;border:3px solid rgba(0,0,0,.08);}
-
-        /* ══ ESTADOS VACÍOS ══ */
-        .empty-state{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:40px 20px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
-        .empty-icon{width:80px;height:80px;background:#f7f7f7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#afafaf;}
-        .empty-icon i{font-size:40px;}
-        .empty-title{font-size:16px;font-weight:900;color:#3c3c3c;margin-bottom:4px;}
-        .empty-text{font-size:13px;font-weight:700;color:#777;}
-        .empty-mini{text-align:center;padding:30px 16px;color:#afafaf;}
-        .empty-mini i{font-size:38px;margin-bottom:8px;}
-        .empty-mini-title{font-size:13px;font-weight:800;color:#777;}
-
-        /* ══ FLASH ══ */
-        .flash{margin-bottom:16px;padding:12px 16px;border-radius:14px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;box-shadow:0 3px 0 rgba(0,0,0,.08);}
-        .flash-ok{background:#e8f9d5;border:2px solid #89e219;color:#58a002;}
-        .flash-err{background:#ffe0d0;border:2px solid #ff9600;color:#cc5028;}
-
-        /* ══ MENÚ DE NOTIFICACIONES ══ */
-        .notif-fondo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:90;}
-        .notif-fondo.abierto{display:block;}
-        .notif-panel{display:none;position:fixed;top:80px;right:24px;width:360px;max-width:calc(100vw - 32px);max-height:70vh;background:#fff;border:2px solid #e5e5e5;border-radius:20px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:100;flex-direction:column;overflow:hidden;}
-        .notif-panel.abierto{display:flex;}
-
-        .notif-header{padding:16px 18px;border-bottom:2px solid #f0eee5;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-        .notif-titulo{font-size:16px;font-weight:900;color:#3c3c3c;}
-        .notif-sub{font-size:11px;font-weight:700;color:#777;margin-top:2px;}
-        .notif-cerrar{width:30px;height:30px;background:#f2f2f2;border:none;border-radius:9px;color:#777;cursor:pointer;margin-left:auto;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-        .notif-cerrar:hover{background:#e5e5e5;}
-
-        .notif-body{overflow-y:auto;padding:10px;}
-        .notif-item{display:flex;align-items:center;gap:11px;padding:10px;border-radius:12px;text-decoration:none;color:inherit;}
-        .notif-item:hover{background:#fefcf5;}
-        .notif-icono{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
-        .notif-texto{flex:1;min-width:0;}
-        .notif-item-titulo{font-size:13px;font-weight:900;color:#3c3c3c;}
-        .notif-item-detalle{font-size:11px;font-weight:700;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}
-        .notif-fecha{font-size:10px;font-weight:800;color:#afafaf;flex-shrink:0;}
-
-        .notif-vacio{text-align:center;padding:34px 20px;}
-        .notif-vacio i{font-size:42px;color:#58cc02;margin-bottom:8px;}
-        .notif-vacio-titulo{font-size:14px;font-weight:900;color:#3c3c3c;}
-        .notif-vacio-texto{font-size:12px;font-weight:700;color:#777;margin-top:3px;}
-
-
-      
-        
-        
-        @media (max-width:900px){ .buscador-lateral{display:none;} }
-
-        @media (max-width:600px){
-            .notif-panel{top:auto;bottom:80px;right:16px;left:16px;width:auto;max-height:60vh;}
-        }
-
-
-        /* ══ RESPONSIVE ══ */
-        @media (max-width:900px){
-            .layout{grid-template-columns:1fr;}
-            .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;padding:8px;border-right:none;border-top:3px solid #f0eee5;overflow-x:auto;z-index:50;}
-            .sidebar-brand,.sidebar-label,.sidebar-footer{display:none;}
-            .sidebar-section{margin:0;display:flex;gap:2px;}
-            .nav-item{flex-direction:column;padding:8px 12px;font-size:9px;gap:2px;min-width:64px;text-align:center;}
-            .nav-icon{font-size:20px;}
-            .nav-item span:not(.nav-icon){display:none;}
-            .nav-badge{position:absolute;top:2px;right:8px;font-size:8px;padding:1px 5px;}
-            .main{padding:16px;padding-bottom:100px;}
-            .page-title{font-size:20px;}
-        }
-    </style>
     {% block css_extra %}{% endblock %}
+
+    <script>
+        // Se aplica antes de pintar para que no haya destello de color
+        (function () {
+            var guardado = localStorage.getItem('tema');
+            var oscuro = guardado
+                ? guardado === 'oscuro'
+                : window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (oscuro) document.documentElement.setAttribute('data-tema', 'oscuro');
+        })();
+    </script>
 </head>
 <body>
 
 <div class="layout">
 
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon"><i class="ti ti-school" style="color:#fff;font-size:22px;"></i></div>
+    <aside class="menu">
+
+        <div class="menu-marca">
+            <div class="menu-logo"><i class="ti ti-school"></i></div>
             <div>
-                <div class="brand-title">{{ ESCUELA }}</div>
-                <div class="brand-sub">{{ GRUPO }}</div>
+                <div class="menu-titulo">{{ GRUPO }}</div>
+                <div class="menu-sub">Mtra. {{ DOCENTE }}</div>
             </div>
         </div>
-        
 
-        <div class="sidebar-section">
-            <div class="sidebar-label">Contenido</div>
-            <a href="{{ url_for('alumno.panel_alumno') }}"
-               class="nav-item {% if activo == 'feed' and filtro == 'todo' %}active{% endif %}">
-                <i class="ti ti-home nav-icon"></i><span>Inicio</span>
-            </a>
-            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=avisos"
-               class="nav-item {% if activo == 'feed' and filtro == 'avisos' %}active{% endif %}">
-                <i class="ti ti-speakerphone nav-icon"></i><span>Avisos generales</span>
-            </a>
-            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=tareas"
-               class="nav-item {% if activo == 'feed' and filtro == 'tareas' %}active{% endif %}">
-                <i class="ti ti-bulb nav-icon"></i><span>Tareas</span>
-            </a>
-            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=incidencias"
-               class="nav-item {% if activo == 'feed' and filtro == 'incidencias' %}active{% endif %}">
-                <i class="ti ti-alert-triangle nav-icon"></i><span>Incidencias</span>
-                {% if sin_firmar is defined and sin_firmar > 0 %}
-                <span class="nav-badge">{{ sin_firmar }}</span>
-                {% endif %}
-            </a>
-            <a href="{{ url_for('alumno.panel_alumno') }}?filtro=logros"
-               class="nav-item {% if activo == 'feed' and filtro == 'logros' %}active{% endif %}">
-                <i class="ti ti-star nav-icon"></i><span>Logros</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="ti ti-photo nav-icon"></i><span>Álbumes</span>
-            </a>
-        </div>
+        <a href="{{ url_for('alumno.panel_alumno') }}"
+           class="menu-item {% if activo == 'inicio' %}activo{% endif %}"
+           {% if activo == 'inicio' %}style="background:var(--naranja-fondo);color:var(--naranja-texto);"{% endif %}>
+            <span class="menu-icono i-naranja"><i class="ti ti-home"></i></span>
+            <span>Inicio</span>
+        </a>
 
-        <div class="sidebar-section">
-            <div class="sidebar-label">Comunicación</div>
-            <a href="{{ url_for('alumno.chat_maestra') }}"
-               class="nav-item {% if activo == 'chat' %}active{% endif %}">
-                <i class="ti ti-message-circle nav-icon"></i><span>Preguntar a la maestra</span>
-                {% if mensajes_nuevos is defined and mensajes_nuevos > 0 %}
-                <span class="nav-badge">{{ mensajes_nuevos }}</span>
-                {% endif %}
-            </a>
-            <a href="{{ url_for('alumno.avisar_maestra') }}"
-               class="nav-item {% if activo == 'avisar' %}active{% endif %}">
-                <i class="ti ti-notes nav-icon"></i><span>Avisar a la maestra</span>
-            </a>
-        </div>
+        <a href="{{ url_for('alumno.tareas') }}"
+           class="menu-item"
+           {% if activo == 'tareas' %}style="background:var(--amarillo-fondo);color:var(--amarillo-texto);"{% endif %}>
+            <span class="menu-icono i-amarillo"><i class="ti ti-notebook"></i></span>
+            <span>Tareas</span>
+           <span class="menu-contador {% if not pendientes.tareas %}vacio{% endif %}">{{ pendientes.tareas if pendientes is defined else 0 }}</span>
+        </a>
 
-        <div class="sidebar-footer">
-            <div class="sidebar-label">Personal</div>
-            <a href="{{ url_for('alumno.mi_perfil') }}"
-               class="nav-item {% if activo == 'perfil' %}active{% endif %}">
-                <i class="ti ti-user nav-icon"></i><span>Mi perfil</span>
-            </a>
+        <a href="{{ url_for('alumno.avisos') }}"
+           class="menu-item"
+           {% if activo == 'avisos' %}style="background:var(--verde-fondo);color:var(--verde-texto);"{% endif %}>
+            <span class="menu-icono i-verde"><i class="ti ti-bell-ringing"></i></span>
+            <span>Avisos</span>
+            <span class="menu-contador {% if not pendientes.avisos %}vacio{% endif %}">
+                {{ pendientes.avisos if pendientes is defined else 0 }}
+            </span>
+        </a>
+
+        <a href="{{ url_for('alumno.como_vamos') }}"
+           class="menu-item"
+           {% if activo == 'vamos' %}style="background:var(--azul-fondo);color:var(--azul-texto);"{% endif %}>
+            <span class="menu-icono i-azul"><i class="ti ti-mood-smile"></i></span>
+            <span>¿Cómo vamos?</span>
+            <span class="menu-contador vacio">0</span>
+        </a>
+
+        <div class="menu-separador"></div>
+
+        <a href="{{ url_for('alumno.chat_maestra') }}"
+           class="menu-item"
+           {% if activo == 'chat' %}style="background:var(--morado-fondo);color:var(--morado-texto);"{% endif %}>
+            <span class="menu-icono i-morado"><i class="ti ti-message-circle"></i></span>
+            <span>Chat</span>
+            <span class="menu-contador {% if not pendientes.mensajes %}vacio{% endif %}">
+                {{ pendientes.mensajes if pendientes is defined else 0 }}
+            </span>
+        </a>
+
+        <a href="{{ url_for('alumno.avisar_maestra') }}"
+           class="menu-item"
+           {% if activo == 'rapidos' %}style="background:var(--amarillo-fondo);color:var(--amarillo-texto);"{% endif %}>
+            <span class="menu-icono i-amarillo"><i class="ti ti-send"></i></span>
+            <span>Avisos rápidos</span>
+        </a>
+
+        <div class="menu-pie">
+            <button class="menu-item" onclick="cambiarTema()" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;">
+                <span class="menu-icono i-gris"><i class="ti ti-moon" id="iconoTema"></i></span>
+                <span id="textoTema">Modo oscuro</span>
+            </button>
+
             <a href="{{ url_for('alumno.configuracion') }}"
-               class="nav-item {% if activo == 'config' %}active{% endif %}">
-                <i class="ti ti-settings nav-icon"></i><span>Configuración</span>
+               class="menu-item {% if activo == 'cuenta' %}activo{% endif %}">
+                <span class="menu-icono i-gris"><i class="ti ti-user"></i></span>
+                <span>Mi cuenta</span>
             </a>
-            <a href="{{ url_for('auth.logout') }}" class="nav-item" style="color:#ff4b4b;">
-                <i class="ti ti-logout nav-icon" style="color:#ff4b4b;"></i><span>Cerrar sesión</span>
+
+            <a href="{{ url_for('auth.logout') }}" class="menu-item menu-salir">
+                <span class="menu-icono" style="background:var(--alerta);"><i class="ti ti-logout"></i></span>
+                <span>Salir</span>
             </a>
         </div>
     </aside>
-<!-- Menú de notificaciones -->
-    {% if pendientes is defined %}
-    <div class="notif-fondo" id="notifFondo" onclick="cerrarNotif()"></div>
-    <div class="notif-panel" id="notifPanel">
-        <div class="notif-header">
-            <div>
-                <div class="notif-titulo">Novedades</div>
-                <div class="notif-sub">
-                    {% if pendientes.total %}
-                        {{ pendientes.total }} cosa(s) por revisar
-                    {% else %}
-                        No tienes nada pendiente
-                    {% endif %}
-                </div>
-            </div>
-            <button class="notif-cerrar" onclick="cerrarNotif()">
-                <i class="ti ti-x" style="font-size:18px;"></i>
-            </button>
-        </div>
 
-        <div class="notif-body">
-            {% if pendientes.lista %}
-                {% for n in pendientes.lista %}
-                <a class="notif-item" href="
-                    {%- if n.tipo == 'incidencia' -%}{{ url_for('alumno.ver_incidencia', id_incidencia=n.id) }}
-                    {%- elif n.tipo == 'mensaje' -%}{{ url_for('alumno.chat_maestra') }}
-                    {%- elif n.tipo == 'aviso' -%}{{ url_for('alumno.panel_alumno') }}?filtro=avisos
-                    {%- else -%}{{ url_for('alumno.panel_alumno') }}?filtro=tareas{%- endif -%}">
-                    <div class="notif-icono" style="background:{{ n.color }};">
-                        <i class="ti {{ n.icono }}" style="font-size:17px;"></i>
-                    </div>
-                    <div class="notif-texto">
-                        <div class="notif-item-titulo">{{ n.titulo }}</div>
-                        <div class="notif-item-detalle">{{ n.detalle }}</div>
-                    </div>
-                    <span class="notif-fecha">{{ n.fecha[:10] if n.fecha else '' }}</span>
-                </a>
-                {% endfor %}
-            {% else %}
-                <div class="notif-vacio">
-                    <i class="ti ti-circle-check"></i>
-                    <div class="notif-vacio-titulo">Todo al día</div>
-                    <div class="notif-vacio-texto">No hay nada pendiente por ahora</div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-    <main class="{% block clase_main %}main{% endblock %}">
+    <main class="{% block clase_contenido %}contenido{% endblock %}">
+
         {% block encabezado %}{% endblock %}
 
         {% block flash %}
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for msg in messages %}
-                <div class="flash {% if '✓' in msg %}flash-ok{% else %}flash-err{% endif %}">
-                    <i class="ti {% if '✓' in msg %}ti-check{% else %}ti-alert-circle{% endif %}" style="font-size:16px;"></i>
+        {% with mensajes = get_flashed_messages() %}
+            {% if mensajes %}
+                {% for msg in mensajes %}
+                <div class="flash {% if '✓' in msg %}flash-ok{% else %}flash-error{% endif %}">
+                    <i class="ti {% if '✓' in msg %}ti-check{% else %}ti-alert-circle{% endif %}" style="font-size:17px;"></i>
                     {{ msg }}
                 </div>
                 {% endfor %}
@@ -275,18 +132,42 @@
 </div>
 
 {% block modales %}{% endblock %}
-{% block js_extra %}{% endblock %}
-
 
 <script>
-    function alternarNotif() {
-        document.getElementById('notifPanel').classList.toggle('abierto');
-        document.getElementById('notifFondo').classList.toggle('abierto');
+    // ── Tema claro / oscuro ──
+    function esOscuro() {
+        return document.documentElement.getAttribute('data-tema') === 'oscuro';
     }
-    function cerrarNotif() {
-        document.getElementById('notifPanel').classList.remove('abierto');
-        document.getElementById('notifFondo').classList.remove('abierto');
+
+    function pintarBotonTema() {
+        var icono = document.getElementById('iconoTema');
+        var texto = document.getElementById('textoTema');
+        if (!icono) return;
+
+        if (esOscuro()) {
+            icono.className = 'ti ti-sun';
+            texto.textContent = 'Modo claro';
+        } else {
+            icono.className = 'ti ti-moon';
+            texto.textContent = 'Modo oscuro';
+        }
     }
+
+    function cambiarTema() {
+        if (esOscuro()) {
+            document.documentElement.removeAttribute('data-tema');
+            localStorage.setItem('tema', 'claro');
+        } else {
+            document.documentElement.setAttribute('data-tema', 'oscuro');
+            localStorage.setItem('tema', 'oscuro');
+        }
+        pintarBotonTema();
+    }
+
+    pintarBotonTema();
 </script>
+
+{% block js_extra %}{% endblock %}
+
 </body>
 </html>

@@ -235,3 +235,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 >>>>>>> 0da846fcc188001d142f35e32c464ffce09179b7
+
+
+*.psd

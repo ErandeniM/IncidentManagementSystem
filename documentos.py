@@ -21,7 +21,9 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
                                 Table, TableStyle, Image)
 
 from config import DOCENTE_NOMBRE, GRUPO_NOMBRE, ESCUELA_NOMBRE
+from zoneinfo import ZoneInfo
 
+ZONA = ZoneInfo('America/Hermosillo')
 
 RUTA_LOGO = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'logo.png')
 

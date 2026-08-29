@@ -1,0 +1,141 @@
+/* ═══════════════════════════════════════════════════════════
+   TEMA — paleta y variables
+
+   Estilo Duolingo: colores saturados, bordes gruesos y sombra
+   plana de color debajo de cada elemento (nunca difuminada).
+
+   Cada color tiene cuatro variantes:
+     --color        el sólido, para cabeceras e íconos
+     --color-oscuro para la sombra de abajo y el borde
+     --color-suave  el fondo pálido de las tarjetas
+     --color-texto  el texto legible sobre el fondo suave
+
+   Para usar un color siempre var(--nombre), nunca el hexadecimal.
+   ═══════════════════════════════════════════════════════════ */
+
+
+/* ── TEMA CLARO ──────────────────────────────────────────── */
+
+:root {
+    /* Superficies */
+    --fondo:            #fffbf2;
+    --superficie:       #ffffff;
+    --superficie-2:     #fffbf2;
+    --superficie-3:     #f4f1e6;
+
+    /* Bordes y sombras */
+    --borde:            #e8e4d6;
+    --borde-fuerte:     #d5d0be;
+    --sombra:           #e8e4d6;
+
+    /* Texto */
+    --texto:            #3d3b33;
+    --texto-suave:      #625f55;
+    --texto-tenue:      #8c8a7e;
+
+    /* ── COLORES ── */
+
+    --verde:            #58cc02;
+    --verde-oscuro:     #46a302;
+    --verde-suave:      #f2fae9;
+    --verde-texto:      #33590a;
+
+    --azul:             #1cb0f6;
+    --azul-oscuro:      #1489c4;
+    --azul-suave:       #e5f6ff;
+    --azul-texto:       #0a3a5c;
+
+    --naranja:          #ff9600;
+    --naranja-oscuro:   #cc7800;
+    --naranja-suave:    #fff6e0;
+    --naranja-texto:    #6b3e00;
+
+    --coral:            #ff7a3d;
+    --coral-oscuro:     #c94a16;
+    --coral-suave:      #fff0ec;
+    --coral-texto:      #7a2410;
+
+    --amarillo:         #ffc800;
+    --amarillo-oscuro:  #d9a400;
+    --amarillo-suave:   #fffae8;
+    --amarillo-texto:   #7a5a00;
+
+    --morado:           #ce82ff;
+    --morado-oscuro:    #a253cc;
+    --morado-suave:     #f7eeff;
+    --morado-texto:     #4a1e68;
+
+    --rojo:             #ff4b4b;
+    --rojo-oscuro:      #c93636;
+    --rojo-suave:       #ffecec;
+    --rojo-texto:       #7a1414;
+
+    /* Alertas */
+    --alerta:           var(--rojo);
+    --alerta-oscuro:    var(--rojo-oscuro);
+    --alerta-texto:     #ffffff;
+
+    /* Medidas */
+    --radio-chico:      11px;
+    --radio:            14px;
+    --radio-grande:     18px;
+
+    /* Grosores del estilo */
+    --borde-grueso:     3px;
+    --borde-medio:      2px;
+    --caida:            5px;   /* qué tanto "cae" la sombra plana */
+    --caida-chica:      3px;
+}
+
+
+/* ── TEMA OSCURO ─────────────────────────────────────────── */
+
+[data-tema="oscuro"] {
+    --fondo:            #1c1b17;
+    --superficie:       #262520;
+    --superficie-2:     #2e2c26;
+    --superficie-3:     #383630;
+
+    --borde:            #3d3b33;
+    --borde-fuerte:     #4f4c42;
+    --sombra:           #141310;
+
+    --texto:            #f0ede2;
+    --texto-suave:      #b8b5a8;
+    --texto-tenue:      #85837a;
+
+    /* Los sólidos se quedan igual: es lo que da la identidad.
+       Solo se oscurecen los fondos suaves y se aclara su texto. */
+
+    --verde-suave:      #1e2e11;
+    --verde-texto:      #a8e063;
+
+    --azul-suave:       #0e2a3a;
+    --azul-texto:       #7ecbf5;
+
+    --naranja-suave:    #33230a;
+    --naranja-texto:    #ffc178;
+
+    --coral-suave:      #331a11;
+    --coral-texto:      #ffab85;
+
+    --amarillo-suave:   #33290a;
+    --amarillo-texto:   #ffdc70;
+
+    --morado-suave:     #2a1a38;
+    --morado-texto:     #dcaeff;
+
+    --rojo-suave:       #331414;
+    --rojo-texto:       #ff9d9d;
+}
+
+
+/* ── Transición al cambiar de tema ───────────────────────── */
+
+body {
+    transition: background-color .2s ease, color .2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body { transition: none; }
+}

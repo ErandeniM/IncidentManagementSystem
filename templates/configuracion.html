@@ -1,94 +1,158 @@
 {% extends "base_padre.html" %}
-{% set activo = 'config' %}
+{% set activo = 'cuenta' %}
 
-{% block titulo %}Configuración{% endblock %}
-
-{% block css_extra %}
-<style>
-    .cuenta-box{display:flex;align-items:center;gap:14px;background:#fefcf5;border:2px dashed #e5e5e5;border-radius:16px;padding:14px;margin-bottom:16px;}
-    .cuenta-avatar{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#ff9600,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:17px;flex-shrink:0;border:3px solid rgba(0,0,0,.08);}
-    .cuenta-nombre{font-size:15px;font-weight:900;color:#3c3c3c;}
-    .cuenta-curp{font-size:11px;font-weight:800;color:#777;font-family:monospace;margin-top:2px;}
-
-    .toggle-row{display:flex;align-items:center;gap:12px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:14px;cursor:pointer;}
-    .toggle-row input{display:none;}
-    .toggle-track{width:48px;height:28px;background:#e5e5e5;border-radius:20px;position:relative;flex-shrink:0;transition:background .2s;}
-    .toggle-knob{width:22px;height:22px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s;}
-    .toggle-row input:checked + .toggle-track{background:#58cc02;}
-    .toggle-row input:checked + .toggle-track .toggle-knob{left:23px;}
-    .toggle-title{font-size:13px;font-weight:900;color:#3c3c3c;}
-    .toggle-sub{font-size:11px;font-weight:700;color:#777;margin-top:1px;}
-
-    .acceso-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;margin-bottom:8px;}
-    .acceso-icon{width:32px;height:32px;border-radius:10px;background:#dcf4ff;color:#0f8fd6;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .acceso-fecha{flex:1;font-size:12px;font-weight:800;color:#3c3c3c;}
-    .acceso-ip{font-size:10px;font-weight:700;color:#afafaf;font-family:monospace;background:#f2f2f2;padding:2px 8px;border-radius:8px;}
-
-    .privacy-box{background:#dcf4ff;border:2px solid #7dd3fc;border-radius:16px;padding:14px 16px;box-shadow:0 3px 0 #1cb0f6;display:flex;gap:10px;font-size:12px;font-weight:700;color:#0a3a6b;line-height:1.5;}
-    .privacy-box i{color:#1cb0f6;font-size:20px;flex-shrink:0;}
-</style>
-{% endblock %}
+{% block titulo %}Mi cuenta{% endblock %}
 
 {% block encabezado %}
-<div class="topbar">
-    <a href="{{ url_for('alumno.panel_alumno') }}" class="back-btn">
+<div class="encabezado">
+    <a href="{{ url_for('alumno.panel_alumno') }}" class="btn-atras">
         <i class="ti ti-arrow-left" style="font-size:20px;"></i>
     </a>
     <div>
-        <div class="page-title">Configuración</div>
-        <div class="page-sub">Tus datos y preferencias de la cuenta</div>
+        <div class="titulo">Mi cuenta</div>
+        <div class="subtitulo">Tus datos y tu contraseña</div>
     </div>
-    <div class="page-icon ic-gris"><i class="ti ti-settings" style="font-size:22px;"></i></div>
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<!-- Datos de contacto -->
-<div class="card">
-    <div class="card-title"><i class="ti ti-login" style="color:#a855f7;"></i> Último acceso</div>
-    <div class="card-sub">Esta información se utiliza para proteger tu cuenta y detectar accesos no reconocidos. Solo puede consultarla personal autorizado.</div>
+<!-- ── Datos del tutor ── -->
+<div class="panel panel-coral">
+    <div class="panel-cabecera">
+        <i class="ti ti-user-circle" style="font-size:19px;"></i>
+        <span class="panel-titulo">Mis datos</span>
+    </div>
 
-    {% if accesos %}
-        <div class="acceso-row">
-            <div class="acceso-icon"><i class="ti ti-clock" style="font-size:16px;"></i></div>
-            <div class="acceso-fecha">{{ accesos[0].fecha[:16] if accesos[0].fecha else '' }}</div>
-            <div class="acceso-ip">{{ accesos[0].ip or '—' }}</div>
+    <div class="panel-cuerpo">
+        <div class="pieza pieza-quieta" style="border-style:dashed;">
+            <div class="pieza-icono avatar" style="background:var(--coral);box-shadow:0 2px 0 var(--coral-oscuro);">
+                {{ nombre[:2] | upper }}
+            </div>
+            <div class="pieza-cuerpo">
+                <div class="pieza-titulo">Cuenta de {{ nombre }}</div>
+                <div class="pieza-sub" style="font-family:monospace;">{{ alumno.curp }}</div>
+            </div>
         </div>
-        <a href="{{ url_for('alumno.mis_accesos') }}" class="btn-save azul"
-           style="text-decoration:none;margin-top:12px;">
-            <i class="ti ti-history" style="font-size:17px;"></i> Ver todos mis accesos
-        </a>
-    {% else %}
-        <div class="empty-mini">
-            <i class="ti ti-login"></i>
-            <div class="empty-mini-title">Sin accesos registrados</div>
-        </div>
-    {% endif %}
+
+        <form method="POST" style="margin-top:14px;">
+            <input type="hidden" name="accion" value="datos">
+
+            <label class="campo-etiqueta">Tu nombre completo</label>
+            <input type="text" name="nombre_tutor" class="campo"
+                   value="{{ alumno.nombre_tutor or '' }}"
+                   placeholder="Ej: Ana López Ramírez">
+            <div class="campo-ayuda">
+                <i class="ti ti-info-circle" style="font-size:12px;vertical-align:-2px;"></i>
+                Quedará registrado junto a los avisos que firmes
+            </div>
+
+            <label class="campo-etiqueta">Correo de contacto</label>
+            <input type="email" name="correo_padre" class="campo"
+                   value="{{ alumno.correo_padre or '' }}"
+                   placeholder="tucorreo@gmail.com">
+
+            <label class="declaracion {% if alumno.notif_correo %}marcada{% endif %}" id="cajaCorreo"
+                   style="margin-bottom:14px;">
+                <input type="checkbox" name="notif_correo" id="chkCorreo"
+                       {% if alumno.notif_correo %}checked{% endif %}>
+                <span class="casilla"><i class="ti ti-check"></i></span>
+                <span class="declaracion-texto">
+                    Avisarme por correo cuando la maestra publique algo nuevo
+                </span>
+            </label>
+
+            <button type="submit" class="btn btn-ancho btn-coral">
+                <i class="ti ti-check" style="font-size:17px;"></i> Guardar cambios
+            </button>
+        </form>
+    </div>
 </div>
 
-<!-- Contraseña -->
-<div class="card">
-    <div class="card-title"><i class="ti ti-lock" style="color:#1cb0f6;"></i> Cambiar contraseña</div>
-    <div class="card-sub">Usa una que solo tú conozcas</div>
 
-    <form method="POST">
-        <input type="hidden" name="accion" value="password">
+<!-- ── Contraseña ── -->
+<div class="panel panel-azul">
+    <div class="panel-cabecera">
+        <i class="ti ti-lock" style="font-size:19px;"></i>
+        <span class="panel-titulo">Cambiar contraseña</span>
+    </div>
 
-        <label class="form-label">Contraseña actual</label>
-        <input type="password" name="password_actual" class="form-input" required placeholder="••••••••">
+    <div class="panel-cuerpo">
+        <form method="POST">
+            <input type="hidden" name="accion" value="password">
 
-        <label class="form-label">Nueva contraseña</label>
-        <input type="password" name="password_nueva" class="form-input" required minlength="6" placeholder="Mínimo 6 caracteres">
+            <label class="campo-etiqueta">Contraseña actual</label>
+            <input type="password" name="password_actual" class="campo" required placeholder="••••••••">
 
-        <label class="form-label">Repetir nueva contraseña</label>
-        <input type="password" name="password_repetir" class="form-input" required minlength="6" placeholder="••••••••">
+            <label class="campo-etiqueta">Nueva contraseña</label>
+            <input type="password" name="password_nueva" class="campo" required minlength="6"
+                   placeholder="Mínimo 6 caracteres">
 
-        <button type="submit" class="btn-save azul">
-            <i class="ti ti-key" style="font-size:17px;"></i> Cambiar contraseña
-        </button>
-    </form>
+            <label class="campo-etiqueta">Repetir la nueva</label>
+            <input type="password" name="password_repetir" class="campo" required minlength="6"
+                   placeholder="••••••••">
+
+            <button type="submit" class="btn btn-ancho btn-azul">
+                <i class="ti ti-key" style="font-size:17px;"></i> Cambiar contraseña
+            </button>
+        </form>
+    </div>
 </div>
 
 
+<!-- ── Último acceso ── -->
+<div class="panel panel-morado">
+    <div class="panel-cabecera">
+        <i class="ti ti-login" style="font-size:19px;"></i>
+        <span class="panel-titulo">Último acceso</span>
+    </div>
+
+    <div class="panel-cuerpo">
+        {% if accesos %}
+        <div class="pieza pieza-morada">
+            <div class="pieza-icono" style="background:var(--morado);box-shadow:0 2px 0 var(--morado-oscuro);">
+                <i class="ti ti-clock"></i>
+            </div>
+            <div class="pieza-cuerpo">
+                <div class="pieza-titulo">{{ accesos[0].fecha[:16] if accesos[0].fecha else '' }}</div>
+                <div class="pieza-sub" style="font-family:monospace;">{{ accesos[0].ip or '—' }}</div>
+            </div>
+        </div>
+        {% else %}
+        <div class="vacio-mini">
+            <i class="ti ti-login" style="color:var(--morado);"></i>
+            <div class="vacio-mini-titulo">Sin accesos registrados</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <a href="{{ url_for('alumno.mis_accesos') }}" class="panel-pie" style="color:var(--morado-oscuro);">
+        <i class="ti ti-history" style="font-size:15px;"></i>
+        Ver todos mis accesos
+        <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
+    </a>
+</div>
+
+
+<div class="bloque" style="background:var(--azul-suave);border-color:var(--azul);
+     box-shadow:0 var(--caida-chica) 0 var(--azul);display:flex;gap:11px;align-items:center;">
+    <i class="ti ti-shield-check" style="font-size:24px;color:var(--azul);flex-shrink:0;"></i>
+    <div style="font-size:12px;font-weight:700;color:var(--azul-texto);line-height:1.5;">
+        Tu información solo la ve la maestra de {{ nombre }}. No se comparte con otros padres ni con terceros.
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    var chk  = document.getElementById('chkCorreo');
+    var caja = document.getElementById('cajaCorreo');
+
+    if (chk) {
+        chk.addEventListener('change', function () {
+            caja.classList.toggle('marcada', chk.checked);
+        });
+    }
+</script>
 {% endblock %}

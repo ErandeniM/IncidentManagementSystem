@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 
-from config import SECRET_KEY, DOCENTE_NOMBRE, GRUPO_NOMBRE, ESCUELA_NOMBRE # del archivo config.py se importan las variables SECRET_KEY, DOCENTE_NOMBRE, GRUPO_NOMBRE y ESCUELA_NOMBRE que contienen información de configuración de la aplicación.
 from database import init_db # del archivo database.py se importa la función init_db que inicializa la base de datos de la aplicación.
 from routes.auth import auth_bp # del archivo routes/auth.py se importa el objeto auth_bp que contiene las rutas relacionadas con la autenticación de usuarios.
 from routes.alumno import alumno_bp # del archivo routes/alumno.py se importa el objeto alumno_bp que contiene las rutas relacionadas con los alumnos.
 from routes.admin import admin_bp # del archivo routes/admin.py se importa el objeto admin_bp que contiene las rutas relacionadas con la administración de la aplicación.
 from flask import Flask, session #  del módulo flask se importa la clase Flask y el objeto session que permite manejar sesiones de usuario.
 from repositorios import pendientes as repo_pendientes # del archivo repositorios/pendientes.py se importa el módulo pendientes y se le asigna el alias repo_pendientes, que contiene funciones para manejar los pendientes de los alumnos.
+from config import SECRET_KEY, DEBUG, DOCENTE_NOMBRE, GRUPO_NOMBRE, ESCUELA_NOMBRE
 
 app = Flask(__name__) # Se crea una instancia de la clase Flask, que representa la aplicación web y se le asigna a la variable app.
 app.secret_key = SECRET_KEY # Se establece la clave secreta de la aplicación, que se utiliza para firmar las cookies de sesión y proteger contra ataques de falsificación de solicitudes entre sitios (CSRF).
@@ -15,6 +15,7 @@ app.secret_key = SECRET_KEY # Se establece la clave secreta de la aplicación, q
 app.config.update( # Se actualiza la configuración de la aplicación con opciones de seguridad para las cookies de sesión.
     SESSION_COOKIE_HTTPONLY = True,   # el JavaScript no puede leer la cookie
     SESSION_COOKIE_SAMESITE = 'Lax',  # evita envíos desde otros sitios
+    SESSION_COOKIE_SECURE   = not DEBUG,
 )
 
 
@@ -57,7 +58,7 @@ def inyectar_pendientes(): # Se define la función inyectar_pendientes que devue
     """Novedades del padre, para el menú de la campana."""
     if 'alumno_id' not in session:
         return {}
-    return {'pendientes': repo_pendientes.resumen(session['alumno_id'])}
+    return {'pendientes': repo_pendientes.contadores(session['alumno_id'])}
     
 @app.template_filter('color_avatar') # Se define un filtro de plantilla llamado 'color_avatar' que se puede usar en los templates de Jinja2 para generar un color único y estable para cada alumno, derivado de su id.
 def color_avatar(valor):
@@ -74,6 +75,16 @@ def color_avatar(valor):
         tono = 210
     return (f'linear-gradient(135deg, hsl({tono},72%,58%), '
             f'hsl({(tono + 18) % 360},70%,45%))')
+ 
+@app.context_processor
+def inyectar_pendientes():
+    """Contadores del menú del padre."""
+    if 'alumno_id' not in session:
+        return {}
+    return {'pendientes': repo_pendientes.contadores(session['alumno_id'])}
+
+
+
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(alumno_bp)
@@ -81,12 +92,15 @@ app.register_blueprint(admin_bp)
 
 init_db()
 
-
 if __name__ == '__main__':
     print("=" * 55)
     print("  MI SALÓN — Sistema de seguimiento escolar")
     print("=" * 55)
     print("  Padres  →  http://127.0.0.1:5000")
     print("  Maestra →  http://127.0.0.1:5000/admin")
+    if DEBUG:
+        print("  MODO DESARROLLO — no usar así en producción")
     print("=" * 55)
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=DEBUG, host='0.0.0.0')
+    
+   

@@ -1,0 +1,206 @@
+{% extends "base_padre.html" %}
+{% set activo = 'vamos' %}
+
+{% block titulo %}¿Cómo vamos?{% endblock %}
+
+{% block contenido %}
+
+<!-- ── Cabecera del alumno ── -->
+<div class="alumno-cabecera">
+    <div class="alumno-avatar">{{ nombre[:2] | upper }}</div>
+    <div>
+        <div class="alumno-nombre">{{ nombre }}</div>
+        <div class="alumno-grupo">{{ GRUPO }}</div>
+    </div>
+    <div class="marcadores">
+        <div class="marcador">
+            <div class="marcador-numero" style="color:var(--verde-oscuro);">{{ promedio if promedio else '—' }}</div>
+            <div class="marcador-etiqueta">Promedio</div>
+        </div>
+        <div class="marcador">
+            <div class="marcador-numero" style="color:var(--amarillo-oscuro);">{{ tareas.porcentaje }}%</div>
+            <div class="marcador-etiqueta">Tareas</div>
+        </div>
+        <div class="marcador">
+            <div class="marcador-numero" style="color:var(--morado-oscuro);">{{ logros | length }}</div>
+            <div class="marcador-etiqueta">Logros</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ── Logros ── -->
+<div class="panel panel-morado">
+    <div class="panel-cabecera">
+        <i class="ti ti-trophy" style="font-size:19px;"></i>
+        <span class="panel-titulo">Logros de {{ nombre }}</span>
+        {% if logros %}
+        <span class="panel-marca">{{ logros | length }}</span>
+        {% endif %}
+    </div>
+
+    <div class="panel-cuerpo">
+        {% if logros %}
+            {% for l in logros %}
+            <div class="pieza pieza-morada">
+                <div class="pieza-icono" style="background:var(--morado);box-shadow:0 2px 0 var(--morado-oscuro);">
+                    <i class="ti ti-trophy"></i>
+                </div>
+                <div class="pieza-cuerpo">
+                    <div class="pieza-titulo" style="font-size:14px;">{{ l.descripcion }}</div>
+                    {% if l.accion_docente %}
+                    <div class="pieza-sub" style="font-size:12px;margin-top:3px;">{{ l.accion_docente }}</div>
+                    {% endif %}
+                    <div class="pieza-sub" style="margin-top:5px;">{{ l.fecha[:10] if l.fecha else '' }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="vacio-mini">
+                <i class="ti ti-trophy" style="color:var(--morado);"></i>
+                <div class="vacio-mini-titulo">Todavía no hay logros registrados</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+
+<div class="dos-columnas">
+
+    <!-- ── Calificaciones ── -->
+    <div class="panel panel-verde">
+        <div class="panel-cabecera">
+            <i class="ti ti-chart-bar" style="font-size:19px;"></i>
+            <span class="panel-titulo">Calificaciones</span>
+        </div>
+
+        <div class="panel-cuerpo">
+            {% if calificaciones %}
+                {% for cal in calificaciones %}
+                {% set llenas = [cal.lenguajes, cal.ciencias, cal.etica, cal.comunitario] | reject('none') | list %}
+
+                <div style="background:var(--superficie-2);border:2px solid var(--borde);border-radius:var(--radio);
+                            padding:14px;margin-bottom:11px;">
+                    <div class="trimestre-alto">
+                        <span class="trimestre-nombre">{{ cal.trimestre }}º trimestre</span>
+                        {% if llenas %}
+                            {% set prom = (llenas | sum / llenas | length) | round(1) %}
+                            <span class="nota {% if prom >= 8 %}nota-alta{% elif prom >= 7 %}nota-media{% else %}nota-baja{% endif %}">{{ prom }}</span>
+                        {% else %}
+                            <span class="nota nota-sin">—</span>
+                        {% endif %}
+                    </div>
+
+                    {% for campo, etiqueta in materias %}
+                    <div class="materia-fila">
+                        <span class="materia-nombre">{{ etiqueta }}</span>
+                        <span class="materia-barra">
+                            {% if cal[campo] %}
+                            <span class="materia-relleno" style="display:block;width:{{ (cal[campo] * 10) | int }}%;
+                                  background:{% if cal[campo] >= 8 %}var(--verde){% elif cal[campo] >= 7 %}var(--naranja){% else %}var(--coral){% endif %};"></span>
+                            {% endif %}
+                        </span>
+                        {% if cal[campo] is none %}
+                            <span class="nota nota-sin">—</span>
+                        {% else %}
+                            <span class="nota {% if cal[campo] >= 8 %}nota-alta{% elif cal[campo] >= 7 %}nota-media{% else %}nota-baja{% endif %}">{{ cal[campo] | int }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="faltas">
+                        <i class="ti ti-calendar-off" style="font-size:13px;vertical-align:-2px;"></i>
+                        Inasistencias: {{ cal.inasistencias or 0 }}
+                    </div>
+
+                    {% if cal.observaciones %}
+                    <div class="observacion">
+                        <strong>Observación:</strong> {{ cal.observaciones }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="vacio-mini">
+                    <i class="ti ti-chart-bar-off" style="color:var(--verde);"></i>
+                    <div class="vacio-mini-titulo">Aún no hay calificaciones</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- ── Habilidades y actividades ── -->
+    <div>
+        <div class="panel panel-azul">
+            <div class="panel-cabecera">
+                <i class="ti ti-star" style="font-size:19px;"></i>
+                <span class="panel-titulo">Habilidades</span>
+            </div>
+
+            <div class="panel-cuerpo">
+                {% if perfil %}
+                    {% for campo, etiqueta in areas %}
+                    <div class="area-fila">
+                        <div class="area-alto">
+                            <span>{{ etiqueta }}</span>
+                            <span class="area-valor">{{ perfil[campo] }}%</span>
+                        </div>
+                        <div class="area-fondo">
+                            <div class="area-relleno" style="width:{{ perfil[campo] }}%;"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% if perfil.nota %}
+                    <div class="observacion" style="background:var(--morado-suave);border-left-color:var(--morado);color:var(--morado-texto);">
+                        <strong>Observación de la maestra:</strong> {{ perfil.nota }}
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="vacio-mini">
+                        <i class="ti ti-star" style="color:var(--azul);"></i>
+                        <div class="vacio-mini-titulo">La maestra aún no registra el perfil</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="panel panel-amarillo">
+            <div class="panel-cabecera">
+                <i class="ti ti-bulb" style="font-size:19px;"></i>
+                <span class="panel-titulo">Para hacer en casa</span>
+            </div>
+
+            <div class="panel-cuerpo">
+                {% if actividades %}
+                    {% for a in actividades %}
+                    <div class="pieza pieza-amarilla">
+                        <div class="pieza-icono" style="background:var(--naranja);box-shadow:0 2px 0 var(--naranja-oscuro);">
+                            <i class="ti ti-bulb"></i>
+                        </div>
+                        <div class="pieza-cuerpo">
+                            <div style="font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+                                        color:var(--amarillo-oscuro);margin-bottom:2px;">
+                                {{ a.categoria or 'General' }}
+                            </div>
+                            <div class="pieza-titulo" style="font-size:14px;">{{ a.actividad }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div style="font-size:11px;font-weight:600;color:var(--texto-tenue);margin-top:9px;text-align:center;">
+                        Son sugerencias, sin obligación de entrega
+                    </div>
+                {% else %}
+                    <div class="vacio-mini">
+                        <i class="ti ti-bulb-off" style="color:var(--amarillo-oscuro);"></i>
+                        <div class="vacio-mini-titulo">Sin sugerencias por ahora</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

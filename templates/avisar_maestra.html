@@ -1,188 +1,158 @@
 {% extends "base_padre.html" %}
-{% set activo = 'avisar' %}
+{% set activo = 'rapidos' %}
 
-{% block titulo %}Avisar a la maestra{% endblock %}
-
-{% block css_extra %}
-<style>
-    .section-title{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 4px 10px;}
-
-    /* Tipos de aviso */
-    .tipos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
-    .tipo-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:16px 12px;cursor:pointer;box-shadow:0 3px 0 #e5e5e5;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;}
-    .tipo-card:hover{background:#fefcf5;}
-    .tipo-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.15);}
-    .tipo-titulo{font-size:13px;font-weight:900;color:#3c3c3c;line-height:1.2;}
-    .tipo-sub{font-size:11px;font-weight:700;color:#777;line-height:1.3;}
-
-    .ico-temprano{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);}
-    .ico-noasiste{background:linear-gradient(135deg,#ff4b4b,#d33);}
-    .ico-tarde{background:linear-gradient(135deg,#ffc107,#e0a800);}
-    .ico-tutor{background:linear-gradient(135deg,#a855f7,#7c3aed);}
-    .ico-salud{background:linear-gradient(135deg,#89e219,#58cc02);}
-    .ico-otro{background:linear-gradient(135deg,#777,#555);}
-
-    /* Modal */
-    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;padding:20px;align-items:center;justify-content:center;}
-    .modal-bg.active{display:flex;}
-    .modal{background:#fff;border-radius:20px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2);}
-    .modal-header{padding:16px 18px;display:flex;align-items:center;gap:12px;color:#fff;}
-    .modal-header.temprano{background:linear-gradient(135deg,#1cb0f6,#0f8fd6);}
-    .modal-header.noasiste{background:linear-gradient(135deg,#ff4b4b,#d33);}
-    .modal-header.tarde{background:linear-gradient(135deg,#ffc107,#e0a800);}
-    .modal-header.tutor{background:linear-gradient(135deg,#a855f7,#7c3aed);}
-    .modal-header.salud{background:linear-gradient(135deg,#89e219,#58cc02);}
-    .modal-header.otro{background:linear-gradient(135deg,#777,#555);}
-    .modal-icon{width:40px;height:40px;background:rgba(255,255,255,.25);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .modal-title-text{flex:1;}
-    .modal-title{font-size:15px;font-weight:900;}
-    .modal-subtitle{font-size:11px;font-weight:700;opacity:.9;margin-top:2px;}
-    .modal-close{width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;border:none;}
-    .modal-body{padding:20px 18px;}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-    /* Historial */
-    .aviso-item{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:10px;}
-    .aviso-item.visto{background:#e8f9d5;border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
-    .aviso-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-    .aviso-tipo-chip{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.03em;}
-    .chip-temprano{background:#1cb0f6;}
-    .chip-noasiste{background:#ff4b4b;}
-    .chip-tarde{background:#e0a800;}
-    .chip-tutor{background:#a855f7;}
-    .chip-salud{background:#58cc02;}
-    .chip-otro{background:#777;}
-    .aviso-fecha{font-size:11px;font-weight:700;color:#afafaf;margin-left:auto;}
-    .aviso-cuando{font-size:11px;font-weight:800;color:#0f8fd6;margin-top:4px;}
-    .aviso-detalle{font-size:13px;font-weight:700;color:#555;line-height:1.4;margin-top:4px;}
-    .aviso-status{font-size:11px;font-weight:900;margin-top:6px;display:flex;align-items:center;gap:4px;}
-    .status-pendiente{color:#afafaf;}
-    .status-visto{color:#58a002;}
-
-    @media (max-width:600px){ .tipos-grid{grid-template-columns:repeat(2,1fr);} }
-</style>
-{% endblock %}
+{% block titulo %}Avisos rápidos{% endblock %}
 
 {% block encabezado %}
-<div class="topbar">
+<div class="encabezado">
     <div>
-        <div class="page-title">Avisar a la maestra</div>
-        <div class="page-sub">Información logística sobre {{ nombre }}</div>
+        <div class="titulo">Avisos rápidos</div>
+        <div class="subtitulo">Avísale algo a la maestra sobre {{ nombre }}</div>
     </div>
-    <div class="page-icon ic-naranja"><i class="ti ti-notes" style="font-size:22px;"></i></div>
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<div class="section-title">¿Qué necesitas avisar?</div>
+<div class="seccion-titulo">¿Qué necesitas avisar?</div>
 
-<div class="tipos-grid">
-    <div class="tipo-card" onclick="abrirModal('temprano')">
-        <div class="tipo-icon ico-temprano"><i class="ti ti-clock-hour-4" style="font-size:26px;"></i></div>
-        <div class="tipo-titulo">Paso temprano</div>
-        <div class="tipo-sub">Recojo antes del horario</div>
-    </div>
-    <div class="tipo-card" onclick="abrirModal('noasiste')">
-        <div class="tipo-icon ico-noasiste"><i class="ti ti-user-off" style="font-size:26px;"></i></div>
-        <div class="tipo-titulo">No asistirá</div>
-        <div class="tipo-sub">Falta hoy o un día</div>
-    </div>
-    <div class="tipo-card" onclick="abrirModal('tarde')">
-        <div class="tipo-icon ico-tarde"><i class="ti ti-clock-play" style="font-size:26px;"></i></div>
-        <div class="tipo-titulo">Llegará tarde</div>
-        <div class="tipo-sub">Retraso en llegada</div>
-    </div>
-    <div class="tipo-card" onclick="abrirModal('tutor')">
-        <div class="tipo-icon ico-tutor"><i class="ti ti-users" style="font-size:26px;"></i></div>
-        <div class="tipo-titulo">Cambio de tutor</div>
-        <div class="tipo-sub">Hoy pasa otra persona</div>
-    </div>
-    <div class="tipo-card" onclick="abrirModal('salud')">
-        <div class="tipo-icon ico-salud"><i class="ti ti-heart" style="font-size:26px;"></i></div>
-        <div class="tipo-titulo">Estado de salud</div>
-        <div class="tipo-sub">Condición del día</div>
-    </div>
-    <div class="tipo-card" onclick="abrirModal('otro')">
-        <div class="tipo-icon ico-otro"><i class="ti ti-message" style="font-size:26px;"></i></div>
-        <div class="tipo-titulo">Otro aviso</div>
-        <div class="tipo-sub">Información general</div>
-    </div>
+<div class="motivos">
+    <button class="motivo" onclick="abrir('temprano')">
+        <div class="motivo-icono" style="background:var(--azul);box-shadow:0 3px 0 var(--azul-oscuro);">
+            <i class="ti ti-clock-hour-4"></i>
+        </div>
+        <div class="motivo-titulo">Paso temprano</div>
+        <div class="motivo-sub">Recojo antes de la salida</div>
+    </button>
+
+    <button class="motivo" onclick="abrir('noasiste')">
+        <div class="motivo-icono" style="background:var(--coral);box-shadow:0 3px 0 var(--coral-oscuro);">
+            <i class="ti ti-user-off"></i>
+        </div>
+        <div class="motivo-titulo">No asistirá</div>
+        <div class="motivo-sub">Falta hoy o un día</div>
+    </button>
+
+    <button class="motivo" onclick="abrir('tarde')">
+        <div class="motivo-icono" style="background:var(--amarillo);box-shadow:0 3px 0 var(--amarillo-oscuro);color:var(--amarillo-texto);">
+            <i class="ti ti-clock-play"></i>
+        </div>
+        <div class="motivo-titulo">Llegará tarde</div>
+        <div class="motivo-sub">Retraso en la llegada</div>
+    </button>
+
+    <button class="motivo" onclick="abrir('tutor')">
+        <div class="motivo-icono" style="background:var(--morado);box-shadow:0 3px 0 var(--morado-oscuro);">
+            <i class="ti ti-users"></i>
+        </div>
+        <div class="motivo-titulo">Pasa otra persona</div>
+        <div class="motivo-sub">Cambio de quien recoge</div>
+    </button>
+
+    <button class="motivo" onclick="abrir('salud')">
+        <div class="motivo-icono" style="background:var(--verde);box-shadow:0 3px 0 var(--verde-oscuro);">
+            <i class="ti ti-heart"></i>
+        </div>
+        <div class="motivo-titulo">Sobre su salud</div>
+        <div class="motivo-sub">Condición del día</div>
+    </button>
+
+    <button class="motivo" onclick="abrir('otro')">
+        <div class="motivo-icono" style="background:var(--naranja);box-shadow:0 3px 0 var(--naranja-oscuro);">
+            <i class="ti ti-message"></i>
+        </div>
+        <div class="motivo-titulo">Otro aviso</div>
+        <div class="motivo-sub">Información general</div>
+    </button>
 </div>
 
-<div class="section-title">Avisos enviados</div>
 
-{% if avisos_enviados %}
-    {% for av in avisos_enviados %}
-    <div class="aviso-item {% if av.visto_maestra %}visto{% endif %}">
-        <div class="aviso-top">
-            <span class="aviso-tipo-chip chip-{{ av.tipo }}">
-                {% if av.tipo == 'temprano' %}Paso temprano
-                {% elif av.tipo == 'noasiste' %}No asistirá
-                {% elif av.tipo == 'tarde' %}Llegará tarde
-                {% elif av.tipo == 'tutor' %}Cambio de tutor
-                {% elif av.tipo == 'salud' %}Salud
-                {% else %}Otro{% endif %}
-            </span>
-            <span class="aviso-fecha">{{ av.fecha_creado[:16] if av.fecha_creado else '' }}</span>
-        </div>
-
-        {% if av.fecha_aplica or av.hora_aplica %}
-        <div class="aviso-cuando">
-            <i class="ti ti-calendar" style="font-size:11px;vertical-align:-1px;"></i>
-            {% if av.fecha_aplica %}{{ av.fecha_aplica }}{% endif %}
-            {% if av.hora_aplica %} · {{ av.hora_aplica }}{% endif %}
-        </div>
+<div class="panel panel-morado">
+    <div class="panel-cabecera">
+        <i class="ti ti-send" style="font-size:19px;"></i>
+        <span class="panel-titulo">Los que ya mandé</span>
+        {% if avisos_enviados %}
+        <span class="panel-marca">{{ avisos_enviados | length }}</span>
         {% endif %}
-
-        {% if av.detalle %}
-        <div class="aviso-detalle">{{ av.detalle }}</div>
-        {% endif %}
-
-        <div class="aviso-status">
-            {% if av.visto_maestra %}
-                <i class="ti ti-checks" style="font-size:14px;color:#58a002;"></i>
-                <span class="status-visto">Visto por la maestra</span>
-            {% else %}
-                <i class="ti ti-clock" style="font-size:14px;color:#afafaf;"></i>
-                <span class="status-pendiente">Pendiente de leer</span>
-            {% endif %}
-        </div>
     </div>
-    {% endfor %}
-{% else %}
-<div class="empty-state">
-    <div class="empty-icon"><i class="ti ti-mail-off"></i></div>
-    <div class="empty-title">No has enviado avisos aún</div>
-    <div class="empty-text">Los avisos que envíes aparecerán aquí con su estado.</div>
+
+    <div class="panel-cuerpo">
+        {% if avisos_enviados %}
+            {% for av in avisos_enviados %}
+            <div class="pieza pieza-morada" style="align-items:flex-start;">
+                <div class="pieza-icono" style="background:var(--morado);box-shadow:0 2px 0 var(--morado-oscuro);">
+                    <i class="ti ti-send"></i>
+                </div>
+
+                <div class="pieza-cuerpo">
+                    <div class="pieza-titulo" style="font-size:14px;">
+                        {% if av.tipo == 'temprano' %}Paso temprano por {{ nombre }}
+                        {% elif av.tipo == 'noasiste' %}{{ nombre }} no asistirá
+                        {% elif av.tipo == 'tarde' %}{{ nombre }} llegará tarde
+                        {% elif av.tipo == 'tutor' %}Pasa otra persona por {{ nombre }}
+                        {% elif av.tipo == 'salud' %}Sobre la salud de {{ nombre }}
+                        {% else %}Otro aviso{% endif %}
+                    </div>
+
+                    {% if av.detalle %}
+                    <div class="pieza-sub" style="font-size:12px;line-height:1.45;margin-top:4px;">{{ av.detalle }}</div>
+                    {% endif %}
+
+                    <div class="pieza-sub" style="margin-top:6px;">
+                        {% if av.fecha_aplica %}Para el {{ av.fecha_aplica }}{% endif %}
+                        {% if av.hora_aplica %} a las {{ av.hora_aplica }}{% endif %}
+                        · Enviado {{ av.fecha_creado[:16] if av.fecha_creado else '' }}
+                    </div>
+                </div>
+
+                <div style="flex-shrink:0;">
+                    {% if av.visto_maestra %}
+                    <span class="etiqueta eti-verde">
+                        <i class="ti ti-checks" style="font-size:12px;"></i> Ya lo vio
+                    </span>
+                    {% else %}
+                    <span class="etiqueta eti-gris">
+                        <i class="ti ti-clock" style="font-size:12px;"></i> Sin leer
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="vacio-mini">
+                <i class="ti ti-mail-off" style="color:var(--morado);"></i>
+                <div class="vacio-mini-titulo">No has enviado avisos todavía</div>
+            </div>
+        {% endif %}
+    </div>
 </div>
-{% endif %}
 
 {% endblock %}
 
 {% block modales %}
-<div class="modal-bg" id="modalBg">
-    <div class="modal">
-        <div class="modal-header" id="modalHeader">
-            <div class="modal-icon"><i class="ti ti-notes" style="font-size:22px;"></i></div>
-            <div class="modal-title-text">
-                <div class="modal-title" id="modalTitle">Nuevo aviso</div>
-                <div class="modal-subtitle" id="modalSubtitle">Completa la información</div>
+<div class="modal-fondo" id="modalFondo">
+    <div class="modal" id="modalCaja">
+        <div class="modal-cabecera" id="modalCabecera">
+            <div class="modal-icono"><i class="ti ti-send" id="modalIcono" style="font-size:22px;"></i></div>
+            <div style="flex:1;">
+                <div class="modal-titulo" id="modalTitulo">Nuevo aviso</div>
+                <div style="font-size:12px;font-weight:600;opacity:.92;" id="modalSub">Completa la información</div>
             </div>
-            <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x" style="font-size:18px;"></i></button>
+            <button class="modal-cerrar" onclick="cerrar()"><i class="ti ti-x" style="font-size:18px;"></i></button>
         </div>
-        <div class="modal-body">
-            <form method="POST" id="avisoForm">
+
+        <div class="modal-cuerpo">
+            <form method="POST" id="forma">
                 <input type="hidden" name="tipo" id="tipoInput">
 
-                <div class="form-row">
+                <div class="campo-fila">
                     <div>
-                        <label class="form-label">Fecha</label>
-                        <input type="date" name="fecha_aplica" class="form-input" id="fechaInput" required>
+                        <label class="campo-etiqueta">Fecha</label>
+                        <input type="date" name="fecha_aplica" class="campo" id="fechaInput" required>
                     </div>
-                    <div id="horaField">
-                        <label class="form-label">Hora</label>
-                        <select name="hora_aplica" class="form-input" id="horaInput" required>
+                    <div id="campoHora">
+                        <label class="campo-etiqueta">Hora</label>
+                        <select name="hora_aplica" class="campo" id="horaInput">
                             <option value="">Elige una hora</option>
                             <option value="08:15">8:15 am — Entrada tardía</option>
                             <option value="08:30">8:30 am</option>
@@ -207,11 +177,11 @@
                     </div>
                 </div>
 
-                <label class="form-label">Detalle</label>
-                <textarea name="detalle" class="form-input" id="detalleInput"
+                <label class="campo-etiqueta">Detalle</label>
+                <textarea name="detalle" class="campo" id="detalleInput"
                           placeholder="Escribe información adicional..."></textarea>
 
-                <button type="submit" class="btn-save">
+                <button type="submit" class="btn btn-ancho btn-verde">
                     <i class="ti ti-send" style="font-size:18px;"></i> Enviar aviso
                 </button>
             </form>
@@ -222,46 +192,49 @@
 
 {% block js_extra %}
 <script>
-    const config = {
-        temprano: {title:'Paso temprano',   sub:'A qué hora recogeré',        header:'temprano', hora:true,  ph:'Ejemplo: paso a las 2 pm porque tiene cita médica'},
-        noasiste: {title:'No asistirá',     sub:'Motivo de la falta',         header:'noasiste', hora:false, ph:'Ejemplo: enfermo con gripe / viaje familiar'},
-        tarde:    {title:'Llegará tarde',   sub:'Hora aproximada de llegada', header:'tarde',    hora:true,  ph:'Ejemplo: llegará hacia las 9 am por cita médica'},
-        tutor:    {title:'Cambio de tutor', sub:'Quién recoge al alumno',     header:'tutor',    hora:true,  ph:'Ejemplo: hoy pasa mi hermano Juan, credencial INE 1234567'},
-        salud:    {title:'Estado de salud', sub:'Información importante',     header:'salud',    hora:false, ph:'Ejemplo: viene con dolor de cabeza / medicamento a las 11'},
-        otro:     {title:'Otro aviso',      sub:'Información general',        header:'otro',     hora:false, ph:'Escribe tu aviso...'}
+    var motivos = {
+        temprano: {t:'Paso temprano',       s:'¿A qué hora lo recoges?',    c:'var(--azul)',     b:'var(--azul-oscuro)',     i:'ti-clock-hour-4', hora:true,  p:'Ejemplo: paso a las 2 pm porque tiene cita médica'},
+        noasiste: {t:'No asistirá',         s:'Motivo de la falta',         c:'var(--coral)',    b:'var(--coral-oscuro)',    i:'ti-user-off',     hora:false, p:'Ejemplo: enfermo con gripe / viaje familiar'},
+        tarde:    {t:'Llegará tarde',       s:'Hora aproximada de llegada', c:'var(--amarillo)', b:'var(--amarillo-oscuro)', i:'ti-clock-play',   hora:true,  p:'Ejemplo: llegará hacia las 9 am por cita médica'},
+        tutor:    {t:'Pasa otra persona',   s:'¿Quién lo recoge?',          c:'var(--morado)',   b:'var(--morado-oscuro)',   i:'ti-users',        hora:true,  p:'Ejemplo: hoy pasa mi hermano Juan, INE 1234567'},
+        salud:    {t:'Sobre su salud',      s:'Información importante',     c:'var(--verde)',    b:'var(--verde-oscuro)',    i:'ti-heart',        hora:false, p:'Ejemplo: viene con dolor de cabeza / medicamento a las 11'},
+        otro:     {t:'Otro aviso',          s:'Información general',        c:'var(--naranja)',  b:'var(--naranja-oscuro)',  i:'ti-message',      hora:false, p:'Escribe tu aviso...'}
     };
 
-    function abrirModal(tipo) {
-        const c   = config[tipo];
-        const hoy = new Date().toISOString().split('T')[0];
+    function abrir(clave) {
+        var m   = motivos[clave];
+        var hoy = new Date().toISOString().split('T')[0];
 
-        document.getElementById('tipoInput').value        = tipo;
-        document.getElementById('modalTitle').textContent = c.title;
-        document.getElementById('modalSubtitle').textContent = c.sub;
-        document.getElementById('modalHeader').className  = 'modal-header ' + c.header;
-        document.getElementById('detalleInput').placeholder = c.ph;
+        document.getElementById('tipoInput').value      = clave;
+        document.getElementById('modalTitulo').textContent = m.t;
+        document.getElementById('modalSub').textContent    = m.s;
+        document.getElementById('modalIcono').className    = 'ti ' + m.i;
+        document.getElementById('detalleInput').placeholder = m.p;
 
-        // La hora solo se exige en los tipos donde tiene sentido
-        const selectHora = document.getElementById('horaInput');
-        document.getElementById('horaField').style.display = c.hora ? 'block' : 'none';
-        selectHora.required = c.hora;
-        selectHora.value    = '';
+        document.getElementById('modalCabecera').style.background = m.c;
+        document.getElementById('modalCaja').style.borderColor    = m.c;
+
+        // La hora solo se exige donde tiene sentido
+        var hora = document.getElementById('horaInput');
+        document.getElementById('campoHora').style.display = m.hora ? 'block' : 'none';
+        hora.required = m.hora;
+        hora.value    = '';
 
         // No se puede avisar sobre una fecha que ya pasó
-        const fecha = document.getElementById('fechaInput');
+        var fecha = document.getElementById('fechaInput');
         fecha.value = hoy;
         fecha.min   = hoy;
 
-        document.getElementById('modalBg').classList.add('active');
+        document.getElementById('modalFondo').classList.add('abierto');
     }
 
-    function cerrarModal() {
-        document.getElementById('modalBg').classList.remove('active');
-        document.getElementById('avisoForm').reset();
+    function cerrar() {
+        document.getElementById('modalFondo').classList.remove('abierto');
+        document.getElementById('forma').reset();
     }
 
-    document.getElementById('modalBg').addEventListener('click', function(e) {
-        if (e.target === this) cerrarModal();
+    document.getElementById('modalFondo').addEventListener('click', function (e) {
+        if (e.target === this) cerrar();
     });
 </script>
 {% endblock %}

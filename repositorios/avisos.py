@@ -183,3 +183,10 @@ def contar_pendientes_de_padres():
         return conn.execute(
             'SELECT COUNT(*) AS n FROM avisos_padre WHERE visto_maestra = 0'
         ).fetchone()['n']
+        
+def etiqueta_tipo_padre(clave):
+    """Nombre legible del tipo de aviso rápido."""
+    for c, etiqueta in TIPOS_PADRE:
+        if c == clave:
+            return etiqueta
+    return 'Aviso'

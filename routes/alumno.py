@@ -5,6 +5,8 @@ Ninguna función de este archivo escribe SQL: todo el acceso a datos
 pasa por la capa de repositorios.
 """
 
+from datetime import date
+
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, session, flash)
 
@@ -27,90 +29,150 @@ def _sesion_activa():
     return 'alumno_id' in session
 
 
-# ═══════════ PANEL DEL PADRE ═══════════
+def _es_logro(incidencia):
+    return incidencia['tipo'] in ('logro', 'Logro')
+
+
+# ═══════════════════════════════════════════════════════════
+#  INICIO
+# ═══════════════════════════════════════════════════════════
 
 @alumno_bp.route('/panel')
 def panel_alumno():
     if not _sesion_activa():
         return redirect(url_for('auth.login'))
 
+    alumno_id   = session['alumno_id']
+    incidencias = repo_incidencias.de_alumno(alumno_id)
+
+    # ── Bandeja: incidencias, avisos generales y lo que mandó el tutor ──
+    avisos_feed = []
+
+    for inc in incidencias:
+        if _es_logro(inc):
+            continue
+        t = repo_incidencias.TIPOS_MAP.get(inc['tipo'], {})
+        avisos_feed.append({
+            'clase':    'incidencia',
+            'id':       inc['id'],
+            'titulo':   (inc['descripcion'] or '')[:44],
+            'icono':    t.get('icono', 'ti-alert-triangle'),
+            'fecha':    (inc['fecha'] or '')[:10],
+            'atendido': bool(inc['enterado']),
+            'orden':    inc['fecha'] or '',
+        })
+
+    for av in repo_avisos.activos_para(alumno_id):
+        avisos_feed.append({
+            'clase':    'general',
+            'id':       av['id'],
+            'titulo':   av['titulo'],
+            'fecha':    (av['fecha'] or '')[:10],
+            'atendido': bool(av['confirmado_por_padre']),
+            'orden':    av['fecha'] or '',
+        })
+
+    for ap in repo_avisos.de_padre(alumno_id):
+        avisos_feed.append({
+            'clase':    'enviado',
+            'id':       ap['id'],
+            'titulo':   repo_avisos.etiqueta_tipo_padre(ap['tipo']),
+            'fecha':    (ap['fecha_creado'] or '')[:10],
+            'atendido': bool(ap['visto_maestra']),
+            'orden':    ap['fecha_creado'] or '',
+        })
+
+    # Primero lo que falta atender; dentro de cada grupo, lo más reciente
+    avisos_feed.sort(key=lambda a: a['orden'], reverse=True)
+    avisos_feed.sort(key=lambda a: a['atendido'])
+
+    logros      = [i for i in incidencias if _es_logro(i)]
+    actividades = repo_academico.actividades_de(alumno_id)
+
+    return render_template('alumno.html',
+        nombre           = session['nombre'],
+        avisos_feed      = avisos_feed,
+        tareas           = repo_tareas.de_alumno(alumno_id),
+        estados_map      = repo_tareas.ESTADOS_MAP,
+        ultimo_logro     = logros[0] if logros else None,
+        ultima_actividad = actividades[0] if actividades else None,
+        promedio         = repo_academico.promedio_general(alumno_id))
+
+
+# ═══════════════════════════════════════════════════════════
+#  SECCIONES DEL MENÚ
+# ═══════════════════════════════════════════════════════════
+
+@alumno_bp.route('/avisos')
+def avisos():
+    """Bandeja completa: incidencias, avisos generales y los enviados."""
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
     alumno_id = session['alumno_id']
     filtro    = request.args.get('filtro', 'todo')
 
-    # ── Datos ──
-    incidencias    = repo_incidencias.de_alumno(alumno_id)
-    avisos         = repo_avisos.activos_para(alumno_id)
-    actividades    = repo_academico.actividades_de(alumno_id)
-    tareas         = repo_tareas.de_alumno(alumno_id)
-    calificaciones = repo_academico.calificaciones_de(alumno_id)
-    perfil         = repo_academico.perfil_de(alumno_id)
+    incidencias = [i for i in repo_incidencias.de_alumno(alumno_id)
+                   if not _es_logro(i)]
+    generales   = repo_avisos.activos_para(alumno_id)
+    enviados    = repo_avisos.de_padre(alumno_id)
 
-    # ── Feed unificado ──
-    publicaciones = []
-
-    for inc in incidencias:
-        publicaciones.append({
-            'tipo_pub': 'logro' if inc['tipo'] in ('logro', 'Logro') else 'incidencia',
-            'fecha':    inc['fecha'],
-            'datos':    inc
-        })
-
-    for av in avisos:
-        publicaciones.append({
-            'tipo_pub': 'aviso',
-            'fecha':    av['fecha'],
-            'datos':    av
-        })
-
-    for act in actividades:
-        publicaciones.append({
-            'tipo_pub': 'tarea',
-            'fecha':    act.get('fecha') or '',
-            'datos':    act
-        })
-
-    for tar in tareas:
-        publicaciones.append({
-            'tipo_pub': 'tarea_entrega',
-            'fecha':    tar.get('fecha_asignada') or '',
-            'datos':    tar
-        })
-
-    # Lo que requiere acción del padre va primero
-    publicaciones.sort(key=lambda p: p['tipo_pub'] == 'incidencia'
-                       and not p['datos'].get('enterado'), reverse=True)
-
-    # ── Filtros ──
     if filtro == 'incidencias':
-        publicaciones = [p for p in publicaciones if p['tipo_pub'] == 'incidencia']
-    elif filtro == 'logros':
-        publicaciones = [p for p in publicaciones if p['tipo_pub'] == 'logro']
-    elif filtro == 'avisos':
-        publicaciones = [p for p in publicaciones if p['tipo_pub'] == 'aviso']
-    elif filtro == 'tareas':
-        publicaciones = [p for p in publicaciones
-                         if p['tipo_pub'] in ('tarea', 'tarea_entrega')]
+        generales, enviados = [], []
+    elif filtro == 'generales':
+        incidencias, enviados = [], []
+    elif filtro == 'enviados':
+        incidencias, generales = [], []
 
-    return render_template('alumno.html',
-        nombre          = session['nombre'],
-        incidencias     = incidencias,
-        publicaciones   = publicaciones,
-        calificaciones  = calificaciones,
-        perfil          = perfil,
-        actividades     = actividades,
-        avisos          = avisos,
-        filtro          = filtro,
-        sin_firmar      = sum(1 for i in incidencias if not i['enterado']),
-        mensajes_nuevos = repo_mensajes.contar_no_leidos_padre(alumno_id),
-        tipos_map       = repo_incidencias.TIPOS_MAP,
-        niveles_map     = repo_incidencias.NIVELES_MAP,
-        estados_map     = repo_tareas.ESTADOS_MAP,
-        promedio        = repo_academico.promedio_general(alumno_id),
-        total_logros    = repo_incidencias.contar_logros(alumno_id),
-        tareas_resumen  = repo_tareas.resumen_alumno(alumno_id))
+    return render_template('padre_avisos.html',
+        nombre      = session['nombre'],
+        incidencias = incidencias,
+        generales   = generales,
+        enviados    = enviados,
+        filtro      = filtro,
+        tipos_map   = repo_incidencias.TIPOS_MAP)
 
 
-# ═══════════ DETALLE DE INCIDENCIA ═══════════
+@alumno_bp.route('/tareas')
+def tareas():
+    """Historial de tareas con su estado de cumplimiento."""
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    alumno_id = session['alumno_id']
+    return render_template('padre_tareas.html',
+        nombre      = session['nombre'],
+        tareas      = repo_tareas.de_alumno(alumno_id),
+        resumen     = repo_tareas.resumen_alumno(alumno_id),
+        estados_map = repo_tareas.ESTADOS_MAP)
+
+
+@alumno_bp.route('/como-vamos')
+def como_vamos():
+    """Logros, calificaciones, perfil y actividades sugeridas."""
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    alumno_id = session['alumno_id']
+    logros    = [i for i in repo_incidencias.de_alumno(alumno_id)
+                 if _es_logro(i)]
+
+    return render_template('padre_como_vamos.html',
+        nombre         = session['nombre'],
+        alumno         = repo_alumnos.obtener_por_id(alumno_id),
+        logros         = logros,
+        calificaciones = repo_academico.calificaciones_de(alumno_id),
+        perfil         = repo_academico.perfil_de(alumno_id),
+        actividades    = repo_academico.actividades_de(alumno_id),
+        promedio       = repo_academico.promedio_general(alumno_id),
+        tareas         = repo_tareas.resumen_alumno(alumno_id),
+        materias       = repo_academico.MATERIAS,
+        areas          = repo_academico.AREAS)
+
+
+# ═══════════════════════════════════════════════════════════
+#  DETALLE Y FIRMA
+# ═══════════════════════════════════════════════════════════
 
 @alumno_bp.route('/incidencia/<int:id_incidencia>')
 def ver_incidencia(id_incidencia):
@@ -125,14 +187,13 @@ def ver_incidencia(id_incidencia):
         repo_incidencias.marcar_visto(id_incidencia)
 
     return render_template('detalle_incidencia.html',
+                           nombre      = session['nombre'],
                            inc         = inc,
                            tipos_map   = repo_incidencias.TIPOS_MAP,
                            niveles_map = repo_incidencias.NIVELES_MAP,
                            declaracion = repo_incidencias.TEXTO_DECLARACION,
                            minimo      = repo_incidencias.MINIMO_RESPUESTA)
 
-
-# ═══════════ FIRMA DE ENTERADO ═══════════
 
 @alumno_bp.route('/comentar/<int:id_incidencia>', methods=['POST'])
 def comentar(id_incidencia):
@@ -162,10 +223,22 @@ def comentar(id_incidencia):
         )
         flash('Firma y respuesta registradas ✓')
 
-    return redirect(url_for('alumno.panel_alumno'))
+    return redirect(url_for('alumno.avisos'))
 
 
-# ═══════════ CHAT CON LA MAESTRA ═══════════
+@alumno_bp.route('/aviso/confirmar/<int:id_aviso>', methods=['POST'])
+def confirmar_aviso(id_aviso):
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    repo_avisos.confirmar(id_aviso, session['alumno_id'])
+    flash('Aviso confirmado ✓')
+    return redirect(request.referrer or url_for('alumno.panel_alumno'))
+
+
+# ═══════════════════════════════════════════════════════════
+#  CHAT
+# ═══════════════════════════════════════════════════════════
 
 @alumno_bp.route('/chat', methods=['GET', 'POST'])
 def chat_maestra():
@@ -196,15 +269,16 @@ def chat_maestra():
     repo_mensajes.marcar_vistos(alumno_id, 'maestra')
 
     return render_template('chat_padre.html',
-                           nombre          = session['nombre'],
-                           mensajes        = repo_mensajes.conversacion(alumno_id),
-                           mensajes_nuevos = 0,
-                           ref_tipo        = request.args.get('ref_tipo'),
-                           ref_id          = request.args.get('ref_id'),
-                           ref_titulo      = request.args.get('ref_titulo'))
+                           nombre     = session['nombre'],
+                           mensajes   = repo_mensajes.conversacion(alumno_id),
+                           ref_tipo   = request.args.get('ref_tipo'),
+                           ref_id     = request.args.get('ref_id'),
+                           ref_titulo = request.args.get('ref_titulo'))
 
 
-# ═══════════ AVISAR A LA MAESTRA ═══════════
+# ═══════════════════════════════════════════════════════════
+#  AVISOS RÁPIDOS
+# ═══════════════════════════════════════════════════════════
 
 @alumno_bp.route('/avisar', methods=['GET', 'POST'])
 def avisar_maestra():
@@ -214,22 +288,36 @@ def avisar_maestra():
     alumno_id = session['alumno_id']
 
     if request.method == 'POST':
-        tipo = request.form.get('tipo')
-        if tipo:
-            repo_avisos.crear_de_padre(
-                id_alumno    = alumno_id,
-                tipo         = tipo,
-                detalle      = request.form.get('detalle', '').strip(),
-                fecha_aplica = request.form.get('fecha_aplica') or None,
-                hora_aplica  = request.form.get('hora_aplica') or None
-            )
-            notificaciones.avisar_a_docente(
-                asunto  = f'Aviso del tutor de {session["nombre"]}',
-                titulo  = 'Nuevo aviso de un tutor',
-                mensaje = f'El tutor de <b>{session["nombre"]}</b> envió un aviso. '
-                          f'Revísalo en el panel.'
-            )
-            flash('Aviso enviado a la maestra ✓')
+        tipo         = request.form.get('tipo')
+        fecha_aplica = request.form.get('fecha_aplica') or None
+
+        if not tipo:
+            flash('Selecciona un tipo de aviso')
+            return redirect(url_for('alumno.avisar_maestra'))
+
+        if fecha_aplica:
+            try:
+                if date.fromisoformat(fecha_aplica) < date.today():
+                    flash('No puedes avisar sobre una fecha que ya pasó')
+                    return redirect(url_for('alumno.avisar_maestra'))
+            except ValueError:
+                flash('La fecha no es válida')
+                return redirect(url_for('alumno.avisar_maestra'))
+
+        repo_avisos.crear_de_padre(
+            id_alumno    = alumno_id,
+            tipo         = tipo,
+            detalle      = request.form.get('detalle', '').strip(),
+            fecha_aplica = fecha_aplica,
+            hora_aplica  = request.form.get('hora_aplica') or None
+        )
+        notificaciones.avisar_a_docente(
+            asunto  = f'Aviso del tutor de {session["nombre"]}',
+            titulo  = 'Nuevo aviso de un tutor',
+            mensaje = f'El tutor de <b>{session["nombre"]}</b> envió un aviso. '
+                      f'Revísalo en el panel.'
+        )
+        flash('Aviso enviado a la maestra ✓')
         return redirect(url_for('alumno.avisar_maestra'))
 
     return render_template('avisar_maestra.html',
@@ -237,39 +325,9 @@ def avisar_maestra():
                            avisos_enviados = repo_avisos.de_padre(alumno_id))
 
 
-# ═══════════ CONFIRMAR AVISO GENERAL ═══════════
-
-@alumno_bp.route('/aviso/confirmar/<int:id_aviso>', methods=['POST'])
-def confirmar_aviso(id_aviso):
-    if not _sesion_activa():
-        return redirect(url_for('auth.login'))
-
-    repo_avisos.confirmar(id_aviso, session['alumno_id'])
-    return redirect(url_for('alumno.panel_alumno'))
-
-
-# ═══════════ MI PERFIL ═══════════
-
-@alumno_bp.route('/perfil')
-def mi_perfil():
-    if not _sesion_activa():
-        return redirect(url_for('auth.login'))
-
-    alumno_id = session['alumno_id']
-
-    return render_template('mi_perfil.html',
-        nombre          = session['nombre'],
-        alumno          = repo_alumnos.obtener_por_id(alumno_id),
-        calificaciones  = repo_academico.calificaciones_de(alumno_id),
-        perfil          = repo_academico.perfil_de(alumno_id),
-        actividades     = repo_academico.actividades_de(alumno_id),
-        promedio        = repo_academico.promedio_general(alumno_id),
-        total_logros    = repo_incidencias.contar_logros(alumno_id),
-        total_firmadas  = repo_incidencias.contar_firmadas(alumno_id),
-        tareas          = repo_tareas.resumen_alumno(alumno_id))
-
-
-# ═══════════ CONFIGURACIÓN ═══════════
+# ═══════════════════════════════════════════════════════════
+#  CUENTA
+# ═══════════════════════════════════════════════════════════
 
 @alumno_bp.route('/configuracion', methods=['GET', 'POST'])
 def configuracion():
@@ -286,10 +344,8 @@ def configuracion():
                 id_alumno    = alumno_id,
                 nombre_tutor = request.form.get('nombre_tutor', '').strip(),
                 correo_padre = request.form.get('correo_padre', '').strip(),
-                notif_correo = request.form.get('notif_correo',
-                accesos = repo_accesos.ultimos_de_alumno(alumno_id, 1))
-                )
-            
+                notif_correo = request.form.get('notif_correo')
+            )
             flash('Datos actualizados ✓')
 
         elif accion == 'password':
@@ -315,7 +371,9 @@ def configuracion():
     return render_template('configuracion.html',
                            nombre  = session['nombre'],
                            alumno  = repo_alumnos.obtener_por_id(alumno_id),
-                           accesos = repo_accesos.ultimos_de_alumno(alumno_id))
+                           accesos = repo_accesos.ultimos_de_alumno(alumno_id, 1))
+
+
 @alumno_bp.route('/accesos')
 def mis_accesos():
     if not _sesion_activa():
@@ -324,6 +382,11 @@ def mis_accesos():
     return render_template('mis_accesos.html',
                            nombre  = session['nombre'],
                            accesos = repo_accesos.ultimos_de_alumno(session['alumno_id'], 50))
+
+
+# ═══════════════════════════════════════════════════════════
+#  BÚSQUEDA
+# ═══════════════════════════════════════════════════════════
 
 @alumno_bp.route('/buscar')
 def buscar():

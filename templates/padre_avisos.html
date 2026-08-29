@@ -1,0 +1,222 @@
+{% extends "base_padre.html" %}
+{% set activo = 'avisos' %}
+
+{% block titulo %}Avisos{% endblock %}
+
+{% block encabezado %}
+<div class="encabezado">
+    <div>
+        <div class="titulo">Avisos</div>
+        <div class="subtitulo">Lo que la maestra te mandó y lo que tú enviaste</div>
+    </div>
+</div>
+
+<div class="chips" style="margin-bottom:18px;">
+    <a href="{{ url_for('alumno.avisos') }}"
+       class="chip {% if filtro == 'todo' %}activo{% endif %}">Todos</a>
+    <a href="{{ url_for('alumno.avisos') }}?filtro=incidencias"
+       class="chip {% if filtro == 'incidencias' %}activo{% endif %}">De {{ nombre }}</a>
+    <a href="{{ url_for('alumno.avisos') }}?filtro=generales"
+       class="chip {% if filtro == 'generales' %}activo{% endif %}">Generales</a>
+    <a href="{{ url_for('alumno.avisos') }}?filtro=enviados"
+       class="chip {% if filtro == 'enviados' %}activo{% endif %}">Los que mandé</a>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+{% if not incidencias and not generales and not enviados %}
+<div class="vacio">
+    <div class="vacio-icono"><i class="ti ti-mood-smile"></i></div>
+    <div class="vacio-titulo">Todo tranquilo por aquí</div>
+    <div class="vacio-texto">Cuando la maestra publique algo aparecerá en esta pantalla.</div>
+</div>
+{% endif %}
+
+
+<!-- ══════════ SOBRE EL ALUMNO ══════════ -->
+
+{% if incidencias %}
+<div class="panel panel-coral">
+    <div class="panel-cabecera">
+        <i class="ti ti-alert-circle" style="font-size:19px;"></i>
+        <span class="panel-titulo">Avisos sobre {{ nombre }}</span>
+        {% set faltan = incidencias | rejectattr('enterado') | list | length %}
+        {% if faltan %}
+        <span class="panel-marca">{{ faltan }} sin firmar</span>
+        {% endif %}
+    </div>
+
+    <div class="panel-cuerpo">
+        {% for inc in incidencias %}
+        {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'Aviso', 'icono':'ti-alert-triangle', 'color':'#777'}) %}
+
+        <a href="{{ url_for('alumno.ver_incidencia', id_incidencia=inc.id) }}"
+           class="pieza {% if inc.enterado %}pieza-quieta{% else %}pieza-coral{% endif %}"
+           style="align-items:flex-start;">
+
+            <div class="pieza-icono" style="background:{% if inc.enterado %}var(--borde-fuerte){% else %}{{ t.color }}{% endif %};">
+                <i class="ti {{ t.icono }}"></i>
+            </div>
+
+            <div class="pieza-cuerpo">
+                <div style="font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+                            color:{% if inc.enterado %}var(--texto-tenue){% else %}var(--coral-oscuro){% endif %};margin-bottom:2px;">
+                    {{ t.etiqueta }}
+                </div>
+
+                <div class="pieza-titulo" style="font-size:14px;">{{ inc.descripcion }}</div>
+
+                {% if inc.accion_docente %}
+                <div style="background:var(--verde-suave);border-left:3px solid var(--verde);border-radius:9px;
+                            padding:7px 10px;margin-top:7px;font-size:12px;font-weight:700;color:var(--verde-texto);">
+                    <i class="ti ti-first-aid-kit" style="font-size:13px;vertical-align:-2px;"></i>
+                    {{ inc.accion_docente }}
+                </div>
+                {% endif %}
+
+                {% if inc.comentario_padre %}
+                <div style="background:var(--superficie-3);border-left:3px solid var(--azul);border-radius:9px;
+                            padding:7px 10px;margin-top:7px;font-size:12px;font-weight:700;color:var(--texto-suave);">
+                    <strong>Tu respuesta:</strong> {{ inc.comentario_padre }}
+                </div>
+                {% endif %}
+
+                <div class="pieza-sub" style="margin-top:7px;">
+                    {{ inc.fecha[:16] if inc.fecha else '' }}
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;">
+                {% if inc.enterado %}
+                <span class="etiqueta eti-verde"><i class="ti ti-check" style="font-size:12px;"></i> Firmado</span>
+                {% else %}
+                <span class="etiqueta eti-coral">Toca para firmar</span>
+                {% endif %}
+                <i class="ti ti-chevron-right pieza-flecha"></i>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+
+<!-- ══════════ GENERALES ══════════ -->
+
+{% if generales %}
+<div class="panel panel-azul">
+    <div class="panel-cabecera">
+        <i class="ti ti-speakerphone" style="font-size:19px;"></i>
+        <span class="panel-titulo">Para todo el grupo</span>
+        {% set faltan = generales | rejectattr('confirmado_por_padre') | list | length %}
+        {% if faltan %}
+        <span class="panel-marca">{{ faltan }} sin confirmar</span>
+        {% endif %}
+    </div>
+
+    <div class="panel-cuerpo">
+        {% for av in generales %}
+        <div class="pieza {% if av.confirmado_por_padre %}pieza-quieta{% else %}pieza-azul{% endif %}"
+             style="align-items:flex-start;">
+
+            <div class="pieza-icono" style="background:{% if av.confirmado_por_padre %}var(--borde-fuerte){% else %}var(--azul){% endif %};">
+                <i class="ti ti-speakerphone"></i>
+            </div>
+
+            <div class="pieza-cuerpo">
+                {% if av.fecha_actualizado %}
+                <div style="font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+                            color:var(--naranja-oscuro);margin-bottom:2px;">
+                    <i class="ti ti-refresh" style="font-size:11px;"></i> Actualizado
+                </div>
+                {% endif %}
+
+                <div class="pieza-titulo" style="font-size:14px;">{{ av.titulo }}</div>
+                <div class="pieza-sub" style="font-size:12px;line-height:1.45;margin-top:4px;">{{ av.contenido }}</div>
+                <div class="pieza-sub" style="margin-top:7px;">{{ av.fecha[:10] if av.fecha else '' }}</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;">
+                {% if av.confirmado_por_padre %}
+                <span class="etiqueta eti-verde"><i class="ti ti-check" style="font-size:12px;"></i> Confirmado</span>
+                {% else %}
+                <form method="POST" action="{{ url_for('alumno.confirmar_aviso', id_aviso=av.id) }}" style="margin:0;">
+                    <button type="submit" class="btn btn-chico btn-azul">
+                        <i class="ti ti-check"></i> Ya lo leí
+                    </button>
+                </form>
+                {% endif %}
+
+                <a href="{{ url_for('alumno.chat_maestra', ref_tipo='aviso', ref_id=av.id, ref_titulo='Aviso — ' ~ av.titulo) }}"
+                   class="btn btn-chico btn-borde">
+                    <i class="ti ti-message-circle"></i> Preguntar
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+
+<!-- ══════════ LOS QUE MANDÉ ══════════ -->
+
+{% if enviados %}
+<div class="panel panel-morado">
+    <div class="panel-cabecera">
+        <i class="ti ti-send" style="font-size:19px;"></i>
+        <span class="panel-titulo">Los que yo mandé</span>
+    </div>
+
+    <div class="panel-cuerpo">
+        {% for e in enviados %}
+        <div class="pieza pieza-morada" style="align-items:flex-start;">
+            <div class="pieza-icono" style="background:var(--morado);">
+                <i class="ti ti-send"></i>
+            </div>
+
+            <div class="pieza-cuerpo">
+                <div class="pieza-titulo" style="font-size:14px;">
+                    {% if e.tipo == 'temprano' %}Paso temprano por {{ nombre }}
+                    {% elif e.tipo == 'noasiste' %}{{ nombre }} no asistirá
+                    {% elif e.tipo == 'tarde' %}{{ nombre }} llegará tarde
+                    {% elif e.tipo == 'tutor' %}Pasa otra persona por {{ nombre }}
+                    {% elif e.tipo == 'salud' %}Sobre la salud de {{ nombre }}
+                    {% else %}Otro aviso{% endif %}
+                </div>
+
+                {% if e.detalle %}
+                <div class="pieza-sub" style="font-size:12px;line-height:1.45;margin-top:4px;">{{ e.detalle }}</div>
+                {% endif %}
+
+                <div class="pieza-sub" style="margin-top:7px;">
+                    {% if e.fecha_aplica %}Para el {{ e.fecha_aplica }}{% endif %}
+                    {% if e.hora_aplica %} a las {{ e.hora_aplica }}{% endif %}
+                </div>
+            </div>
+
+            <div style="flex-shrink:0;">
+                {% if e.visto_maestra %}
+                <span class="etiqueta eti-verde">
+                    <i class="ti ti-checks" style="font-size:12px;"></i> Ya lo vio
+                </span>
+                {% else %}
+                <span class="etiqueta eti-gris">
+                    <i class="ti ti-clock" style="font-size:12px;"></i> Sin leer
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('alumno.avisar_maestra') }}" class="panel-pie" style="color:var(--morado-oscuro);">
+        <i class="ti ti-send" style="font-size:15px;"></i>
+        Mandar otro aviso
+        <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

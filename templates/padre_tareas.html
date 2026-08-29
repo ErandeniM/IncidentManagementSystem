@@ -1,0 +1,133 @@
+{% extends "base_padre.html" %}
+{% set activo = 'tareas' %}
+
+{% block titulo %}Tareas{% endblock %}
+
+{% block encabezado %}
+<div class="encabezado">
+    <div>
+        <div class="titulo">Tareas</div>
+        <div class="subtitulo">Cómo va {{ nombre }} con sus entregas</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+{% if tareas %}
+
+<!-- ── Resumen ── -->
+<div class="cifras">
+    <div class="cifra cifra-verde">
+        <div class="cifra-numero" style="color:var(--verde-oscuro);">{{ resumen.cumplio }}</div>
+        <div class="cifra-etiqueta" style="color:var(--verde-texto);">Cumplió</div>
+    </div>
+    <div class="cifra cifra-amarilla">
+        <div class="cifra-numero" style="color:var(--amarillo-oscuro);">{{ resumen.incompleta }}</div>
+        <div class="cifra-etiqueta" style="color:var(--amarillo-texto);">Incompletas</div>
+    </div>
+    <div class="cifra cifra-coral">
+        <div class="cifra-numero" style="color:var(--coral-oscuro);">{{ resumen.no_cumplio }}</div>
+        <div class="cifra-etiqueta" style="color:var(--coral-texto);">No entregó</div>
+    </div>
+    <div class="cifra cifra-azul">
+        <div class="cifra-numero" style="color:var(--azul-oscuro);">{{ resumen.porcentaje }}%</div>
+        <div class="cifra-etiqueta" style="color:var(--azul-texto);">De cumplimiento</div>
+    </div>
+</div>
+
+{% set total = resumen.total if resumen.total else 1 %}
+<div class="barra-total">
+    <div class="barra-parte" style="width:{{ resumen.cumplio * 100 // total }}%;background:var(--verde);"></div>
+    <div class="barra-parte" style="width:{{ resumen.incompleta * 100 // total }}%;background:var(--amarillo);"></div>
+    <div class="barra-parte" style="width:{{ resumen.no_cumplio * 100 // total }}%;background:var(--coral);"></div>
+</div>
+
+
+<!-- ── Lista ── -->
+<div class="panel panel-amarillo">
+    <div class="panel-cabecera">
+        <i class="ti ti-notebook" style="font-size:19px;"></i>
+        <span class="panel-titulo">Todas las tareas</span>
+        <span class="panel-marca">{{ tareas | length }} en total</span>
+    </div>
+
+    <div class="panel-cuerpo">
+        {% for t in tareas %}
+        {% set estado = t.estado or 'pendiente' %}
+        {% set e = estados_map.get(estado, {'etiqueta':'Pendiente'}) %}
+
+        <div class="pieza {% if estado == 'pendiente' %}pieza-amarilla{% elif estado == 'cumplio' %}pieza-verde{% elif estado == 'no_cumplio' %}pieza-coral{% else %}pieza-quieta{% endif %}"
+             style="align-items:flex-start;">
+
+            <div class="dia-caja {% if estado == 'cumplio' %}cumplio{% elif estado == 'no_cumplio' %}no-hecha{% elif estado == 'incompleta' %}a-medias{% endif %}">
+                {% if estado == 'cumplio' %}
+                <i class="ti ti-check" style="font-size:21px;"></i>
+                {% elif estado == 'no_cumplio' %}
+                <i class="ti ti-x" style="font-size:21px;"></i>
+                {% else %}
+                <span class="dia-numero">{{ t.fecha_entrega[8:10] if t.fecha_entrega else '—' }}</span>
+                <span class="dia-mes">
+                    {% if t.fecha_entrega %}
+                        {% set m = t.fecha_entrega[5:7] | int %}
+                        {{ ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][m - 1] }}
+                    {% endif %}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="pieza-cuerpo">
+                <div style="font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+                            color:var(--texto-tenue);margin-bottom:2px;">
+                    {{ t.materia or 'General' }}
+                </div>
+
+                <div class="pieza-titulo" style="font-size:14px;">{{ t.titulo }}</div>
+
+                {% if t.descripcion %}
+                <div class="pieza-sub" style="font-size:12px;line-height:1.45;margin-top:4px;">{{ t.descripcion }}</div>
+                {% endif %}
+
+                {% if t.nota %}
+                <div style="background:var(--amarillo-suave);border-left:3px solid var(--amarillo);border-radius:9px;
+                            padding:7px 10px;margin-top:7px;font-size:12px;font-weight:700;color:var(--amarillo-texto);">
+                    <strong>Nota de la maestra:</strong> {{ t.nota }}
+                </div>
+                {% endif %}
+
+                <div class="pieza-sub" style="margin-top:7px;">
+                    {% if t.fecha_entrega %}
+                    <i class="ti ti-calendar-check" style="font-size:12px;vertical-align:-2px;"></i>
+                    Entrega el {{ t.fecha_entrega }}
+                    {% else %}Sin fecha de entrega{% endif %}
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;">
+                <span class="etiqueta
+                    {% if estado == 'cumplio' %}eti-verde
+                    {% elif estado == 'incompleta' %}eti-amarilla
+                    {% elif estado == 'no_cumplio' %}eti-coral
+                    {% else %}eti-gris{% endif %}">
+                    {{ e.etiqueta }}
+                </span>
+
+                <a href="{{ url_for('alumno.chat_maestra', ref_tipo='tarea', ref_id=t.id, ref_titulo='Tarea — ' ~ t.titulo) }}"
+                   class="btn btn-chico btn-borde">
+                    <i class="ti ti-message-circle"></i> Preguntar
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% else %}
+<div class="vacio">
+    <div class="vacio-icono"><i class="ti ti-notebook-off"></i></div>
+    <div class="vacio-titulo">Todavía no hay tareas</div>
+    <div class="vacio-texto">Cuando la maestra publique una, aparecerá aquí con su fecha de entrega.</div>
+</div>
+{% endif %}
+
+{% endblock %}

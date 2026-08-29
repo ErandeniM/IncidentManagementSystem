@@ -28,6 +28,7 @@ from repositorios import mensajes as repo_mensajes
 from repositorios import academico as repo_academico
 from repositorios import tareas as repo_tareas
 from repositorios import busqueda as repo_busqueda
+from zoneinfo import ZoneInfo
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -69,7 +70,7 @@ def admin_logout():
 
 def _trimestre_actual():
     """Trimestre según el mes, para el ciclo escolar mexicano."""
-    mes = datetime.now().month
+    mes = datetime.now(ZoneInfo('America/Hermosillo')).month
     if mes in (9, 10, 11):
         return 1
     if mes in (12, 1, 2, 3):

@@ -1,216 +1,192 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle de incidencia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
-        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
-        .container{max-width:640px;margin:0 auto;min-height:100vh;background:#fefcf5;}
-        .top-header{background:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:3px solid #f0eee5;position:sticky;top:0;z-index:10;}
-        .back-btn{width:40px;height:40px;background:#f2f2f2;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
-        .header-info{flex:1;}
-        .header-title{font-size:15px;font-weight:900;color:#3c3c3c;}
-        .header-sub{font-size:11px;font-weight:700;color:#777;margin-top:2px;}
-        .body{padding:20px 16px 40px;}
-        .hero{border-radius:20px;padding:24px 20px;text-align:center;color:#fff;margin-bottom:16px;position:relative;overflow:hidden;}
-        .hero-caida{background:linear-gradient(135deg,#ff9600,#ff6b35);box-shadow:0 4px 0 #cc5028;}
-        .hero-llanto{background:linear-gradient(135deg,#ffc107,#e0a800);box-shadow:0 4px 0 #b08800;color:#3c3c3c;}
-        .hero-logro{background:linear-gradient(135deg,#89e219,#58cc02);box-shadow:0 4px 0 #43a800;}
-        .hero-comentario{background:linear-gradient(135deg,#7dd3fc,#1cb0f6);box-shadow:0 4px 0 #0f8fd6;}
-        .hero-otro{background:linear-gradient(135deg,#a3a3a3,#777);box-shadow:0 4px 0 #555;}
-        .hero-icon{width:80px;height:80px;background:rgba(255,255,255,.25);border-radius:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
-        .hero-title{font-size:22px;font-weight:900;}
-        .hero-number{font-size:12px;font-weight:800;opacity:.9;margin-top:4px;}
-        .card{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 3px 0 #e5e5e5;}
-        .card-label{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
-        .card-label i{color:#ff9600;font-size:14px;}
-        .card-text{font-size:14px;font-weight:700;color:#3c3c3c;line-height:1.5;}
-        .timeline{display:flex;gap:8px;margin-bottom:14px;}
-        .step{flex:1;background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:12px 8px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
-        .step.done{background:#e8f9d5;border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
-        .step.current{background:#fff4e5;border-color:#ffc107;box-shadow:0 3px 0 #e0a800;}
-        .step-icon{width:36px;height:36px;border-radius:50%;background:#f2f2f2;color:#afafaf;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;}
-        .step.done .step-icon{background:#58cc02;color:#fff;}
-        .step.current .step-icon{background:#ffc107;color:#fff;animation:pulse 2s infinite;}
-        @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
-        .step-label{font-size:11px;font-weight:900;color:#777;}
-        .step.done .step-label,.step.current .step-label{color:#3c3c3c;}
-        .step-time{font-size:9px;font-weight:800;color:#afafaf;margin-top:2px;}
-        .firma-card{background:#fff;border:2px solid #ffc107;border-radius:20px;overflow:hidden;box-shadow:0 3px 0 #e0a800;margin-bottom:14px;}
-        .firma-card.done{border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
-        .firma-head{padding:14px 18px;background:#fff8e5;border-bottom:2px solid #ffe89c;}
-        .firma-card.done .firma-head{background:#e8f9d5;border-bottom-color:#89e219;}
-        .firma-title{font-size:14px;font-weight:900;color:#8a5a00;}
-        .firma-card.done .firma-title{color:#58a002;}
-        .firma-sub{font-size:11px;font-weight:700;color:#e07800;margin-top:2px;}
-        .firma-card.done .firma-sub{color:#58cc02;}
-        .firma-textarea{width:100%;padding:14px 18px;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;background:#fefcf5;border:none;resize:vertical;min-height:100px;outline:none;line-height:1.5;}
-        .firma-btn{width:calc(100% - 24px);margin:0 12px 12px;padding:14px;background:#58cc02;color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #43a800;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
-        .respuesta-block{padding:14px 18px;background:#f4fce4;}
-        .respuesta-label{font-size:11px;font-weight:900;color:#58a002;text-transform:uppercase;margin-bottom:6px;}
-        .respuesta-text{font-size:14px;font-weight:700;color:#3c3c3c;line-height:1.5;font-style:italic;}
-        .respuesta-time{font-size:11px;font-weight:700;color:#58a002;margin-top:8px;display:flex;align-items:center;gap:4px;}
-        .flash{margin-bottom:16px;padding:12px 16px;border-radius:14px;font-size:13px;font-weight:800;background:#ffe0d0;border:2px solid #ff9600;color:#cc5028;box-shadow:0 3px 0 #ff6b35;display:flex;align-items:center;gap:8px;}
-        .declaracion{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;background:#fff8e5;border-bottom:2px solid #ffe89c;cursor:pointer;}
-        .declaracion.marcada{background:#e8f9d5;border-bottom-color:#89e219;}
-        .declaracion input{display:none;}
-        .caja{width:26px;height:26px;border:3px solid #e0a800;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:transparent;font-size:16px;transition:all .15s;}
-        .declaracion.marcada .caja{background:#58cc02;border-color:#43a800;color:#fff;}
-        .declaracion-texto{font-size:13px;font-weight:800;color:#8a5a00;line-height:1.4;}
-        .declaracion.marcada .declaracion-texto{color:#2d4a02;}
-        .contador{padding:0 18px 10px;font-size:11px;font-weight:800;color:#afafaf;}
-        .contador.ok{color:#58cc02;}
-        .firma-btn:disabled{background:#e5e5e5;color:#afafaf;box-shadow:0 4px 0 #d5d5d5;cursor:not-allowed;}
-   
-   </style>
-</head>
-<body>
+{% extends "base_padre.html" %}
+{% set activo = 'avisos' %}
 
-<div class="container">
-    <div class="top-header">
-        <a href="{{ url_for('alumno.panel_alumno') }}" class="back-btn">
-            <i class="ti ti-arrow-left" style="font-size:20px;"></i>
-        </a>
-        <div class="header-info">
-            <div class="header-title">Detalle de incidencia</div>
-            <div class="header-sub">{{ inc.fecha[:16] if inc.fecha else '' }}</div>
-        </div>
-    </div>
+{% block titulo %}Detalle{% endblock %}
 
-    <div class="body">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}{% for msg in messages %}
-                <div class="flash"><i class="ti ti-alert-circle"></i> {{ msg }}</div>
-            {% endfor %}{% endif %}
-        {% endwith %}
-
-        {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'Incidencia', 'icono': 'ti-alert-triangle', 'color': '#777777'}) %}
-        <div class="hero" style="background:{{ t.color }};box-shadow:0 4px 0 rgba(0,0,0,.25);">
-            <div class="hero-icon">
-                <i class="ti {{ t.icono }}" style="font-size:40px;"></i>
-            </div>
-            <div class="hero-title">{{ t.etiqueta }}</div>
-            <div class="hero-number">Registrada por la maestra</div>
-        </div>
-        {% if inc.accion_docente %}
-        <div class="card" style="border-color:#89e219;box-shadow:0 3px 0 #58cc02;">
-            <div class="card-label" style="color:#58a002;">
-                <i class="ti ti-first-aid-kit" style="color:#58cc02;"></i> Atención brindada
-            </div>
-            <div class="card-text">{{ inc.accion_docente }}</div>
-        </div>
-        {% endif %}
-
-        <div class="card">
-            <div class="card-label"><i class="ti ti-file-text"></i> Descripción</div>
-            <div class="card-text">{{ inc.descripcion }}</div>
-        </div>
-
-        <div class="timeline">
-            <div class="step done">
-                <div class="step-icon"><i class="ti ti-alert-triangle" style="font-size:18px;"></i></div>
-                <div class="step-label">Registrada</div>
-                <div class="step-time">{{ inc.fecha[11:16] if inc.fecha else '' }}</div>
-            </div>
-            <div class="step done">
-                <div class="step-icon"><i class="ti ti-eye" style="font-size:18px;"></i></div>
-                <div class="step-label">Vista</div>
-                <div class="step-time">{% if inc.fecha_visto %}{{ inc.fecha_visto[11:16] }}{% else %}—{% endif %}</div>
-            </div>
-            <div class="step {% if inc.enterado %}done{% else %}current{% endif %}">
-                <div class="step-icon"><i class="ti ti-pencil" style="font-size:18px;"></i></div>
-                <div class="step-label">Firma</div>
-                <div class="step-time">{% if inc.fecha_enterado %}{{ inc.fecha_enterado[11:16] }}{% else %}Pendiente{% endif %}</div>
-            </div>
-        </div>
-
-        {% if inc.enterado %}
-        <div class="firma-card done">
-            <div class="firma-head">
-                <div class="firma-title">✓ Firma registrada</div>
-                <div class="firma-sub">Ya diste respuesta a esta incidencia</div>
-            </div>
-            <div class="respuesta-block">
-                <div class="respuesta-label">
-                    <i class="ti ti-quote" style="font-size:12px;"></i> Tu respuesta
-                </div>
-                <div class="respuesta-text">"{{ inc.comentario_padre }}"</div>
-               <div class="respuesta-time">
-                    <i class="ti ti-check" style="font-size:12px;"></i>
-                    Firmado por {{ inc.firmado_por or 'tutor' }} el {{ inc.fecha_enterado[:16] if inc.fecha_enterado else '' }}
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <div class="firma-card">
-            <div class="firma-head">
-                <div class="firma-title">
-                    <i class="ti ti-pencil" style="font-size:14px;vertical-align:-2px;"></i>
-                    Firma de enterado
-                </div>
-                <div class="firma-sub">Marca la casilla y escribe tu respuesta</div>
-            </div>
-            <form method="POST" action="{{ url_for('alumno.comentar', id_incidencia=inc.id) }}" id="formFirma">
-
-                <label class="declaracion" id="cajaDeclaracion">
-                    <input type="checkbox" name="acepto_declaracion" id="chkDeclaracion" required>
-                    <span class="caja"><i class="ti ti-check"></i></span>
-                    <span class="declaracion-texto">{{ declaracion }}</span>
-                </label>
-
-                <textarea name="comentario" class="firma-textarea" id="txtRespuesta"
-                          required minlength="{{ minimo }}"
-                          placeholder="Escribe tu respuesta. Por ejemplo: Gracias por avisar, en casa hablaré con ella sobre lo que pasó..."></textarea>
-
-                <div class="contador" id="contador">
-                    Mínimo {{ minimo }} caracteres
-                </div>
-
-                <button type="submit" class="firma-btn" id="btnFirmar" disabled>
-                    <i class="ti ti-writing-sign" style="font-size:18px;"></i> Enviar firma y respuesta
-                </button>
-            </form>
-        </div>
-        {% endif %}
+{% block encabezado %}
+<div class="encabezado">
+    <a href="{{ url_for('alumno.avisos') }}" class="btn-atras">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
+    <div>
+        <div class="titulo">Aviso sobre {{ nombre }}</div>
+        <div class="subtitulo">Léelo completo y registra tu firma</div>
     </div>
 </div>
+{% endblock %}
+
+{% block contenido %}
+
+{% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'Aviso', 'icono':'ti-alert-triangle', 'color':'#777'}) %}
+{% set n = niveles_map.get(inc.nivel, {'etiqueta':'Informativo'}) %}
+
+<!-- ── Encabezado del tipo ── -->
+<div class="hero" style="background:{{ t.color }};border-color:{{ t.color }};
+     box-shadow:0 var(--caida) 0 rgba(0,0,0,.22);">
+    <div class="hero-icono"><i class="ti {{ t.icono }}"></i></div>
+    <div class="hero-titulo">{{ t.etiqueta }}</div>
+    <div class="hero-sub">{{ inc.fecha[:16] if inc.fecha else '' }} · {{ n.etiqueta }}</div>
+</div>
+
+<!-- ── Qué pasó ── -->
+<div class="bloque">
+    <div class="bloque-etiqueta">Qué ocurrió</div>
+    <div class="bloque-contenido">{{ inc.descripcion }}</div>
+</div>
+
+<!-- ── Qué hizo la maestra ── -->
+{% if inc.accion_docente %}
+<div class="bloque bloque-atencion">
+    <div class="bloque-etiqueta">
+        <i class="ti ti-first-aid-kit" style="font-size:13px;vertical-align:-2px;"></i>
+        Atención que se le dio
+    </div>
+    <div class="bloque-contenido">{{ inc.accion_docente }}</div>
+</div>
+{% endif %}
+
+
+<!-- ── Firma ── -->
+{% if not inc.enterado %}
+
+<div class="firma">
+    <div class="firma-cabecera">
+        <div class="firma-cabecera-titulo">
+            <i class="ti ti-writing-sign" style="font-size:20px;"></i>
+            Firma de enterado
+        </div>
+        <div class="firma-cabecera-sub">Marca la casilla y escribe tu respuesta</div>
+    </div>
+
+    <div class="firma-cuerpo">
+        <form method="POST" action="{{ url_for('alumno.comentar', id_incidencia=inc.id) }}">
+
+            <label class="declaracion" id="cajaDeclaracion">
+                <input type="checkbox" name="acepto_declaracion" id="casilla" required>
+                <span class="casilla"><i class="ti ti-check"></i></span>
+                <span class="declaracion-texto">{{ declaracion }}</span>
+            </label>
+
+            <label class="campo-etiqueta">Tu respuesta</label>
+            <textarea name="comentario" class="campo" id="respuesta"
+                      required minlength="{{ minimo }}"
+                      placeholder="Por ejemplo: Gracias por avisarme, en casa hablaré con ella."></textarea>
+
+            <div class="contador-letras" id="contador">Mínimo {{ minimo }} caracteres</div>
+
+            <button type="submit" class="btn btn-ancho btn-verde" id="botonFirmar" disabled>
+                <i class="ti ti-writing-sign" style="font-size:18px;"></i>
+                Enviar firma y respuesta
+            </button>
+        </form>
+    </div>
+</div>
+
+{% else %}
+
+<div class="bloque bloque-firmado">
+    <div class="bloque-etiqueta">
+        <i class="ti ti-circle-check-filled" style="font-size:14px;vertical-align:-2px;"></i>
+        Ya firmaste este aviso
+    </div>
+    <div class="bloque-contenido">"{{ inc.comentario_padre }}"</div>
+    <div style="font-size:12px;font-weight:700;color:var(--verde-oscuro);margin-top:9px;">
+        Firmado por {{ inc.firmado_por or 'el tutor' }} el {{ inc.fecha_enterado[:16] if inc.fecha_enterado else '' }}
+    </div>
+</div>
+
+{% endif %}
+
+
+<!-- ── Seguimiento ── -->
+<div class="panel panel-azul">
+    <div class="panel-cabecera">
+        <i class="ti ti-list-check" style="font-size:19px;"></i>
+        <span class="panel-titulo">Seguimiento</span>
+    </div>
+
+    <div class="panel-cuerpo">
+        <div class="pasos">
+            <div class="paso hecho">
+                <div class="paso-marca"><i class="ti ti-check" style="font-size:17px;"></i></div>
+                <div>
+                    <div class="paso-titulo">La maestra registró el aviso</div>
+                    <div class="paso-fecha">{{ inc.fecha[:16] if inc.fecha else '' }}</div>
+                </div>
+            </div>
+
+            <div class="paso {% if inc.visto %}hecho{% endif %}">
+                <div class="paso-marca">
+                    <i class="ti {% if inc.visto %}ti-check{% else %}ti-eye{% endif %}" style="font-size:17px;"></i>
+                </div>
+                <div>
+                    <div class="paso-titulo">Lo abriste</div>
+                    <div class="paso-fecha">
+                        {% if inc.fecha_visto %}{{ inc.fecha_visto[:16] }}{% else %}Pendiente{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="paso {% if inc.enterado %}hecho{% endif %}">
+                <div class="paso-marca">
+                    <i class="ti {% if inc.enterado %}ti-check{% else %}ti-writing-sign{% endif %}" style="font-size:17px;"></i>
+                </div>
+                <div>
+                    <div class="paso-titulo">Registraste tu firma</div>
+                    <div class="paso-fecha">
+                        {% if inc.fecha_enterado %}
+                            {{ inc.fecha_enterado[:16] }} · {{ inc.firmado_por or 'tutor' }}
+                        {% else %}Pendiente{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<a href="{{ url_for('alumno.chat_maestra', ref_tipo='incidencia', ref_id=inc.id, ref_titulo=t.etiqueta ~ ' — ' ~ inc.descripcion[:30]) }}"
+   class="btn btn-ancho btn-borde">
+    <i class="ti ti-message-circle" style="font-size:17px;"></i>
+    Preguntarle a la maestra sobre esto
+</a>
+
+{% endblock %}
+
+{% block js_extra %}
 <script>
-    var chk    = document.getElementById('chkDeclaracion');
-    var txt    = document.getElementById('txtRespuesta');
-    var btn    = document.getElementById('btnFirmar');
-    var caja   = document.getElementById('cajaDeclaracion');
-    var cont   = document.getElementById('contador');
-    var minimo = {{ minimo|default(15) }};
+    var casilla   = document.getElementById('casilla');
+    var respuesta = document.getElementById('respuesta');
+    var boton     = document.getElementById('botonFirmar');
+    var caja      = document.getElementById('cajaDeclaracion');
+    var contador  = document.getElementById('contador');
+    var minimo    = {{ minimo | default(15) }};
 
     function revisar() {
-        if (!chk) return;
-        var largo = txt.value.trim().length;
-        var listo = chk.checked && largo >= minimo;
+        if (!casilla) return;
 
-        caja.classList.toggle('marcada', chk.checked);
-        btn.disabled = !listo;
+        var largo = respuesta.value.trim().length;
+        var listo = casilla.checked && largo >= minimo;
+
+        caja.classList.toggle('marcada', casilla.checked);
+        boton.disabled = !listo;
 
         if (largo === 0) {
-            cont.textContent = 'Mínimo ' + minimo + ' caracteres';
-            cont.classList.remove('ok');
+            contador.textContent = 'Mínimo ' + minimo + ' caracteres';
+            contador.classList.remove('listo');
         } else if (largo < minimo) {
-            cont.textContent = 'Faltan ' + (minimo - largo) + ' caracteres';
-            cont.classList.remove('ok');
+            contador.textContent = 'Te faltan ' + (minimo - largo) + ' caracteres';
+            contador.classList.remove('listo');
         } else {
-            cont.textContent = 'Respuesta lista ✓';
-            cont.classList.add('ok');
+            contador.textContent = 'Respuesta lista ✓';
+            contador.classList.add('listo');
         }
     }
 
-    if (chk) {
-        chk.addEventListener('change', revisar);
-        txt.addEventListener('input', revisar);
+    if (casilla) {
+        casilla.addEventListener('change', revisar);
+        respuesta.addEventListener('input', revisar);
         revisar();
     }
 </script>
-</body>
-</html>
+{% endblock %}
