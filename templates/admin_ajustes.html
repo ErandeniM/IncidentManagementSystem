@@ -1,0 +1,152 @@
+{% extends "base_admin.html" %}
+{% set activo = 'ajustes' %}
+
+{% block titulo %}Ajustes{% endblock %}
+
+{% block encabezado %}
+<div class="barra">
+    <div>
+        <div class="barra-titulo">Ajustes</div>
+        <div class="barra-sub">Datos del grupo, accesos y respaldos</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="dos-columnas">
+
+    <!-- ══════════ DATOS DEL GRUPO ══════════ -->
+    <div>
+        <div class="panel panel-coral">
+            <div class="panel-cabecera">
+                <i class="ti ti-school" style="font-size:19px;"></i>
+                <span class="panel-titulo">Datos del grupo</span>
+            </div>
+
+            <div class="panel-cuerpo">
+                <div class="fila" style="margin-bottom:8px;">
+                    <div class="indicador-icono" style="background:var(--coral);
+                         box-shadow:0 2px 0 var(--coral-oscuro);width:36px;height:36px;">
+                        <i class="ti ti-users" style="font-size:18px;"></i>
+                    </div>
+                    <div class="fila-cuerpo">
+                        <div class="fila-titulo">{{ GRUPO }}</div>
+                        <div class="fila-sub">{{ alumnos | length }} alumno(s) registrados</div>
+                    </div>
+                </div>
+
+                <div class="fila" style="margin-bottom:8px;">
+                    <div class="indicador-icono" style="background:var(--azul);
+                         box-shadow:0 2px 0 var(--azul-oscuro);width:36px;height:36px;">
+                        <i class="ti ti-user" style="font-size:18px;"></i>
+                    </div>
+                    <div class="fila-cuerpo">
+                        <div class="fila-titulo">Mtra. {{ DOCENTE }}</div>
+                        <div class="fila-sub">Docente responsable</div>
+                    </div>
+                </div>
+
+                <div class="fila">
+                    <div class="indicador-icono" style="background:var(--morado);
+                         box-shadow:0 2px 0 var(--morado-oscuro);width:36px;height:36px;">
+                        <i class="ti ti-building" style="font-size:18px;"></i>
+                    </div>
+                    <div class="fila-cuerpo">
+                        <div class="fila-titulo">{{ ESCUELA }}</div>
+                        <div class="fila-sub">Escuela</div>
+                    </div>
+                </div>
+
+                <div class="campo-ayuda" style="margin-top:12px;">
+                    Estos datos se cambian en el archivo de configuración del sistema.
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ══════════ RESPALDOS ══════════ -->
+        <div class="panel panel-verde">
+            <div class="panel-cabecera">
+                <i class="ti ti-database" style="font-size:19px;"></i>
+                <span class="panel-titulo">Respaldos</span>
+            </div>
+
+            <div class="panel-cuerpo">
+                <div style="font-size:13px;font-weight:700;color:var(--texto-suave);line-height:1.55;margin-bottom:12px;">
+                    Toda la información vive en un solo archivo. Si se pierde,
+                    se pierden los registros de todo el grupo.
+                </div>
+
+                <div style="background:var(--amarillo-suave);border:2px solid var(--amarillo);
+                            border-radius:var(--radio);padding:12px 14px;font-size:12px;
+                            font-weight:700;color:var(--amarillo-texto);display:flex;gap:10px;">
+                    <i class="ti ti-alert-triangle" style="font-size:19px;flex-shrink:0;"></i>
+                    <div>
+                        Copia la carpeta <strong>respaldos</strong> a una USB o a la nube
+                        cada semana. Los respaldos viven en el mismo equipo, así que
+                        no sirven si el disco falla.
+                    </div>
+                </div>
+
+                <div class="campo-ayuda" style="margin-top:12px;">
+                    Para generar un respaldo manual, ejecuta <strong>backup.py</strong>
+                    desde la carpeta del sistema.
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════ ACCESOS ══════════ -->
+    <div class="panel panel-morado">
+        <div class="panel-cabecera">
+            <i class="ti ti-login" style="font-size:19px;"></i>
+            <span class="panel-titulo">Accesos al sistema</span>
+            <span class="panel-marca">{{ accesos | length }}</span>
+        </div>
+
+        <div class="panel-cuerpo">
+            <div style="font-size:12px;font-weight:700;color:var(--texto-suave);
+                        line-height:1.5;margin-bottom:13px;">
+                Cada ingreso de un tutor queda registrado con fecha, hora y origen.
+                Sirve como constancia de que tuvo acceso a la información.
+            </div>
+
+            {% if accesos %}
+                {% for a in accesos[:25] %}
+                <div class="fila" style="margin-bottom:7px;padding:10px 12px;">
+                    <div class="avatar" style="width:36px;height:36px;font-size:12px;
+                         background:{{ a.id_alumno | color_avatar }};">
+                        {{ a.nombre[:2] | upper }}
+                    </div>
+                    <div class="fila-cuerpo">
+                        <div class="fila-titulo" style="font-size:13px;">{{ a.nombre }}</div>
+                        <div class="fila-sub fila-sub-mono">{{ a.curp }}</div>
+                    </div>
+                    <div style="text-align:right;flex-shrink:0;">
+                        <div class="fila-sub" style="font-weight:800;color:var(--texto);">
+                            {{ a.fecha[:16] if a.fecha else '' }}
+                        </div>
+                        <div class="fila-sub fila-sub-mono">{{ a.ip or '—' }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if accesos | length > 25 %}
+                <div class="campo-ayuda" style="text-align:center;margin-top:10px;">
+                    Se muestran los 25 más recientes de {{ accesos | length }}
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="vacio-mini">
+                    <i class="ti ti-login" style="color:var(--morado);"></i>
+                    <div class="vacio-mini-titulo">Ningún tutor ha entrado todavía</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

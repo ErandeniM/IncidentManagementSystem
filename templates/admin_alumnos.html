@@ -3,143 +3,117 @@
 
 {% block titulo %}Alumnos{% endblock %}
 
-{% block css_extra %}
-<style>
-    .search-box{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:16px;}
-    .search-box input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;background:transparent;}
-    .search-box input::placeholder{color:#c4c4c4;}
-    .search-box i{color:#afafaf;font-size:20px;}
-
-    .alumno-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;margin-bottom:10px;flex-wrap:wrap;}
-    .alumno-card:hover{background:#fefcf5;}
-    .alumno-avatar{width:52px;height:52px;border-radius:16px;font-size:16px;}
-    .alumno-info{flex:1;min-width:180px;}
-    .alumno-nombre{font-size:15px;font-weight:900;color:#3c3c3c;}
-    .alumno-datos{display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;}
-    .dato{font-size:11px;font-weight:800;color:#777;display:flex;align-items:center;gap:4px;}
-    .dato.curp{font-family:monospace;}
-    .dato.tutor{color:#58a002;}
-    .dato.sin-tutor{color:#c4c4c4;font-style:italic;}
-
-    .acciones{display:flex;gap:6px;flex-wrap:wrap;}
-    .btn-accion{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;border:2px solid;}
-    .btn-accion i{font-size:18px;}
-    .a-expediente{background:#fff;color:#0f8fd6;border-color:#7dd3fc;box-shadow:0 3px 0 #1cb0f6;}
-    .a-expediente:hover{background:#dcf4ff;}
-    .a-chat{background:#fff;color:#43a800;border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
-    .a-chat:hover{background:#e8f9d5;}
-    .a-pdf{background:#fff;color:#7c3aed;border-color:#ce82ff;box-shadow:0 3px 0 #a855f7;}
-    .a-pdf:hover{background:#f3e8ff;}
-
-    .sin-resultados{text-align:center;padding:30px;color:#afafaf;font-size:13px;font-weight:800;}
-
-    .btn-add{background:#58cc02;color:#fff;border:none;border-radius:14px;padding:12px 20px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #43a800;text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:8px;font-family:inherit;}
-    .btn-add:hover{background:#43a800;}
-
-    @media (max-width:600px){
-        .alumno-card{gap:10px;}
-        .acciones{width:100%;justify-content:flex-end;}
-    }
-</style>
-{% endblock %}
-
 {% block encabezado %}
-<div class="topbar">
+<div class="barra">
     <div>
-        <div class="page-title">Alumnos</div>
-        <div class="page-sub">{{ alumnos | length }} registrado(s) en {{ GRUPO }}</div>
+        <div class="barra-titulo">Alumnos</div>
+        <div class="barra-sub">{{ alumnos | length }} registrado(s) en {{ GRUPO }}</div>
     </div>
-    <a href="{{ url_for('admin.importar_alumnos') }}" class="btn-chico btn-azul" style="margin-left:auto;">
-        <i class="ti ti-upload" style="font-size:15px;"></i> Importar CSV
+
+    <div class="buscador">
+        <i class="ti ti-search"></i>
+        <input type="text" id="buscador" placeholder="Buscar por nombre o CURP..." oninput="filtrar()">
+    </div>
+
+    <a href="{{ url_for('admin.importar_alumnos') }}" class="btn btn-chico btn-borde">
+        <i class="ti ti-upload"></i> Importar CSV
     </a>
-    <button class="btn-add" onclick="abrirModal()">
-        <i class="ti ti-plus" style="font-size:16px;"></i> Nuevo alumno
+
+    <button class="btn btn-chico btn-verde" onclick="abrirNuevo()">
+        <i class="ti ti-plus"></i> Nuevo alumno
     </button>
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<div class="search-box">
-    <i class="ti ti-search"></i>
-    <input type="text" id="buscador" placeholder="Buscar por nombre o CURP..." oninput="filtrar()">
-</div>
-
 {% if alumnos %}
     {% for a in alumnos %}
-    <div class="alumno-card"
+    <div class="fila"
          data-nombre="{{ a.nombre | lower }}"
          data-curp="{{ a.curp | lower }}">
-        <div class="avatar alumno-avatar" style="background:{{ a.id | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
 
-        <div class="alumno-info">
-            <div class="alumno-nombre">{{ a.nombre }}</div>
-            <div class="alumno-datos">
-                <span class="dato curp"><i class="ti ti-id" style="font-size:12px;"></i> {{ a.curp }}</span>
-            </div>
+        <div class="avatar" style="width:46px;height:46px;font-size:14px;
+             background:{{ a.id | color_avatar }};">
+            {{ a.nombre[:2] | upper }}
         </div>
 
-        <div class="acciones">
-           <a href="{{ url_for('admin.admin_expediente', id_alumno=a.id, desde='alumnos') }}"
-               class="btn-accion a-expediente" title="Ver expediente">
-                <i class="ti ti-folder"></i>
+        <div class="fila-cuerpo">
+            <div class="fila-titulo">{{ a.nombre }}</div>
+            <div class="fila-sub fila-sub-mono">{{ a.curp }}</div>
+        </div>
+
+        <div class="acciones-fila">
+            <a href="{{ url_for('admin.admin_expediente', id_alumno=a.id) }}"
+               class="btn btn-chico btn-azul">
+                <i class="ti ti-folder"></i> Expediente
             </a>
-           <a href="{{ url_for('admin.admin_chat', id_alumno=a.id, desde='alumnos') }}"
-               class="btn-accion a-chat" title="Enviar mensaje al tutor">
-                <i class="ti ti-message-circle"></i>
+            <a href="{{ url_for('admin.admin_chat', id_alumno=a.id) }}"
+               class="btn btn-chico btn-borde">
+                <i class="ti ti-message-circle"></i> Escribir
             </a>
             <a href="{{ url_for('admin.expediente_pdf', id_alumno=a.id) }}"
-               class="btn-accion a-pdf" title="Descargar expediente en PDF">
-                <i class="ti ti-file-download"></i>
+               class="btn btn-chico btn-borde">
+                <i class="ti ti-file-download"></i> PDF
             </a>
         </div>
     </div>
     {% endfor %}
 
-    <div class="sin-resultados" id="sinResultados" style="display:none;">
-        Ningún alumno coincide con la búsqueda
+    <div class="vacio" id="sinResultados" style="display:none;">
+        <div class="vacio-icono"><i class="ti ti-search-off"></i></div>
+        <div class="vacio-titulo">Ningún alumno coincide</div>
+        <div class="vacio-texto">Prueba con otro nombre o CURP.</div>
     </div>
 {% else %}
-<div class="empty">
-    <div class="empty-icon"><i class="ti ti-users-off"></i></div>
-    <div class="empty-title">No hay alumnos registrados</div>
-    <div class="empty-text">Agrégalos uno por uno o impórtalos desde un archivo CSV.</div>
+<div class="vacio">
+    <div class="vacio-icono"><i class="ti ti-users-off"></i></div>
+    <div class="vacio-titulo">No hay alumnos registrados</div>
+    <div class="vacio-texto">Agrégalos uno por uno o impórtalos desde un archivo CSV.</div>
 </div>
 {% endif %}
 
 {% endblock %}
 
 {% block modales %}
-<div class="modal-bg" id="modalBg">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-icon"><i class="ti ti-user-plus" style="font-size:22px;"></i></div>
-            <div class="modal-title">Registrar nuevo alumno</div>
-            <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x" style="font-size:18px;"></i></button>
+<div class="modal-fondo" id="modalNuevo">
+    <div class="modal" style="border-color:var(--verde);">
+        <div class="modal-cabecera" style="background:var(--verde);">
+            <div class="modal-icono"><i class="ti ti-user-plus" style="font-size:22px;"></i></div>
+            <div class="modal-titulo">Registrar nuevo alumno</div>
+            <button class="modal-cerrar" onclick="cerrarNuevo()">
+                <i class="ti ti-x" style="font-size:18px;"></i>
+            </button>
         </div>
-        <div class="modal-body">
+
+        <div class="modal-cuerpo">
             <form action="{{ url_for('admin.nuevo_alumno') }}" method="POST">
-                <label class="form-label">CURP (10 caracteres)</label>
-                <input type="text" name="curp" class="form-input" pattern="[A-Za-z0-9]{10}"
-                       maxlength="10" required placeholder="MABC010101" style="text-transform:uppercase;">
-                <div class="form-hint">Primeros 10 caracteres del CURP del alumno</div>
+                <label class="campo-etiqueta">CURP (10 caracteres)</label>
+                <input type="text" name="curp" class="campo" pattern="[A-Za-z0-9]{10}"
+                       maxlength="10" required placeholder="MABC010101"
+                       style="text-transform:uppercase;">
+                <div class="campo-ayuda">Primeros 10 caracteres del CURP del alumno</div>
 
-                <label class="form-label">Nombre corto</label>
-                <input type="text" name="nombre" class="form-input" required placeholder="Ej: Juan P.">
-                <div class="form-hint">Solo nombre e inicial del apellido</div>
-                <label class="form-label">Contraseña de acceso</label>
-                <input type="text" name="password" class="form-input" value="alumno2024" required>
+                <label class="campo-etiqueta">Nombre corto del alumno</label>
+                <input type="text" name="nombre" class="campo" required placeholder="Ej: Juan P.">
+                <div class="campo-ayuda">Solo nombre e inicial del apellido</div>
 
-                <label class="form-label">Correo del padre / madre</label>
-                <input type="email" name="correo_padre" class="form-input" placeholder="papa@gmail.com" required>
-                <div class="form-hint">Para notificaciones automáticas</div>
+                <label class="campo-etiqueta">Nombre del tutor</label>
+                <input type="text" name="nombre_tutor" class="campo"
+                       placeholder="Ej: Ana López Ramírez">
+                <div class="campo-ayuda">Quedará registrado en las firmas de enterado</div>
 
-                <label class="form-label">Nombre del tutor</label>
-                <input type="text" name="nombre_tutor" class="form-input" placeholder="Ej: Ana López">
-                <div class="form-hint">Nombre completo del tutor</div>
+                <label class="campo-etiqueta">Correo del padre o madre</label>
+                <input type="email" name="correo_padre" class="campo"
+                       placeholder="papa@gmail.com" required>
+                <div class="campo-ayuda">Para las notificaciones automáticas</div>
 
-                <button type="submit" class="btn-save">
-                    <i class="ti ti-check" style="font-size:18px;"></i> Registrar alumno
+                <label class="campo-etiqueta">Contraseña de acceso</label>
+                <input type="text" name="password" class="campo" value="alumno2024" required>
+                <div class="campo-ayuda">Anótala para dictársela al tutor</div>
+
+                <button type="submit" class="btn btn-ancho btn-verde">
+                    <i class="ti ti-check" style="font-size:17px;"></i> Registrar alumno
                 </button>
             </form>
         </div>
@@ -149,23 +123,24 @@
 
 {% block js_extra %}
 <script>
-    function abrirModal() { document.getElementById('modalBg').classList.add('active'); }
-    function cerrarModal() { document.getElementById('modalBg').classList.remove('active'); }
-    document.getElementById('modalBg').addEventListener('click', function(e) {
-        if (e.target === this) cerrarModal();
+    function abrirNuevo()  { document.getElementById('modalNuevo').classList.add('abierto'); }
+    function cerrarNuevo() { document.getElementById('modalNuevo').classList.remove('abierto'); }
+
+    document.getElementById('modalNuevo').addEventListener('click', function (e) {
+        if (e.target === this) cerrarNuevo();
     });
 
     function filtrar() {
         var texto = document.getElementById('buscador').value.toLowerCase();
-        var visibles = 0;
+        var vistos = 0;
 
-        document.querySelectorAll('.alumno-card').forEach(function(c) {
-            var coincide = c.dataset.nombre.includes(texto) || c.dataset.curp.includes(texto);
-            c.style.display = coincide ? 'flex' : 'none';
-            if (coincide) visibles++;
+        document.querySelectorAll('.fila[data-nombre]').forEach(function (f) {
+            var coincide = f.dataset.nombre.includes(texto) || f.dataset.curp.includes(texto);
+            f.style.display = coincide ? 'flex' : 'none';
+            if (coincide) vistos++;
         });
 
-        document.getElementById('sinResultados').style.display = visibles ? 'none' : 'block';
+        document.getElementById('sinResultados').style.display = vistos ? 'none' : 'block';
     }
 </script>
 {% endblock %}

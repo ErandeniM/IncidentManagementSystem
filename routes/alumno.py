@@ -219,7 +219,8 @@ def comentar(id_incidencia):
         repo_incidencias.firmar(
             id_incidencia = id_incidencia,
             comentario    = comentario,
-            firmado_por   = tutor or f'Tutor de {session["nombre"]}'
+            firmado_por   = tutor or f'Tutor de {session["nombre"]}',
+            declaracion   = repo_incidencias.TEXTO_DECLARACION
         )
         flash('Firma y respuesta registradas ✓')
 

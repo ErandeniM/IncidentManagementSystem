@@ -58,6 +58,7 @@ button, input, textarea, select { font-family: inherit; color: inherit; }
     top: 0;
     height: 100vh;
     overflow-y: auto;
+        
 }
 
 .menu-marca {
@@ -73,13 +74,22 @@ button, input, textarea, select { font-family: inherit; color: inherit; }
     width: 38px;
     height: 38px;
     border-radius: var(--radio);
-    background: var(--coral);
-    box-shadow: 0 var(--caida-chica) 0 var(--coral-oscuro);
+    background: transparent;
+    box-shadow: none;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+.menu-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Convierte cualquier color del logo al naranja de la marca */
+    filter: brightness(0) saturate(100%) invert(45%) sepia(85%)
+            saturate(2200%) hue-rotate(340deg) brightness(101%) contrast(101%);
 }
 
 .menu-logo i { font-size: 20px; }

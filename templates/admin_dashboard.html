@@ -2,397 +2,374 @@
 {% set activo = 'inicio' %}
 
 {% block titulo %}Inicio{% endblock %}
-{% block clase_main %}main-ancho{% endblock %}
-
-{% block css_extra %}
-<style>
-    /* ══ STATS ══ */
-    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-    .stat-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:16px;box-shadow:0 3px 0 #e5e5e5;display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;}
-    .stat-card:hover{background:#fefcf5;}
-    .stat-card.warn{background:#fff4e5;border-color:#ffc107;box-shadow:0 3px 0 #e0a800;}
-    .stat-card.ok{background:#e8f9d5;border-color:#89e219;box-shadow:0 3px 0 #58cc02;}
-    .stat-card.info{background:#dcf4ff;border-color:#7dd3fc;box-shadow:0 3px 0 #1cb0f6;}
-    .stat-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
-    .stat-num{font-size:26px;font-weight:900;color:#3c3c3c;line-height:1;}
-    .stat-label{font-size:11px;font-weight:800;color:#777;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
-
-    /* ══ COLUMNAS ══ */
-    .columnas{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:16px;align-items:start;margin-bottom:16px;}
-    .col-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;}
-    .col-titulo{font-size:14px;font-weight:900;color:#3c3c3c;}
-    .col-link{font-size:11px;font-weight:900;color:#0f8fd6;text-decoration:none;padding:5px 10px;background:#dcf4ff;border-radius:20px;white-space:nowrap;}
-    .col-link:hover{background:#c5ebff;}
-
-    /* Lista de alumnos */
-    .mini-alumno{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;text-decoration:none;color:inherit;}
-    .mini-alumno:hover{background:#fefcf5;}
-    .mini-avatar{width:38px;height:38px;border-radius:12px;font-size:12px;}
-    .mini-info{flex:1;min-width:0;}
-    .mini-nombre{font-size:13px;font-weight:900;color:#3c3c3c;}
-    .mini-sub{font-size:10px;font-weight:800;color:#afafaf;font-family:monospace;margin-top:1px;}
-    .mini-flecha{color:#c4c4c4;font-size:16px;}
-
-    /* Calificaciones */
-    .trim-chip{display:inline-block;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;background:#dcf4ff;color:#0f8fd6;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;}
-    .prom-fila{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
-    .prom-num{font-size:36px;font-weight:900;color:#58cc02;line-height:1;}
-    .prom-label{font-size:11px;font-weight:800;color:#777;text-transform:uppercase;letter-spacing:.04em;}
-    .dona{width:88px;height:88px;flex-shrink:0;margin-left:auto;position:relative;}
-    .dona-texto{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-    .dona-num{font-size:17px;font-weight:900;color:#3c3c3c;line-height:1;}
-    .dona-label{font-size:8px;font-weight:800;color:#afafaf;text-transform:uppercase;margin-top:2px;}
-
-    .materia-fila{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
-    .materia-nombre{font-size:11px;font-weight:800;color:#3c3c3c;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .materia-barra{width:90px;height:8px;background:#f0eee5;border-radius:20px;overflow:hidden;flex-shrink:0;}
-    .materia-fill{height:100%;border-radius:20px;}
-    .materia-num{font-size:13px;font-weight:900;min-width:30px;text-align:right;}
-
-    .pie-captura{background:#fefcf5;border-radius:12px;padding:9px 12px;font-size:11px;font-weight:800;color:#777;margin-top:12px;display:flex;align-items:center;gap:6px;}
-
-    /* Mensajes */
-    .mini-msg{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;text-decoration:none;color:inherit;}
-    .mini-msg:hover{background:#fefcf5;}
-    .mini-msg.nuevo{background:#dcf4ff;}
-    .msg-texto{font-size:11px;font-weight:700;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}
-    .msg-texto.vacio{color:#c4c4c4;font-style:italic;}
-    .msg-hora{font-size:10px;font-weight:800;color:#afafaf;flex-shrink:0;}
-    .msg-badge{background:#ff4b4b;color:#fff;font-size:9px;font-weight:900;padding:2px 7px;border-radius:20px;flex-shrink:0;}
-
-    /* ══ FILA INFERIOR ══ */
-    .fila-baja{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;align-items:start;}
-
-    .avisos-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;}
-    .aviso-mini{min-width:190px;background:#dcf4ff;border:2px solid #7dd3fc;border-radius:14px;padding:12px;box-shadow:0 2px 0 #1cb0f6;text-decoration:none;color:inherit;flex-shrink:0;}
-    .aviso-mini:hover{background:#c5ebff;}
-    .aviso-mini-badge{background:#ffc107;color:#8a5a00;font-size:8px;font-weight:900;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;display:inline-block;margin-bottom:6px;}
-    .aviso-mini-titulo{font-size:13px;font-weight:900;color:#0a3a6b;margin-bottom:4px;}
-    .aviso-mini-texto{font-size:11px;font-weight:700;color:#3c5570;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-    .aviso-mini-fecha{font-size:10px;font-weight:800;color:#0f8fd6;margin-top:8px;}
-
-    /* Pendientes */
-    .pendiente{display:flex;align-items:center;gap:11px;padding:12px;border-radius:14px;text-decoration:none;color:inherit;margin-bottom:8px;border:2px solid;}
-    .pendiente:hover{filter:brightness(.97);}
-    .p-rojo{background:#ffe0d0;border-color:#ff9600;}
-    .p-amarillo{background:#fff8e5;border-color:#ffc107;}
-    .p-azul{background:#dcf4ff;border-color:#7dd3fc;}
-    .p-verde{background:#e8f9d5;border-color:#89e219;}
-    .pendiente > i:first-child{font-size:20px;flex-shrink:0;}
-    .p-info{flex:1;min-width:0;}
-    .p-titulo{font-size:12px;font-weight:900;}
-    .p-sub{font-size:11px;font-weight:700;opacity:.8;margin-top:1px;}
-    .p-flecha{font-size:16px;opacity:.5;}
-
-    .todo-al-dia{text-align:center;padding:26px 16px;}
-    .todo-al-dia i{font-size:40px;color:#58cc02;margin-bottom:8px;}
-    .todo-al-dia-titulo{font-size:14px;font-weight:900;color:#3c3c3c;}
-    .todo-al-dia-texto{font-size:12px;font-weight:700;color:#777;margin-top:3px;}
-
-    .btn-add{background:#58cc02;color:#fff;border:none;border-radius:14px;padding:12px 20px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #43a800;text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:8px;font-family:inherit;}
-    .btn-add:hover{background:#43a800;}
-    /* ══ BUSCADOR superior ══ */
-    .buscador-top{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:10px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 0 #e5e5e5;flex:1;max-width:340px;margin-left:auto;}
-    .buscador-top input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;}
-    .buscador-top input::placeholder{color:#c4c4c4;}
-    .buscador-top i{color:#afafaf;font-size:20px;flex-shrink:0;}
-    @media (max-width:1100px){ .buscador-top{display:none;} }
-
-    @media (max-width:1200px){
-        .columnas{grid-template-columns:1fr 1fr;}
-        .fila-baja{grid-template-columns:1fr;}
-    }
-    @media (max-width:900px){
-        .stats-grid{grid-template-columns:repeat(2,1fr);}
-        .columnas{grid-template-columns:1fr;}
-    }
-</style>
-{% endblock %}
 
 {% block encabezado %}
-<div class="topbar">
+<div class="barra">
     <div>
-        <div class="page-title">¡Bienvenid@, maestr@!</div>
-        <div class="page-sub">Aquí puedes gestionar tu grupo · {{ GRUPO }}</div>
+        <div class="barra-titulo">Hola, maestra</div>
+        <div class="barra-sub">{{ GRUPO }} · {{ alumnos | length }} alumno(s)</div>
     </div>
-    <form action="{{ url_for('admin.admin_buscar') }}" method="GET" class="buscador-top">
+
+    <form action="{{ url_for('admin.admin_buscar') }}" method="GET" class="buscador">
         <i class="ti ti-search"></i>
         <input type="text" name="q" placeholder="Buscar alumno, aviso, mensaje...">
     </form>
-    <a href="{{ url_for('admin.importar_alumnos') }}" class="btn-chico btn-azul">
-        <i class="ti ti-upload" style="font-size:15px;"></i> Importar CSV
-    </a>
-    <button class="btn-add" onclick="abrirModal()">
-        <i class="ti ti-plus" style="font-size:16px;"></i> Nuevo alumno
+
+    <button class="btn btn-chico btn-coral" onclick="abrirIncidencia()">
+        <i class="ti ti-plus"></i> Nueva incidencia
     </button>
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<!-- ══ STATS ══ -->
-<div class="stats-grid">
-    <a href="{{ url_for('admin.admin_alumnos') }}" class="stat-card info">
-        <div class="stat-icon ic-azul"><i class="ti ti-users" style="font-size:22px;"></i></div>
+<!-- ══════════ LO QUE FALTA ATENDER ══════════ -->
+
+<div class="seccion-titulo">Lo que falta atender</div>
+
+{% set hay_algo = incidencias_sin_firmar or mensajes_pendientes or avisos_pendientes or tareas_por_revisar or materias_incompletas %}
+
+{% if hay_algo %}
+<div class="acciones">
+
+    {% if incidencias_sin_firmar %}
+    <div class="accion accion-coral">
+        <i class="ti ti-alert-circle accion-icono" style="color:var(--coral);"></i>
+        <div class="accion-cuerpo">
+            <div class="accion-titulo">
+                {{ incidencias_sin_firmar }} incidencia(s) sin firma del tutor
+            </div>
+            <div class="accion-detalle">
+                {% if incidencia_mas_vieja %}
+                La más antigua se registró el {{ incidencia_mas_vieja }}
+                {% else %}
+                Los tutores todavía no las han firmado
+                {% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes"
+           class="btn btn-chico btn-coral">
+            <i class="ti ti-eye"></i> Ver cuáles
+        </a>
+    </div>
+    {% endif %}
+
+    {% if mensajes_pendientes %}
+    <div class="accion accion-azul">
+        <i class="ti ti-message-circle accion-icono" style="color:var(--azul);"></i>
+        <div class="accion-cuerpo">
+            <div class="accion-titulo">{{ mensajes_pendientes }} mensaje(s) de tutores sin leer</div>
+            <div class="accion-detalle">
+                {% if quien_escribio %}De {{ quien_escribio }}{% else %}Esperan tu respuesta{% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('admin.admin_comunicacion') }}?hoja=mensajes"
+           class="btn btn-chico btn-azul">
+            <i class="ti ti-message-circle"></i> Responder
+        </a>
+    </div>
+    {% endif %}
+
+    {% if avisos_pendientes %}
+    <div class="accion accion-amarilla">
+        <i class="ti ti-calendar-off accion-icono" style="color:var(--amarillo-oscuro);"></i>
+        <div class="accion-cuerpo">
+            <div class="accion-titulo">{{ avisos_pendientes }} aviso(s) de tutores sin acusar</div>
+            <div class="accion-detalle">El tutor no sabe si ya lo leíste</div>
+        </div>
+        <a href="{{ url_for('admin.admin_comunicacion') }}?hoja=padres"
+           class="btn btn-chico btn-amarillo">
+            <i class="ti ti-check"></i> Revisar
+        </a>
+    </div>
+    {% endif %}
+
+    {% if tareas_por_revisar %}
+    <div class="accion accion-verde">
+        <i class="ti ti-checklist accion-icono" style="color:var(--verde);"></i>
+        <div class="accion-cuerpo">
+            <div class="accion-titulo">{{ tareas_por_revisar }} entrega(s) sin revisar</div>
+            <div class="accion-detalle">
+                {% if tarea_pendiente %}Tarea: {{ tarea_pendiente }}{% else %}De tareas ya publicadas{% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('admin.admin_tareas') }}" class="btn btn-chico btn-verde">
+            <i class="ti ti-checklist"></i> Revisar
+        </a>
+    </div>
+    {% endif %}
+
+    {% if materias_incompletas %}
+    <div class="accion accion-verde">
+        <i class="ti ti-chart-bar accion-icono" style="color:var(--verde);"></i>
+        <div class="accion-cuerpo">
+            <div class="accion-titulo">Calificaciones por capturar</div>
+            <div class="accion-detalle">
+                {{ materias_incompletas }} materia(s) sin datos en el {{ trimestre }}º trimestre
+            </div>
+        </div>
+        <a href="{{ url_for('admin.admin_calificaciones') }}?trimestre={{ trimestre }}"
+           class="btn btn-chico btn-verde">
+            <i class="ti ti-pencil"></i> Capturar
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% else %}
+<div class="todo-al-dia" style="margin-bottom:20px;">
+    <i class="ti ti-circle-check"></i>
+    <div class="todo-al-dia-titulo">Todo al día</div>
+    <div class="todo-al-dia-texto">No tienes nada pendiente por ahora</div>
+</div>
+{% endif %}
+
+
+<!-- ══════════ INDICADORES ══════════ -->
+
+<div class="indicadores">
+    <a href="{{ url_for('admin.admin_alumnos') }}" class="indicador">
+        <div class="indicador-icono" style="background:var(--azul);box-shadow:0 2px 0 var(--azul-oscuro);">
+            <i class="ti ti-users"></i>
+        </div>
         <div>
-            <div class="stat-num">{{ alumnos | length }}</div>
-            <div class="stat-label">Alumnos</div>
+            <div class="indicador-numero">{{ alumnos | length }}</div>
+            <div class="indicador-etiqueta">Alumnos</div>
         </div>
     </a>
-    <a href="{{ url_for('admin.admin_mensajes') }}" class="stat-card">
-        <div class="stat-icon ic-naranja"><i class="ti ti-message" style="font-size:22px;"></i></div>
+
+    <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="indicador">
+        <div class="indicador-icono" style="background:var(--coral);box-shadow:0 2px 0 var(--coral-oscuro);">
+            <i class="ti ti-alert-triangle"></i>
+        </div>
         <div>
-            <div class="stat-num">{{ mensajes_pendientes }}</div>
-            <div class="stat-label">Mensajes</div>
+            <div class="indicador-numero">{{ total_incidencias }}</div>
+            <div class="indicador-etiqueta">Incidencias</div>
         </div>
     </a>
-    <a href="{{ url_for('admin.admin_avisos_padres') }}" class="stat-card warn">
-        <div class="stat-icon" style="background:linear-gradient(135deg,#ffc107,#e0a800);box-shadow:0 3px 0 #e0a800;"><i class="ti ti-notes" style="font-size:22px;"></i></div>
+
+    <a href="{{ url_for('admin.admin_tareas') }}" class="indicador">
+        <div class="indicador-icono" style="background:var(--amarillo);box-shadow:0 2px 0 var(--amarillo-oscuro);">
+            <i class="ti ti-notebook" style="color:var(--amarillo-texto);"></i>
+        </div>
         <div>
-            <div class="stat-num">{{ avisos_pendientes }}</div>
-            <div class="stat-label">Avisos</div>
+            <div class="indicador-numero">{{ total_tareas }}</div>
+            <div class="indicador-etiqueta">Tareas</div>
         </div>
     </a>
-    <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes" class="stat-card ok">
-        <div class="stat-icon ic-verde"><i class="ti ti-alert-triangle" style="font-size:22px;"></i></div>
+
+    <a href="{{ url_for('admin.admin_comunicacion') }}?hoja=avisos" class="indicador">
+        <div class="indicador-icono" style="background:var(--morado);box-shadow:0 2px 0 var(--morado-oscuro);">
+            <i class="ti ti-speakerphone"></i>
+        </div>
         <div>
-            <div class="stat-num">{{ incidencias_sin_firmar }}</div>
-            <div class="stat-label">Sin firmar</div>
+            <div class="indicador-numero">{{ avisos_recientes | length }}</div>
+            <div class="indicador-etiqueta">Avisos</div>
         </div>
     </a>
 </div>
 
-<!-- ══ TRES COLUMNAS ══ -->
-<div class="columnas">
 
-    <div class="card">
-        <div class="col-header">
-            <div class="col-titulo">Lista de alumnos</div>
-            <a href="{{ url_for('admin.admin_alumnos') }}" class="col-link">Ver todos</a>
-        </div>
-        {% if alumnos %}
-            {% for a in alumnos[:6] %}
-            <a href="{{ url_for('admin.admin_expediente', id_alumno=a.id) }}" class="mini-alumno">
-                <div class="avatar mini-avatar" style="background:{{ a.id | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
-                <div class="mini-info">
-                    <div class="mini-nombre">{{ a.nombre }}</div>
-                    <div class="mini-sub">{{ a.curp }}</div>
-                </div>
-                <i class="ti ti-chevron-right mini-flecha"></i>
-            </a>
-            {% endfor %}
-        {% else %}
-            <div class="empty-mini">
-                <i class="ti ti-users-off"></i>
-                <div class="empty-mini-title">Sin alumnos registrados</div>
-            </div>
-        {% endif %}
-    </div>
+<div class="dos-columnas">
 
-    <div class="card">
-        <div class="col-header">
-            <div class="col-titulo">Calificaciones del trimestre</div>
-            <a href="{{ url_for('admin.admin_calificaciones') }}?trimestre={{ trimestre }}" class="col-link">Ver reporte</a>
+    <!-- ══════════ CALIFICACIONES ══════════ -->
+    <div class="panel panel-verde">
+        <div class="panel-cabecera">
+            <i class="ti ti-chart-bar" style="font-size:19px;"></i>
+            <span class="panel-titulo">{{ trimestre }}º trimestre</span>
+            <span class="panel-marca">{{ resumen.avance }}% capturado</span>
         </div>
 
-        <span class="trim-chip">{{ trimestre }}{% if trimestre == 2 %}do{% else %}er{% endif %} trimestre</span>
-
-        <div class="prom-fila">
-            <div>
-                <div class="prom-label">Promedio del grupo</div>
-                <div class="prom-num">{{ resumen.promedio if resumen.promedio else '—' }}</div>
-            </div>
-            <div class="dona">
-                <svg viewBox="0 0 36 36" style="width:100%;height:100%;transform:rotate(-90deg);">
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f0eee5" stroke-width="3.4"></circle>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#58cc02" stroke-width="3.4"
-                            stroke-linecap="round"
-                            stroke-dasharray="{{ resumen.avance }} 100"></circle>
-                </svg>
-                <div class="dona-texto">
-                    <div class="dona-num">{{ resumen.avance }}%</div>
-                    <div class="dona-label">Capturado</div>
-                </div>
-            </div>
-        </div>
-
-        {% for campo, etiqueta in materias %}
-        {% set valor = resumen.por_materia[campo] %}
-        <div class="materia-fila">
-            <span class="materia-nombre">{{ etiqueta }}</span>
-            <span class="materia-barra">
-                {% if valor %}
-                <span class="materia-fill" style="display:block;width:{{ (valor * 10) | int }}%;background:{% if valor >= 8 %}#58cc02{% elif valor >= 7 %}#ffc107{% else %}#ff4b4b{% endif %};"></span>
-                {% endif %}
-            </span>
-            <span class="materia-num" style="color:{% if not valor %}#c4c4c4{% elif valor >= 8 %}#58cc02{% elif valor >= 7 %}#ff9600{% else %}#ff4b4b{% endif %};">
-                {{ valor if valor else '—' }}
-            </span>
-        </div>
-        {% endfor %}
-
-        <div class="pie-captura">
-            <i class="ti ti-users" style="font-size:14px;"></i>
-            {{ resumen.completos }} de {{ resumen.total }} alumnos completos
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="col-header">
-            <div class="col-titulo">Mensajes recientes</div>
-            <a href="{{ url_for('admin.admin_mensajes') }}" class="col-link">Ver todos</a>
-        </div>
-        {% if conversaciones %}
-            {% for c in conversaciones %}
-            <a href="{{ url_for('admin.admin_chat', id_alumno=c.id) }}"
-               class="mini-msg {% if c.no_leidos %}nuevo{% endif %}">
-                <div class="avatar mini-avatar" style="background:{{ c.id | color_avatar }}">{{ c.nombre[:2] | upper }}</div>
-                <div class="mini-info">
-                    <div class="mini-nombre">{{ c.nombre }}</div>
-                    <div class="msg-texto {% if not c.total_mensajes %}vacio{% endif %}">
-                        {% if c.total_mensajes %}{{ c.ultimo_mensaje }}{% else %}Iniciar conversación{% endif %}
+        <div class="panel-cuerpo">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+                <div>
+                    <div style="font-size:11px;font-weight:800;color:var(--texto-tenue);
+                                text-transform:uppercase;letter-spacing:.05em;">
+                        Promedio del grupo
+                    </div>
+                    <div style="font-size:32px;font-weight:800;color:var(--verde-oscuro);line-height:1;margin-top:4px;">
+                        {{ resumen.promedio if resumen.promedio else '—' }}
                     </div>
                 </div>
-                {% if c.no_leidos %}
-                <span class="msg-badge">{{ c.no_leidos }}</span>
-                {% else %}
-                <span class="msg-hora">{{ c.ultima_fecha[11:16] if c.ultima_fecha else '' }}</span>
-                {% endif %}
-            </a>
-            {% endfor %}
-        {% else %}
-            <div class="empty-mini">
-                <i class="ti ti-message-off"></i>
-                <div class="empty-mini-title">Sin conversaciones</div>
+
+                <div class="dona" style="margin-left:auto;">
+                    <svg viewBox="0 0 36 36" style="width:100%;height:100%;transform:rotate(-90deg);">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--superficie-3)" stroke-width="3.4"></circle>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--verde)" stroke-width="3.4"
+                                stroke-linecap="round" stroke-dasharray="{{ resumen.avance }} 100"></circle>
+                    </svg>
+                    <div class="dona-texto">
+                        <div class="dona-numero">{{ resumen.avance }}%</div>
+                        <div class="dona-etiqueta">{{ resumen.completos }} de {{ resumen.total }}</div>
+                    </div>
+                </div>
             </div>
-        {% endif %}
+
+            {% for campo, etiqueta in materias %}
+            {% set valor = resumen.por_materia[campo] %}
+            <div class="materia-linea">
+                <span class="materia-texto">{{ etiqueta }}</span>
+                <span class="materia-mini">
+                    {% if valor %}
+                    <span class="materia-mini-relleno" style="display:block;width:{{ (valor * 10) | int }}%;
+                          background:{% if valor >= 8 %}var(--verde){% elif valor >= 7 %}var(--naranja){% else %}var(--coral){% endif %};"></span>
+                    {% endif %}
+                </span>
+                <span class="materia-cifra" style="color:{% if not valor %}var(--texto-tenue)
+                      {% elif valor >= 8 %}var(--verde-oscuro){% elif valor >= 7 %}var(--naranja-oscuro)
+                      {% else %}var(--coral-oscuro){% endif %};">
+                    {{ valor if valor else '—' }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <a href="{{ url_for('admin.admin_calificaciones') }}?trimestre={{ trimestre }}"
+           class="panel-pie" style="color:var(--verde-oscuro);">
+            <i class="ti ti-pencil" style="font-size:15px;"></i>
+            Continuar la captura
+            <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
+        </a>
+    </div>
+
+
+    <!-- ══════════ LO NUEVO ══════════ -->
+    <div class="panel panel-azul">
+        <div class="panel-cabecera">
+            <i class="ti ti-clock" style="font-size:19px;"></i>
+            <span class="panel-titulo">Lo nuevo</span>
+        </div>
+
+        <div class="panel-cuerpo">
+            {% if conversaciones %}
+                {% for c in conversaciones %}
+                <a href="{{ url_for('admin.admin_chat', id_alumno=c.id) }}"
+                   class="fila {% if c.no_leidos %}fila-nueva{% endif %}" style="margin-bottom:7px;">
+                    <div class="avatar" style="width:38px;height:38px;font-size:12px;
+                         background:{{ c.id | color_avatar }};">
+                        {{ c.nombre[:2] | upper }}
+                    </div>
+                    <div class="fila-cuerpo">
+                        <div class="fila-titulo">{{ c.nombre }}</div>
+                        <div class="fila-sub">
+                            {% if c.total_mensajes %}{{ c.ultimo_mensaje[:44] }}{% else %}Sin conversación{% endif %}
+                        </div>
+                    </div>
+                    {% if c.no_leidos %}
+                    <span class="menu-contador" style="margin-left:0;">{{ c.no_leidos }}</span>
+                    {% else %}
+                    <span class="fila-sub">{{ c.ultima_fecha[11:16] if c.ultima_fecha else '' }}</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="vacio-mini">
+                    <i class="ti ti-message-off" style="color:var(--azul);"></i>
+                    <div class="vacio-mini-titulo">Sin conversaciones</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <a href="{{ url_for('admin.admin_comunicacion') }}" class="panel-pie" style="color:var(--azul-oscuro);">
+            <i class="ti ti-messages" style="font-size:15px;"></i>
+            Ver toda la comunicación
+            <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
+        </a>
     </div>
 
 </div>
 
-<!-- ══ FILA INFERIOR ══ -->
-<div class="fila-baja">
 
-    <div class="card">
-        <div class="col-header">
-            <div class="col-titulo">Avisos publicados</div>
-            <a href="{{ url_for('admin.admin_avisos') }}" class="col-link">Ir a avisos</a>
-        </div>
-        {% if avisos_recientes %}
-        <div class="avisos-scroll">
-            {% for av in avisos_recientes %}
-            <a href="{{ url_for('admin.ver_confirmaciones', id_aviso=av.id) }}" class="aviso-mini">
-                {% if av.fecha_actualizado %}
-                <span class="aviso-mini-badge">Editado</span>
-                {% endif %}
-                <div class="aviso-mini-titulo">{{ av.titulo }}</div>
-                <div class="aviso-mini-texto">{{ av.contenido }}</div>
-                <div class="aviso-mini-fecha">
-                    <i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px;"></i>
-                    {{ av.fecha[:10] if av.fecha else '' }}
+<!-- ══════════ ALUMNOS ══════════ -->
+
+<div class="panel panel-coral">
+    <div class="panel-cabecera">
+        <i class="ti ti-users" style="font-size:19px;"></i>
+        <span class="panel-titulo">Mis alumnos</span>
+        <span class="panel-marca">{{ alumnos | length }}</span>
+    </div>
+
+    <div class="panel-cuerpo">
+        {% if alumnos %}
+        <div style="display:flex;gap:9px;flex-wrap:wrap;">
+            {% for a in alumnos %}
+            <a href="{{ url_for('admin.admin_expediente', id_alumno=a.id) }}"
+               style="background:var(--superficie-2);border:2px solid var(--borde);border-radius:var(--radio);
+                      padding:11px 9px;text-align:center;min-width:88px;flex:1;">
+                <div class="avatar" style="width:36px;height:36px;font-size:12px;margin:0 auto 6px;
+                     background:{{ a.id | color_avatar }};">
+                    {{ a.nombre[:2] | upper }}
                 </div>
+                <div style="font-size:12px;font-weight:800;color:var(--texto);">{{ a.nombre }}</div>
             </a>
             {% endfor %}
         </div>
         {% else %}
-            <div class="empty-mini">
-                <i class="ti ti-speakerphone-off"></i>
-                <div class="empty-mini-title">Sin avisos publicados</div>
+            <div class="vacio-mini">
+                <i class="ti ti-users-off" style="color:var(--coral);"></i>
+                <div class="vacio-mini-titulo">No hay alumnos registrados</div>
             </div>
         {% endif %}
     </div>
 
-    <div class="card">
-        <div class="col-header">
-            <div class="col-titulo">Próximos pendientes</div>
-        </div>
-
-        {% set hay_pendientes = incidencias_sin_firmar or materias_incompletas or tareas_por_revisar or mensajes_pendientes %}
-
-        {% if hay_pendientes %}
-            {% if incidencias_sin_firmar %}
-            <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes" class="pendiente p-rojo" style="color:#cc5028;">
-                <i class="ti ti-alert-circle"></i>
-                <div class="p-info">
-                    <div class="p-titulo">{{ incidencias_sin_firmar }} incidencia(s) sin firma</div>
-                    <div class="p-sub">Los tutores aún no responden</div>
-                </div>
-                <i class="ti ti-chevron-right p-flecha"></i>
-            </a>
-            {% endif %}
-
-            {% if mensajes_pendientes %}
-            <a href="{{ url_for('admin.admin_mensajes') }}" class="pendiente p-azul" style="color:#0a3a6b;">
-                <i class="ti ti-message-circle"></i>
-                <div class="p-info">
-                    <div class="p-titulo">{{ mensajes_pendientes }} mensaje(s) sin leer</div>
-                    <div class="p-sub">De padres de familia</div>
-                </div>
-                <i class="ti ti-chevron-right p-flecha"></i>
-            </a>
-            {% endif %}
-
-            {% if materias_incompletas %}
-            <a href="{{ url_for('admin.admin_calificaciones') }}?trimestre={{ trimestre }}" class="pendiente p-amarillo" style="color:#8a5a00;">
-                <i class="ti ti-chart-bar"></i>
-                <div class="p-info">
-                    <div class="p-titulo">Calificaciones por completar</div>
-                    <div class="p-sub">{{ materias_incompletas }} materia(s) sin capturar</div>
-                </div>
-                <i class="ti ti-chevron-right p-flecha"></i>
-            </a>
-            {% endif %}
-
-            {% if tareas_por_revisar %}
-            <a href="{{ url_for('admin.admin_tareas') }}" class="pendiente p-verde" style="color:#2d4a02;">
-                <i class="ti ti-checklist"></i>
-                <div class="p-info">
-                    <div class="p-titulo">Tareas por revisar</div>
-                    <div class="p-sub">{{ tareas_por_revisar }} entrega(s) sin marcar</div>
-                </div>
-                <i class="ti ti-chevron-right p-flecha"></i>
-            </a>
-            {% endif %}
-        {% else %}
-        <div class="todo-al-dia">
-            <i class="ti ti-circle-check"></i>
-            <div class="todo-al-dia-titulo">Todo al día</div>
-            <div class="todo-al-dia-texto">No tienes pendientes por ahora</div>
-        </div>
-        {% endif %}
-    </div>
-
+    <a href="{{ url_for('admin.admin_alumnos') }}" class="panel-pie" style="color:var(--coral-oscuro);">
+        <i class="ti ti-users" style="font-size:15px;"></i>
+        Ver la lista completa
+        <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
+    </a>
 </div>
 
 {% endblock %}
 
 {% block modales %}
-<div class="modal-bg" id="modalBg">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-icon"><i class="ti ti-user-plus" style="font-size:22px;"></i></div>
-            <div class="modal-title">Registrar nuevo alumno</div>
-            <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x" style="font-size:18px;"></i></button>
+<div class="modal-fondo" id="modalIncidencia">
+    <div class="modal" style="border-color:var(--coral);">
+        <div class="modal-cabecera" style="background:var(--coral);">
+            <div class="modal-icono"><i class="ti ti-plus" style="font-size:22px;"></i></div>
+            <div class="modal-titulo">Nueva incidencia</div>
+            <button class="modal-cerrar" onclick="cerrarIncidencia()">
+                <i class="ti ti-x" style="font-size:18px;"></i>
+            </button>
         </div>
-        <div class="modal-body">
-            <form action="{{ url_for('admin.nuevo_alumno') }}" method="POST">
-                <label class="form-label">CURP (10 caracteres)</label>
-                <input type="text" name="curp" class="form-input" pattern="[A-Za-z0-9]{10}" maxlength="10" required placeholder="MABC010101" style="text-transform:uppercase;">
-                <div class="form-hint">Primeros 10 caracteres del CURP del alumno</div>
 
-                <label class="form-label">Nombre corto</label>
-                <input type="text" name="nombre" class="form-input" required placeholder="Ej: Juan P.">
-                <div class="form-hint">Solo nombre e inicial del apellido</div>
+        <div class="modal-cuerpo">
+            <form method="POST" id="formaIncidencia">
+                <label class="campo-etiqueta">Alumno</label>
+                <select name="id_alumno" class="campo" id="selectorAlumno" required
+                        onchange="ajustarDestino()">
+                    <option value="">Elige un alumno</option>
+                    {% for a in alumnos %}
+                    <option value="{{ a.id }}">{{ a.nombre }}</option>
+                    {% endfor %}
+                </select>
 
-                <label class="form-label">Contraseña de acceso</label>
-                <input type="text" name="password" class="form-input" value="alumno2024" required>
+                <label class="campo-etiqueta">Tipo</label>
+                <select name="tipo" class="campo" required>
+                    {% for clave, etiqueta, icono, color in tipos %}
+                    <option value="{{ clave }}">{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
 
-                <label class="form-label">Correo del padre / madre</label>
-                <input type="email" name="correo_padre" class="form-input" placeholder="papa@gmail.com" required>
-                <div class="form-hint">Para notificaciones automáticas</div>
+                <label class="campo-etiqueta">Nivel de atención</label>
+                <select name="nivel" class="campo" required>
+                    {% for clave, etiqueta, color in niveles %}
+                    <option value="{{ clave }}">{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
 
-                <button type="submit" class="btn-save">
-                    <i class="ti ti-check" style="font-size:18px;"></i> Registrar alumno
+                <label class="campo-etiqueta">¿Qué ocurrió?</label>
+                <textarea name="descripcion" class="campo" required
+                          placeholder="Describe el hecho: qué pasó, dónde y a qué hora..."></textarea>
+
+                <label class="campo-etiqueta">¿Qué hiciste al respecto?</label>
+                <textarea name="accion_docente" class="campo"
+                          placeholder="Ejemplo: se revisó la rodilla, se aplicó hielo, se avisó a dirección..."></textarea>
+                <div class="campo-ayuda">
+                    Este campo es tu respaldo. Documenta la atención que diste.
+                </div>
+
+                <button type="submit" class="btn btn-ancho btn-coral">
+                    <i class="ti ti-check" style="font-size:17px;"></i> Registrar incidencia
                 </button>
             </form>
         </div>
@@ -402,10 +379,23 @@
 
 {% block js_extra %}
 <script>
-    function abrirModal() { document.getElementById('modalBg').classList.add('active'); }
-    function cerrarModal() { document.getElementById('modalBg').classList.remove('active'); }
-    document.getElementById('modalBg').addEventListener('click', function(e) {
-        if (e.target === this) cerrarModal();
+    function abrirIncidencia() {
+        document.getElementById('modalIncidencia').classList.add('abierto');
+    }
+
+    function cerrarIncidencia() {
+        document.getElementById('modalIncidencia').classList.remove('abierto');
+    }
+
+    // La ruta lleva el id del alumno, así que se arma al elegirlo
+    function ajustarDestino() {
+        var id = document.getElementById('selectorAlumno').value;
+        document.getElementById('formaIncidencia').action =
+            id ? '/admin/nueva_incidencia/' + id : '';
+    }
+
+    document.getElementById('modalIncidencia').addEventListener('click', function (e) {
+        if (e.target === this) cerrarIncidencia();
     });
 </script>
 {% endblock %}

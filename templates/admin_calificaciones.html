@@ -2,209 +2,170 @@
 {% set activo = 'calificaciones' %}
 
 {% block titulo %}Calificaciones{% endblock %}
-{% block clase_main %}main-ancho{% endblock %}
-
-{% block css_extra %}
-<style>
-    .trim-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
-    .trim-tab{padding:12px 22px;border-radius:16px;font-size:14px;font-weight:900;text-decoration:none;background:#fff;color:#777;border:2px solid #e5e5e5;box-shadow:0 3px 0 #e5e5e5;display:flex;align-items:center;gap:8px;}
-    .trim-tab:hover{background:#fefcf5;}
-    .trim-tab.active{background:#58cc02;color:#fff;border-color:#43a800;box-shadow:0 3px 0 #43a800;}
-
-    .stats{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:20px;}
-    .stat{background:#fff;border:2px solid #e5e5e5;border-radius:18px;padding:16px 18px;box-shadow:0 3px 0 #e5e5e5;}
-    .stat-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-    .stat-label{font-size:11px;font-weight:900;color:#777;text-transform:uppercase;letter-spacing:.05em;}
-    .stat-num{font-size:26px;font-weight:900;color:#3c3c3c;line-height:1;}
-    .stat-num.green{color:#58cc02;}
-    .stat-num.orange{color:#ff9600;}
-    .prog-bg{background:#f0eee5;height:14px;border-radius:20px;overflow:hidden;border:1px solid #e5e5e5;}
-    .prog-fill{height:100%;background:linear-gradient(90deg,#89e219,#58cc02);border-radius:20px;transition:width .3s;}
-
-    .table-card{background:#fff;border:2px solid #e5e5e5;border-radius:20px;box-shadow:0 3px 0 #e5e5e5;overflow:hidden;}
-    .table-hint{padding:12px 16px;background:#fff8e5;border-bottom:2px solid #ffe89c;font-size:12px;font-weight:800;color:#8a5a00;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-    .hint-chip{display:inline-flex;align-items:center;gap:5px;}
-    .swatch{width:12px;height:12px;border-radius:4px;display:inline-block;}
-    .sw-yellow{background:#ffe066;border:1px solid #e0a800;}
-    .sw-blue{background:#dcf4ff;border:1px solid #7dd3fc;}
-    .sw-green{background:#e8f9d5;border:1px solid #89e219;}
-
-    .table-scroll{overflow-x:auto;}
-    table{border-collapse:separate;border-spacing:0;width:100%;min-width:1000px;}
-    th{background:#fefcf5;padding:12px 8px;font-size:11px;font-weight:900;color:#777;text-transform:uppercase;letter-spacing:.03em;border-bottom:3px solid #f0eee5;text-align:center;position:sticky;top:0;z-index:3;}
-    th.col-alumno{text-align:left;padding-left:16px;position:sticky;left:0;z-index:5;min-width:150px;}
-    td{padding:6px;border-bottom:2px solid #f7f7f7;text-align:center;}
-    td.col-alumno{position:sticky;left:0;background:#fff;z-index:2;text-align:left;padding-left:16px;}
-
-    tr.fila td{background:#fff;}
-    tr.fila.guardada td,tr.fila.guardada td.col-alumno{background:#e8f9d5;}
-    tr.fila.activa td{background:#fffdf2;}
-    tr.fila.activa.guardada td{background:#eefadd;}
-
-    .alumno-cell{display:flex;align-items:center;gap:10px;}
-    .alumno-avatar{width:34px;height:34px;border-radius:11px;font-size:12px;}
-    .alumno-nombre{font-size:13px;font-weight:900;color:#3c3c3c;}
-    .alumno-check{font-size:16px;color:#58cc02;margin-left:auto;opacity:0;}
-    tr.fila.guardada .alumno-check{opacity:1;}
-
-    .nota{width:56px;height:44px;text-align:center;font-family:inherit;font-size:17px;font-weight:900;color:#3c3c3c;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;outline:none;-moz-appearance:textfield;}
-    .nota::-webkit-outer-spin-button,.nota::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-    .nota::placeholder{color:#c4c4c4;font-weight:700;}
-    .nota.llena{background:#dcf4ff;border-color:#7dd3fc;color:#0a3a6b;}
-    .nota:focus{background:#ffe066;border-color:#e0a800;box-shadow:0 0 0 3px rgba(224,168,0,.25);color:#5c4a20;}
-
-    .falta{width:52px;height:44px;text-align:center;font-family:inherit;font-size:15px;font-weight:800;color:#3c3c3c;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;outline:none;}
-    .falta:focus{background:#ffe066;border-color:#e0a800;}
-
-    .obs{width:100%;min-width:200px;height:44px;padding:0 12px;font-family:inherit;font-size:13px;font-weight:700;color:#3c3c3c;background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;outline:none;}
-    .obs::placeholder{color:#c4c4c4;font-weight:600;}
-    .obs:focus{background:#ffe066;border-color:#e0a800;}
-
-    .prom-cell{font-size:18px;font-weight:900;min-width:52px;}
-    .p-high{color:#58cc02;}
-    .p-mid{color:#ff9600;}
-    .p-low{color:#ff4b4b;}
-    .p-none{color:#c4c4c4;font-size:15px;}
-
-    .btn-fila{width:42px;height:42px;border-radius:12px;border:none;background:#58cc02;color:#fff;cursor:pointer;box-shadow:0 3px 0 #43a800;display:inline-flex;align-items:center;justify-content:center;font-family:inherit;}
-    .btn-fila:hover{background:#43a800;}
-    .btn-fila:active{transform:translateY(2px);box-shadow:0 1px 0 #43a800;}
-    .btn-fila.ok{background:#fff;color:#58cc02;border:2px solid #89e219;box-shadow:0 3px 0 #58cc02;}
-
-    tfoot td{background:#fefcf5;border-top:3px solid #f0eee5;border-bottom:none;padding:12px 6px;font-size:15px;font-weight:900;color:#0f8fd6;}
-    tfoot td.col-alumno{background:#fefcf5;font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.05em;}
-
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#58cc02;color:#fff;padding:12px 22px;border-radius:16px;font-size:13px;font-weight:900;box-shadow:0 4px 0 #43a800;opacity:0;transition:all .25s;z-index:100;display:flex;align-items:center;gap:8px;}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-    .toast.err{background:#ff4b4b;box-shadow:0 4px 0 #d33;}
-
-    @media (max-width:900px){ .stats{grid-template-columns:1fr;} }
-</style>
-{% endblock %}
 
 {% block encabezado %}
-<div class="topbar">
-    <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
-        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
-    </a>
+<div class="barra">
     <div>
-        <div class="page-title">Calificaciones</div>
-        <div class="page-sub">Captura por trimestre — se guarda alumno por alumno</div>
+        <div class="barra-titulo">Calificaciones</div>
+        <div class="barra-sub">Captura por trimestre · se guarda alumno por alumno</div>
     </div>
-    <div class="page-icon ic-verde"><i class="ti ti-chart-bar" style="font-size:22px;"></i></div>
+</div>
+
+<div class="chips" style="margin-bottom:16px;">
+    {% for t in [1, 2, 3] %}
+    <a href="{{ url_for('admin.admin_calificaciones') }}?trimestre={{ t }}"
+       class="chip {% if trimestre == t %}activo{% endif %}">{{ t }}º trimestre</a>
+    {% endfor %}
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<div class="trim-tabs">
-    {% for t in [1, 2, 3] %}
-    <a href="{{ url_for('admin.admin_calificaciones') }}?trimestre={{ t }}"
-       class="trim-tab {% if trimestre == t %}active{% endif %}">
-        <i class="ti ti-calendar" style="font-size:16px;"></i>
-        {{ t }}{% if t == 2 %}do{% else %}er{% endif %} trimestre
-    </a>
-    {% endfor %}
-</div>
+<!-- ══════════ RESUMEN ══════════ -->
 
-{% if alumnos %}
-<div class="stats">
-    <div class="stat">
-        <div class="stat-top">
-            <span class="stat-label">Avance de captura</span>
-            <span class="stat-num green" id="avanceNum">{{ avance }}%</span>
+<div class="indicadores">
+    <div class="indicador">
+        <div class="indicador-icono" style="background:var(--verde);box-shadow:0 2px 0 var(--verde-oscuro);">
+            <i class="ti ti-checks"></i>
         </div>
-        <div class="prog-bg"><div class="prog-fill" id="avanceBar" style="width:{{ avance }}%"></div></div>
-        <div style="font-size:11px;font-weight:800;color:#777;margin-top:6px;">
-            <span id="completosNum">{{ completos }}</span> de {{ total }} alumnos completos
+        <div>
+            <div class="indicador-numero">{{ completos }}/{{ total }}</div>
+            <div class="indicador-etiqueta">Completos</div>
         </div>
     </div>
-    <div class="stat">
-        <div class="stat-label">Promedio del grupo</div>
-        <div class="stat-num orange" style="margin-top:8px;">{{ prom_grupo if prom_grupo else '—' }}</div>
+
+    <div class="indicador">
+        <div class="indicador-icono" style="background:var(--azul);box-shadow:0 2px 0 var(--azul-oscuro);">
+            <i class="ti ti-percentage"></i>
+        </div>
+        <div>
+            <div class="indicador-numero">{{ avance }}%</div>
+            <div class="indicador-etiqueta">Avance</div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="stat-label">Alumnos</div>
-        <div class="stat-num" style="margin-top:8px;">{{ total }}</div>
+
+    <div class="indicador">
+        <div class="indicador-icono" style="background:var(--morado);box-shadow:0 2px 0 var(--morado-oscuro);">
+            <i class="ti ti-star"></i>
+        </div>
+        <div>
+            <div class="indicador-numero">{{ prom_grupo if prom_grupo else '—' }}</div>
+            <div class="indicador-etiqueta">Promedio</div>
+        </div>
+    </div>
+
+    <div class="indicador">
+        <div class="indicador-icono" style="background:var(--amarillo);box-shadow:0 2px 0 var(--amarillo-oscuro);">
+            <i class="ti ti-users" style="color:var(--amarillo-texto);"></i>
+        </div>
+        <div>
+            <div class="indicador-numero">{{ total }}</div>
+            <div class="indicador-etiqueta">Alumnos</div>
+        </div>
     </div>
 </div>
 
-<div class="table-card">
-    <div class="table-hint">
-        <i class="ti ti-info-circle" style="font-size:16px;"></i>
-        <span class="hint-chip"><span class="swatch sw-yellow"></span> Celda activa</span>
-        <span class="hint-chip"><span class="swatch sw-blue"></span> Capturada</span>
-        <span class="hint-chip"><span class="swatch sw-green"></span> Fila guardada</span>
-        <span style="margin-left:auto;">Scroll o flechas para cambiar nota · Enter para avanzar</span>
+<div class="progreso" style="margin-bottom:20px;">
+    <div class="progreso-parte" style="width:{{ avance }}%;background:var(--verde);"></div>
+</div>
+
+
+<!-- ══════════ TABLA ══════════ -->
+
+<div class="tabla-caja">
+    <div class="tabla-nota">
+        <i class="ti ti-keyboard" style="font-size:17px;"></i>
+        <span>Enter salta a la siguiente celda · en la última guarda el renglón</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+            <span class="muestra" style="background:var(--verde);"></span> Guardado
+            <span class="muestra" style="background:var(--amarillo);margin-left:8px;"></span> Editando
+        </span>
     </div>
 
-    <div class="table-scroll">
+    <div class="tabla-desliza">
         <table>
             <thead>
                 <tr>
                     <th class="col-alumno">Alumno</th>
-                    {% for campo, label in materias %}
-                    <th>{{ label }}</th>
+                    {% for campo, etiqueta in materias %}
+                    <th>{{ etiqueta }}</th>
                     {% endfor %}
-                    <th>Faltas</th>
                     <th>Prom.</th>
-                    <th style="min-width:220px;">Observaciones</th>
-                    <th>Guardar</th>
+                    <th>Faltas</th>
+                    <th>Observaciones</th>
+                    <th></th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for a in alumnos %}
-                <tr class="fila {% if a.completo %}guardada{% endif %}" data-id="{{ a.id }}">
+                <tr class="renglon {% if a.completo %}guardado{% endif %}"
+                    id="renglon-{{ a.id }}" data-id="{{ a.id }}">
+
                     <td class="col-alumno">
-                        <div class="alumno-cell">
-                           <div class="avatar alumno-avatar" style="background:{{ a.id | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
-                            <div class="alumno-nombre">{{ a.nombre }}</div>
-                            <i class="ti ti-circle-check-filled alumno-check"></i>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="avatar" style="width:34px;height:34px;font-size:11px;
+                                 background:{{ a.id | color_avatar }};">
+                                {{ a.nombre[:2] | upper }}
+                            </div>
+                            <div style="min-width:0;">
+                                <div style="font-size:13px;font-weight:800;color:var(--texto);">{{ a.nombre }}</div>
+                                <div style="font-size:10px;font-weight:600;color:var(--texto-tenue);
+                                            font-family:monospace;">{{ a.curp }}</div>
+                            </div>
                         </div>
                     </td>
 
-                    {% for campo, label in materias %}
+                    {% for campo, etiqueta in materias %}
                     <td>
-                        <input type="number" class="nota {% if a[campo] is not none %}llena{% endif %}"
-                               data-campo="{{ campo }}"
-                               min="6" max="10" step="1" placeholder="—"
-                               value="{{ a[campo] | int if a[campo] is not none else '' }}">
+                        <input type="number" class="celda-nota {% if a[campo] is not none %}llena{% endif %}"
+                               data-campo="{{ campo }}" data-id="{{ a.id }}"
+                               value="{{ a[campo] if a[campo] is not none else '' }}"
+                               min="0" max="10" step="0.1" placeholder="—">
                     </td>
                     {% endfor %}
 
                     <td>
-                        <input type="number" class="falta" data-campo="inasistencias"
-                               min="0" max="99" step="1" value="{{ a.inasistencias or 0 }}">
-                    </td>
-
-                    <td>
-                        <span class="prom-cell {% if a.promedio is none %}p-none{% elif a.promedio >= 8 %}p-high{% elif a.promedio >= 7 %}p-mid{% else %}p-low{% endif %}">
-                            {{ a.promedio if a.promedio is not none else '—' }}
+                        <span class="promedio {% if not a.promedio %}prom-sin
+                              {% elif a.promedio >= 8 %}prom-alto
+                              {% elif a.promedio >= 7 %}prom-medio
+                              {% else %}prom-bajo{% endif %}"
+                              id="prom-{{ a.id }}">
+                            {{ a.promedio if a.promedio else '—' }}
                         </span>
                     </td>
 
                     <td>
-                        <input type="text" class="obs" data-campo="observaciones"
-                               placeholder="Observación general del alumno..."
-                               value="{{ a.observaciones or '' }}">
+                        <input type="number" class="celda-falta" data-campo="inasistencias"
+                               data-id="{{ a.id }}" value="{{ a.inasistencias or 0 }}" min="0">
                     </td>
 
                     <td>
-                        <button class="btn-fila {% if a.completo %}ok{% endif %}" title="Guardar fila">
-                            <i class="ti ti-device-floppy" style="font-size:19px;"></i>
+                        <input type="text" class="celda-obs" data-campo="observaciones"
+                               data-id="{{ a.id }}" value="{{ a.observaciones or '' }}"
+                               placeholder="Nota para el tutor...">
+                    </td>
+
+                    <td>
+                        <button class="btn-renglon {% if a.completo %}ok{% endif %}"
+                                onclick="guardar({{ a.id }})" id="btn-{{ a.id }}"
+                                title="Guardar este renglón">
+                            <i class="ti {% if a.completo %}ti-check{% else %}ti-device-floppy{% endif %}"
+                               style="font-size:19px;"></i>
                         </button>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
+
             <tfoot>
                 <tr>
-                    <td class="col-alumno">Promedio por materia</td>
-                    {% for campo, label in materias %}
-                    <td>{{ prom_materia[campo] if prom_materia[campo] is not none else '—' }}</td>
+                    <td class="col-alumno">Promedio del grupo</td>
+                    {% for campo, etiqueta in materias %}
+                    <td>{{ prom_materia[campo] if prom_materia[campo] else '—' }}</td>
                     {% endfor %}
-                    <td></td>
                     <td>{{ prom_grupo if prom_grupo else '—' }}</td>
+                    <td></td>
                     <td></td>
                     <td></td>
                 </tr>
@@ -213,128 +174,125 @@
     </div>
 </div>
 
-{% else %}
-<div class="empty">
-    <div class="empty-icon"><i class="ti ti-users-off"></i></div>
-    <div class="empty-title">No hay alumnos registrados</div>
-    <div class="empty-text">Registra alumnos desde el panel de inicio para capturar calificaciones.</div>
+<div class="campo-ayuda" style="margin-top:12px;">
+    Los tutores ven estas calificaciones en su portal, en la sección ¿Cómo vamos?
 </div>
-{% endif %}
 
-{% endblock %}
+<div class="aviso-flotante" id="aviso">
+    <i class="ti ti-check" style="font-size:17px;"></i>
+    <span id="avisoTexto">Guardado</span>
+</div>
 
-{% block modales %}
-<div class="toast" id="toast"><i class="ti ti-check" style="font-size:16px;"></i><span id="toastMsg">Guardado</span></div>
 {% endblock %}
 
 {% block js_extra %}
 <script>
-const TRIMESTRE = {{ trimestre }};
-const TOTAL     = {{ total }};
-const CAMPOS    = [{% for campo, label in materias %}'{{ campo }}'{% if not loop.last %},{% endif %}{% endfor %}];
+    var MATERIAS  = {{ materias | map(attribute=0) | list | tojson }};
+    var TRIMESTRE = {{ trimestre }};
 
-function toast(msg, err) {
-    const t = document.getElementById('toast');
-    document.getElementById('toastMsg').textContent = msg;
-    t.classList.toggle('err', !!err);
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 1800);
-}
-
-function calcularPromedio(fila) {
-    const notas = CAMPOS
-        .map(c => fila.querySelector('[data-campo="' + c + '"]').value)
-        .filter(v => v !== '')
-        .map(Number);
-
-    const celda = fila.querySelector('.prom-cell');
-    celda.className = 'prom-cell';
-
-    if (!notas.length) {
-        celda.textContent = '—';
-        celda.classList.add('p-none');
-        return null;
-    }
-    const prom = Math.round(notas.reduce((a, b) => a + b, 0) / notas.length * 10) / 10;
-    celda.textContent = prom;
-    celda.classList.add(prom >= 8 ? 'p-high' : prom >= 7 ? 'p-mid' : 'p-low');
-    return prom;
-}
-
-function actualizarAvance() {
-    const completos = document.querySelectorAll('tr.fila.guardada').length;
-    const pct = TOTAL ? Math.round(completos * 100 / TOTAL) : 0;
-    document.getElementById('avanceNum').textContent = pct + '%';
-    document.getElementById('avanceBar').style.width = pct + '%';
-    document.getElementById('completosNum').textContent = completos;
-}
-
-async function guardarFila(fila) {
-    const datos = { id_alumno: Number(fila.dataset.id), trimestre: TRIMESTRE };
-    fila.querySelectorAll('[data-campo]').forEach(i => datos[i.dataset.campo] = i.value);
-
-    try {
-        const r = await fetch('{{ url_for("admin.guardar_calificaciones") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        });
-        const res = await r.json();
-        if (!res.ok) throw new Error();
-
-        fila.classList.toggle('guardada', res.completo);
-        fila.querySelector('.btn-fila').classList.toggle('ok', res.completo);
-        actualizarAvance();
-        toast(res.completo ? 'Fila completa guardada' : 'Guardado parcial');
-    } catch (e) {
-        toast('No se pudo guardar', true);
-    }
-}
-
-document.querySelectorAll('tr.fila').forEach(fila => {
-    const editables = Array.from(fila.querySelectorAll('input'));
-
-    editables.forEach((input, idx) => {
-        input.addEventListener('focus', () => {
-            document.querySelectorAll('tr.fila').forEach(f => f.classList.remove('activa'));
-            fila.classList.add('activa');
-            input.select();
+    // ── Promedio en vivo ──
+    function recalcular(id) {
+        var notas = [];
+        MATERIAS.forEach(function (campo) {
+            var celda = document.querySelector('[data-id="' + id + '"][data-campo="' + campo + '"]');
+            var valor = parseFloat(celda.value);
+            if (!isNaN(valor)) notas.push(valor);
         });
 
-        input.addEventListener('wheel', e => {
-            if (document.activeElement !== input) return;
-            if (input.type !== 'number') return;
-            e.preventDefault();
-            const min = Number(input.min), max = Number(input.max);
-            let v = input.value === '' ? (input.classList.contains('nota') ? min - 1 : 0) : Number(input.value);
-            v += (e.deltaY < 0 ? 1 : -1);
-            if (v < min) v = min;
-            if (v > max) v = max;
-            input.value = v;
-            input.dispatchEvent(new Event('input'));
-        }, { passive: false });
+        var span = document.getElementById('prom-' + id);
+        if (!notas.length) {
+            span.textContent = '—';
+            span.className = 'promedio prom-sin';
+            return;
+        }
 
-        input.addEventListener('input', () => {
-            if (input.classList.contains('nota')) {
-                input.classList.toggle('llena', input.value !== '');
+        var prom = (notas.reduce(function (a, b) { return a + b; }, 0) / notas.length);
+        span.textContent = prom.toFixed(1);
+        span.className = 'promedio ' +
+            (prom >= 8 ? 'prom-alto' : prom >= 7 ? 'prom-medio' : 'prom-bajo');
+    }
+
+    // ── Guardar un renglón ──
+    async function guardar(id) {
+        var datos = { id_alumno: id, trimestre: TRIMESTRE };
+
+        MATERIAS.forEach(function (campo) {
+            datos[campo] = document.querySelector('[data-id="' + id + '"][data-campo="' + campo + '"]').value;
+        });
+        datos.inasistencias = document.querySelector('[data-id="' + id + '"][data-campo="inasistencias"]').value;
+        datos.observaciones = document.querySelector('[data-id="' + id + '"][data-campo="observaciones"]').value;
+
+        try {
+            var r = await fetch('{{ url_for("admin.guardar_calificaciones") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            var res = await r.json();
+
+            if (res.ok) {
+                var renglon = document.getElementById('renglon-' + id);
+                var boton   = document.getElementById('btn-' + id);
+
+                renglon.classList.toggle('guardado', res.completo);
+                boton.classList.toggle('ok', res.completo);
+                boton.querySelector('i').className =
+                    'ti ' + (res.completo ? 'ti-check' : 'ti-device-floppy');
+
+                mostrarAviso('Guardado ✓', false);
+            } else {
+                mostrarAviso('No se pudo guardar', true);
             }
-            calcularPromedio(fila);
+        } catch (e) {
+            mostrarAviso('Error de conexión', true);
+        }
+    }
+
+    // ── Aviso flotante ──
+    var temporizador;
+    function mostrarAviso(texto, esError) {
+        var aviso = document.getElementById('aviso');
+        document.getElementById('avisoTexto').textContent = texto;
+        aviso.classList.toggle('error', esError);
+        aviso.classList.add('visible');
+
+        clearTimeout(temporizador);
+        temporizador = setTimeout(function () {
+            aviso.classList.remove('visible');
+        }, 1800);
+    }
+
+    // ── Navegación con Enter ──
+    document.querySelectorAll('.celda-nota, .celda-falta, .celda-obs').forEach(function (celda) {
+
+        celda.addEventListener('input', function () {
+            var id = this.dataset.id;
+            if (MATERIAS.includes(this.dataset.campo)) {
+                this.classList.toggle('llena', this.value !== '');
+                recalcular(id);
+            }
+            document.getElementById('renglon-' + id).classList.add('activo');
         });
 
-        input.addEventListener('keydown', e => {
+        celda.addEventListener('blur', function () {
+            document.getElementById('renglon-' + this.dataset.id).classList.remove('activo');
+        });
+
+        celda.addEventListener('keydown', function (e) {
             if (e.key !== 'Enter') return;
             e.preventDefault();
-            if (idx < editables.length - 1) {
-                editables[idx + 1].focus();
-            } else {
-                guardarFila(fila);
-                const sig = fila.nextElementSibling;
-                if (sig) sig.querySelector('input').focus();
+
+            var celdas   = Array.from(document.querySelectorAll('.celda-nota, .celda-falta, .celda-obs'));
+            var posicion = celdas.indexOf(this);
+            var siguiente = celdas[posicion + 1];
+
+            // Si la siguiente celda ya es de otro alumno, se guarda este renglón
+            if (!siguiente || siguiente.dataset.id !== this.dataset.id) {
+                guardar(this.dataset.id);
             }
+
+            if (siguiente) siguiente.focus();
         });
     });
-
-    fila.querySelector('.btn-fila').addEventListener('click', () => guardarFila(fila));
-});
 </script>
 {% endblock %}

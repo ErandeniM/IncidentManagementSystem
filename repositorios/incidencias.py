@@ -138,30 +138,31 @@ def marcar_visto(id_incidencia):
             ON CONFLICT(id_incidencia) DO UPDATE SET
                 visto = 1, fecha_visto = excluded.fecha_visto
         ''', (id_incidencia, ahora()))
-
-def firmar(id_incidencia, comentario, firmado_por):
+def firmar(id_incidencia, comentario, firmado_por, declaracion=None):
     """
-    Registra la firma de enterado.
-    Solo se llama cuando el tutor aceptó la declaración, así que
-    `acepto_declaracion` queda en 1.
+    Registra la firma de enterado del tutor.
+
+    Se guarda el texto completo de la declaración que aceptó, no solo
+    un sí. Si el texto cambia en un ciclo posterior, cada firma
+    conserva el que estuvo vigente cuando se otorgó.
     """
     momento = ahora()
     with conexion() as conn:
         conn.execute('''
             INSERT INTO incidencia_seguimiento
-                (id_incidencia, enterado, fecha_enterado,
-                 comentario_padre, fecha_comentario, firmado_por,
-                 acepto_declaracion)
-            VALUES (?, 1, ?, ?, ?, ?, 1)
+                (id_incidencia, enterado, fecha_enterado, comentario_padre,
+                 fecha_comentario, firmado_por, acepto_declaracion, texto_declaracion)
+            VALUES (?, 1, ?, ?, ?, ?, 1, ?)
             ON CONFLICT(id_incidencia) DO UPDATE SET
                 enterado           = 1,
                 fecha_enterado     = excluded.fecha_enterado,
                 comentario_padre   = excluded.comentario_padre,
                 fecha_comentario   = excluded.fecha_comentario,
                 firmado_por        = excluded.firmado_por,
-                acepto_declaracion = 1
-        ''', (id_incidencia, momento, comentario, momento, firmado_por))
-        
+                acepto_declaracion = 1,
+                texto_declaracion  = excluded.texto_declaracion
+        ''', (id_incidencia, momento, comentario, momento, firmado_por,
+              declaracion or TEXTO_DECLARACION))  
 def pertenece_a(id_incidencia, id_alumno):
     """Verifica que una incidencia sea de ese alumno."""
     with conexion() as conn:

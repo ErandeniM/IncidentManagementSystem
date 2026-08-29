@@ -73,13 +73,44 @@ def editar(id_aviso, titulo, contenido):
             'DELETE FROM avisos_confirmaciones WHERE id_aviso = ?', (id_aviso,)
         )
 
-
 def eliminar(id_aviso):
-    """Borra un aviso junto con sus confirmaciones."""
-    with conexion() as conn:
-        conn.execute('DELETE FROM avisos_confirmaciones WHERE id_aviso = ?', (id_aviso,))
-        conn.execute('DELETE FROM avisos WHERE id = ?', (id_aviso,))
+    """
+    Archiva el aviso sin borrarlo.
 
+    Se marca como eliminado en vez de hacer DELETE: si se borrara,
+    desaparecería también la constancia de qué tutores lo confirmaron,
+    que es justamente la evidencia que este sistema existe para guardar.
+    """
+    with conexion() as conn:
+        conn.execute('''
+            UPDATE avisos
+            SET eliminado = 1, activo = 0, fecha_eliminado = ?
+            WHERE id = ?
+        ''', (ahora(), id_aviso))
+
+
+def restaurar(id_aviso):
+    """Devuelve al portal un aviso archivado."""
+    with conexion() as conn:
+        conn.execute('''
+            UPDATE avisos
+            SET eliminado = 0, activo = 1, fecha_eliminado = NULL
+            WHERE id = ?
+        ''', (id_aviso,))
+
+
+def archivados():
+    """Avisos que la maestra retiró del portal."""
+    with conexion() as conn:
+        filas = conn.execute('''
+            SELECT a.*,
+                   (SELECT COUNT(*) FROM avisos_confirmaciones c
+                    WHERE c.id_aviso = a.id) AS confirmaciones
+            FROM avisos a
+            WHERE a.eliminado = 1
+            ORDER BY a.fecha_eliminado DESC
+        ''').fetchall()
+    return a_lista(filas)
 
 # ═══════════ CONFIRMACIONES ═══════════
 

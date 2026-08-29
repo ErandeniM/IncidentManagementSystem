@@ -2,186 +2,124 @@
 {% set activo = 'chat' %}
 
 {% block titulo %}Chat con la maestra{% endblock %}
-{% block clase_main %}main-chat{% endblock %}
-
-{% block css_extra %}
-<style>
-    .main-chat{display:flex;flex-direction:column;height:100vh;padding:0;width:100%;}
-
-    /* Encabezado */
-    .chat-header{background:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;border-bottom:3px solid #f0eee5;flex-shrink:0;}
-    .teacher-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#58cc02,#43a800);display:flex;align-items:center;justify-content:center;color:#fff;border:3px solid #43a800;flex-shrink:0;}
-    .teacher-name{font-size:16px;font-weight:900;color:#3c3c3c;display:flex;align-items:center;gap:5px;}
-    .verified{width:16px;height:16px;background:#1cb0f6;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;}
-    .teacher-status{font-size:12px;font-weight:700;color:#777;display:flex;align-items:center;gap:5px;margin-top:1px;}
-
-    .privacy-banner{background:#e8f9d5;border-bottom:2px solid #89e219;padding:9px 20px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#58a002;flex-shrink:0;}
-
-    /* Mensajes */
-    .messages-area{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
-    .day-marker{align-self:center;background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:900;color:#777;margin:8px 0;box-shadow:0 2px 0 #e5e5e5;}
-
-    .message{max-width:70%;padding:10px 14px;border-radius:18px;box-shadow:0 2px 0 rgba(0,0,0,.06);}
-    .message-text{font-size:14px;font-weight:700;line-height:1.4;word-wrap:break-word;}
-    .message-time{font-size:10px;font-weight:800;margin-top:4px;display:flex;align-items:center;gap:4px;justify-content:flex-end;}
-
-    .msg-padre{align-self:flex-end;background:#dcf4ff;border:2px solid #7dd3fc;box-shadow:0 2px 0 #1cb0f6;border-bottom-right-radius:6px;}
-    .msg-padre .message-text{color:#0a3a6b;}
-    .msg-padre .message-time{color:#0f8fd6;}
-
-    .msg-maestra{align-self:flex-start;background:#fff;border:2px solid #e5e5e5;box-shadow:0 2px 0 #d5d5d5;border-bottom-left-radius:6px;}
-    .msg-maestra .message-text{color:#3c3c3c;}
-    .msg-maestra .message-time{color:#777;}
-
-    /* Sin mensajes */
-    .empty-chat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;}
-    .empty-icon-big{width:100px;height:100px;background:linear-gradient(135deg,#58cc02,#43a800);border-radius:32px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 6px 0 #43a800;}
-    .empty-chat-titulo{font-size:20px;font-weight:900;color:#3c3c3c;margin-bottom:6px;}
-    .empty-chat-texto{font-size:14px;font-weight:700;color:#777;max-width:320px;line-height:1.5;}
-
-    .suggestions{display:flex;flex-direction:column;gap:8px;max-width:400px;margin:20px auto 0;width:100%;}
-    .suggestion-label{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.1em;padding:8px 4px;text-align:center;}
-    .suggestion-btn{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:12px 16px;font-family:inherit;font-size:13px;font-weight:800;color:#555;cursor:pointer;box-shadow:0 3px 0 #e5e5e5;display:flex;align-items:center;gap:10px;text-align:left;}
-    .suggestion-btn:hover{background:#fefcf5;}
-    .suggestion-btn i{color:#1cb0f6;font-size:18px;flex-shrink:0;}
-
-    /* Referencia */
-    .ref-activa{background:#f7f7f7;border-left:3px solid #1cb0f6;border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
-    .ref-activa > i{color:#afafaf;flex-shrink:0;}
-    .ref-activa-texto{flex:1;min-width:0;}
-    .ref-activa-label{font-size:10px;font-weight:800;color:#afafaf;text-transform:uppercase;letter-spacing:.05em;}
-    .ref-activa-titulo{font-size:12px;font-weight:800;color:#3c3c3c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .ref-quitar{width:24px;height:24px;background:#e5e5e5;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
-    .ref-quitar:hover{background:#d5d5d5;}
-    .ref-burbuja{background:rgba(255,255,255,.65);border-left:3px solid #0f8fd6;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:800;color:#0a3a6b;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
-
-    /* Área de escritura */
-    .input-area{background:#fff;border-top:3px solid #f0eee5;padding:12px 20px;flex-shrink:0;}
-    .input-form{display:flex;gap:8px;align-items:flex-end;}
-    .message-input{flex:1;background:#f7f7f7;border:2px solid transparent;border-radius:16px;padding:12px 14px;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;outline:none;resize:none;min-height:48px;max-height:120px;line-height:1.4;}
-    .message-input:focus{background:#fff;border-color:#1cb0f6;}
-    .message-input::placeholder{color:#afafaf;font-weight:600;}
-    .send-btn{width:48px;height:48px;background:#1cb0f6;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;box-shadow:0 3px 0 #0f8fd6;flex-shrink:0;border:none;}
-    .send-btn:hover{background:#0f8fd6;}
-    .send-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0f8fd6;}
-    .send-btn i{font-size:22px;}
-
-    @media (max-width:900px){
-        .main-chat{height:calc(100vh - 70px);}
-        .chat-header,.input-area{padding-left:16px;padding-right:16px;}
-        .messages-area{padding:16px;}
-        .message{max-width:85%;}
-    }
-</style>
-{% endblock %}
+{% block clase_contenido %}chat-pantalla{% endblock %}
 
 {% block flash %}{% endblock %}
 
 {% block contenido %}
 
-<div class="chat-header">
-    <div class="teacher-avatar"><i class="ti ti-mood-smile" style="font-size:26px;"></i></div>
+<div class="chat-cabecera">
+    <div class="chat-avatar"><i class="ti ti-mood-smile" style="font-size:25px;"></i></div>
     <div>
-        <div class="teacher-name">
+        <div class="chat-nombre">
             Maestra {{ DOCENTE }}
-            <span class="verified"><i class="ti ti-check" style="font-size:10px;"></i></span>
+            <span class="verificado"><i class="ti ti-check" style="font-size:10px;"></i></span>
         </div>
-        <div class="teacher-status">
-            <i class="ti ti-lock" style="font-size:11px;"></i> Conversación privada
+        <div class="chat-estado">
+            <i class="ti ti-lock" style="font-size:12px;"></i> Conversación privada
         </div>
     </div>
 </div>
 
-<div class="privacy-banner">
+<div class="chat-privado">
     <i class="ti ti-shield-check" style="font-size:16px;"></i>
     Solo tú y la maestra pueden ver estos mensajes.
 </div>
 
-<div class="messages-area" id="messagesArea">
+<div class="chat-mensajes" id="listaMensajes">
     {% if mensajes %}
-        {% set ns = namespace(fecha_actual='') %}
-        {% for msg in mensajes %}
-            {% set fecha_msg = msg.fecha[:10] if msg.fecha else '' %}
-            {% if fecha_msg != ns.fecha_actual %}
-                {% set ns.fecha_actual = fecha_msg %}
-                <div class="day-marker">{{ fecha_msg }}</div>
+        {% set ns = namespace(dia='') %}
+        {% for m in mensajes %}
+            {% set fecha = m.fecha[:10] if m.fecha else '' %}
+            {% if fecha != ns.dia %}
+                {% set ns.dia = fecha %}
+                <div class="dia-marca">{{ fecha }}</div>
             {% endif %}
 
-            {% if msg.remitente == 'padre' %}
-            <div class="message msg-padre">
-                {% if msg.ref_titulo %}
-                <div class="ref-burbuja">
-                    <i class="ti ti-corner-down-right" style="font-size:11px;"></i>
-                    {{ msg.ref_titulo }}
+            {% if m.remitente == 'padre' %}
+            <div class="burbuja burbuja-mia">
+                {% if m.ref_titulo %}
+                <div class="referencia">
+                    <i class="ti ti-corner-down-right" style="font-size:12px;"></i>
+                    {{ m.ref_titulo }}
                 </div>
                 {% endif %}
-                <div class="message-text">{{ msg.contenido }}</div>
-                <div class="message-time">
-                    {{ msg.fecha[11:16] if msg.fecha else '' }}
-                    {% if msg.visto %}
-                        <i class="ti ti-checks" style="font-size:14px;color:#1cb0f6;"></i>
-                    {% else %}
-                        <i class="ti ti-check" style="font-size:14px;"></i>
-                    {% endif %}
+                <div class="burbuja-texto">{{ m.contenido }}</div>
+                <div class="burbuja-hora">
+                    {{ m.fecha[11:16] if m.fecha else '' }}
+                    <i class="ti {% if m.visto %}ti-checks{% else %}ti-check{% endif %}" style="font-size:14px;"></i>
                 </div>
             </div>
             {% else %}
-            <div class="message msg-maestra">
-                <div class="message-text">{{ msg.contenido }}</div>
-                <div class="message-time">{{ msg.fecha[11:16] if msg.fecha else '' }}</div>
+            <div class="burbuja burbuja-maestra">
+                <div class="burbuja-texto">{{ m.contenido }}</div>
+                <div class="burbuja-hora">{{ m.fecha[11:16] if m.fecha else '' }}</div>
             </div>
             {% endif %}
         {% endfor %}
     {% else %}
-    <div class="empty-chat">
-        <div class="empty-icon-big">
-            <i class="ti ti-message-2" style="color:#fff;font-size:52px;"></i>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                padding:32px 20px;text-align:center;">
+        <div style="width:92px;height:92px;border-radius:28px;background:var(--verde);
+                    box-shadow:0 5px 0 var(--verde-oscuro);display:flex;align-items:center;
+                    justify-content:center;margin-bottom:16px;">
+            <i class="ti ti-message-2" style="font-size:46px;color:#fff;"></i>
         </div>
-        <div class="empty-chat-titulo">Empieza la conversación</div>
-        <div class="empty-chat-texto">
-            Escríbele a la maestra con cualquier duda sobre {{ nombre }}. Ella recibirá tu mensaje.
+        <div style="font-size:19px;font-weight:800;color:var(--texto);margin-bottom:6px;">
+            Empieza la conversación
+        </div>
+        <div style="font-size:14px;font-weight:600;color:var(--texto-tenue);max-width:320px;line-height:1.5;">
+            Escríbele a la maestra con cualquier duda sobre {{ nombre }}.
         </div>
 
-        <div class="suggestions">
-            <div class="suggestion-label">Ideas para empezar</div>
-            <button class="suggestion-btn" onclick="usarSugerencia('¿Cómo va {{ nombre }} en clase?')">
+        <div class="sugerencias">
+            <button class="sugerencia" onclick="usar('¿Cómo va {{ nombre }} en clase?')">
                 <i class="ti ti-book"></i> ¿Cómo va {{ nombre }} en clase?
             </button>
-            <button class="suggestion-btn" onclick="usarSugerencia('¿Qué tarea tiene esta semana?')">
+            <button class="sugerencia" onclick="usar('¿Qué tarea tiene esta semana?')">
                 <i class="ti ti-notebook"></i> ¿Qué tarea tiene esta semana?
             </button>
-            <button class="suggestion-btn" onclick="usarSugerencia('Tengo una duda sobre una incidencia')">
-                <i class="ti ti-help"></i> Tengo una duda sobre una incidencia
+            <button class="sugerencia" onclick="usar('Tengo una duda sobre un aviso')">
+                <i class="ti ti-help"></i> Tengo una duda sobre un aviso
             </button>
         </div>
     </div>
     {% endif %}
 </div>
 
-<div class="input-area">
+<div class="chat-escribir">
     {% if ref_titulo %}
-    <div class="ref-activa">
-        <i class="ti ti-corner-down-right" style="font-size:16px;"></i>
-        <div class="ref-activa-texto">
-            <div class="ref-activa-label">Preguntando sobre</div>
-            <div class="ref-activa-titulo">{{ ref_titulo }}</div>
+    <div class="referencia" style="margin-bottom:10px;padding:9px 12px;">
+        <i class="ti ti-corner-down-right" style="font-size:15px;"></i>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:10px;font-weight:800;color:var(--texto-tenue);text-transform:uppercase;letter-spacing:.05em;">
+                Preguntando sobre
+            </div>
+            <div style="font-size:12px;font-weight:800;color:var(--texto);overflow:hidden;
+                        text-overflow:ellipsis;white-space:nowrap;">
+                {{ ref_titulo }}
+            </div>
         </div>
-        <a href="{{ url_for('alumno.chat_maestra') }}" class="ref-quitar" title="Quitar referencia">
-            <i class="ti ti-x" style="font-size:16px;"></i>
+        <a href="{{ url_for('alumno.chat_maestra') }}"
+           style="width:26px;height:26px;background:var(--superficie-3);border-radius:8px;
+                  display:flex;align-items:center;justify-content:center;color:var(--texto-suave);flex-shrink:0;">
+            <i class="ti ti-x" style="font-size:15px;"></i>
         </a>
     </div>
     {% endif %}
 
-    <form method="POST" class="input-form" id="chatForm">
+    <form method="POST" class="chat-forma" id="formaChat">
         {% if ref_titulo %}
         <input type="hidden" name="ref_tipo"   value="{{ ref_tipo }}">
         <input type="hidden" name="ref_id"     value="{{ ref_id }}">
         <input type="hidden" name="ref_titulo" value="{{ ref_titulo }}">
         {% endif %}
-        <textarea name="contenido" class="message-input" id="messageInput"
+
+        <textarea name="contenido" class="chat-campo" id="campoMensaje"
                   placeholder="Escribe un mensaje..." required
                   onkeydown="enviarConEnter(event)"></textarea>
-        <button type="submit" class="send-btn"><i class="ti ti-send"></i></button>
+
+        <button type="submit" class="chat-enviar"><i class="ti ti-send"></i></button>
     </form>
 </div>
 
@@ -190,28 +128,28 @@
 {% block js_extra %}
 <script>
     // Baja al último mensaje al abrir
-    window.addEventListener('load', function() {
-        var area = document.getElementById('messagesArea');
-        area.scrollTop = area.scrollHeight;
+    window.addEventListener('load', function () {
+        var lista = document.getElementById('listaMensajes');
+        lista.scrollTop = lista.scrollHeight;
     });
 
     // Enter envía, Shift+Enter hace salto de línea
     function enviarConEnter(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            document.getElementById('chatForm').submit();
+            document.getElementById('formaChat').submit();
         }
     }
 
-    function usarSugerencia(texto) {
-        var campo = document.getElementById('messageInput');
+    function usar(texto) {
+        var campo = document.getElementById('campoMensaje');
         campo.value = texto;
         campo.focus();
     }
 
-    // El cuadro de texto crece con el contenido
-    var campo = document.getElementById('messageInput');
-    campo.addEventListener('input', function() {
+    // El cuadro crece con el contenido
+    var campo = document.getElementById('campoMensaje');
+    campo.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });

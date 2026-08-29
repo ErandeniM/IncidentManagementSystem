@@ -128,7 +128,9 @@ CREATE TABLE avisos (
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizado TIMESTAMP,
     activo BOOLEAN DEFAULT 1,
-    id_docente INTEGER DEFAULT 1
+    id_docente INTEGER DEFAULT 1,
+        eliminado INTEGER DEFAULT 0,
+    fecha_eliminado TIMESTAMP
 );
 
 CREATE TABLE avisos_confirmaciones (

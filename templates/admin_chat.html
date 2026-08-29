@@ -1,156 +1,149 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat con {{ alumno.nombre }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;}
-        body{background:#fefcf5;min-height:100vh;color:#3c3c3c;}
+{% extends "base_admin.html" %}
+{% set activo = 'comunicacion' %}
 
-        .chat-container{max-width:720px;margin:0 auto;min-height:100vh;background:#fefcf5;display:flex;flex-direction:column;}
+{% block titulo %}Chat con {{ alumno.nombre }}{% endblock %}
+{% block clase_contenido %}chat-pantalla{% endblock %}
 
-        /* Header */
-        .chat-header{background:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px;border-bottom:3px solid #f0eee5;position:sticky;top:0;z-index:10;}
-        .back-btn{width:40px;height:40px;background:#f2f2f2;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#777;cursor:pointer;text-decoration:none;flex-shrink:0;}
-        .parent-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ff9600,#ff6b35);display:flex;align-items:center;justify-content:center;color:#fff;border:3px solid rgba(0,0,0,.08);flex-shrink:0;font-weight:900;font-size:16px;}
-        .parent-info{flex:1;min-width:0;}
-        .parent-name{font-size:16px;font-weight:900;color:#3c3c3c;}
-        .parent-sub{font-size:12px;font-weight:700;color:#777;margin-top:2px;}
+{% block css_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/padre.css') }}">
+{% endblock %}
 
-        /* Messages */
-        .messages-area{flex:1;padding:20px 16px 100px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+{% block flash %}{% endblock %}
 
-        .day-marker{align-self:center;background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:900;color:#777;margin:8px 0;box-shadow:0 2px 0 #e5e5e5;}
+{% block contenido %}
 
-        .message{max-width:75%;padding:10px 14px;border-radius:18px;position:relative;box-shadow:0 2px 0 rgba(0,0,0,.06);}
-        .message-text{font-size:14px;font-weight:700;line-height:1.4;word-wrap:break-word;}
-        .message-time{font-size:10px;font-weight:800;margin-top:4px;display:flex;align-items:center;gap:4px;justify-content:flex-end;}
+<div class="chat-cabecera">
+    <a href="{{ url_for('admin.admin_comunicacion') }}?hoja=mensajes" class="btn-atras">
+        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
+    </a>
 
-        /* Maestra (derecha - soy yo ahora) */
-        .msg-maestra{align-self:flex-end;background:#e8f9d5;border:2px solid #89e219;box-shadow:0 2px 0 #58cc02;border-bottom-right-radius:6px;}
-        .msg-maestra .message-text{color:#2d4a02;}
-        .msg-maestra .message-time{color:#58a002;}
+    <div class="avatar" style="width:46px;height:46px;font-size:14px;
+         background:{{ alumno.id | color_avatar }};">
+        {{ alumno.nombre[:2] | upper }}
+    </div>
 
-        /* Padre (izquierda) */
-        .msg-padre{align-self:flex-start;background:#fff;border:2px solid #e5e5e5;box-shadow:0 2px 0 #d5d5d5;border-bottom-left-radius:6px;}
-        .msg-padre .message-text{color:#3c3c3c;}
-        .msg-padre .message-time{color:#777;}
-
-        /* Empty state */
-        .empty-chat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;}
-        .empty-icon-big{width:100px;height:100px;background:linear-gradient(135deg,#ff9600,#ff6b35);border-radius:32px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 6px 0 #cc5028;}
-        .empty-title{font-size:20px;font-weight:900;color:#3c3c3c;margin-bottom:6px;}
-        .empty-text{font-size:14px;font-weight:700;color:#777;max-width:320px;line-height:1.5;}
-
-        /* Input area */
-        .input-area{background:#fff;border-top:3px solid #f0eee5;padding:12px 16px;position:sticky;bottom:0;}
-        .input-form{display:flex;gap:8px;align-items:flex-end;max-width:720px;margin:0 auto;}
-        .message-input{flex:1;background:#f7f7f7;border:2px solid transparent;border-radius:16px;padding:12px 14px;font-family:inherit;font-size:14px;font-weight:700;color:#3c3c3c;outline:none;resize:none;min-height:48px;max-height:120px;line-height:1.4;}
-        .message-input:focus{background:#fff;border-color:#58cc02;}
-        .message-input::placeholder{color:#afafaf;font-weight:600;}
-        .send-btn{width:48px;height:48px;background:#58cc02;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;box-shadow:0 3px 0 #43a800;flex-shrink:0;border:none;transition:transform .1s;}
-        .send-btn:hover{background:#43a800;}
-        .send-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #43a800;}
-        .send-btn i{font-size:22px;}
-    </style>
-</head>
-<body>
-
-<div class="chat-container">
-
-    <!-- Header -->
-    <div class="chat-header">
-        {% set desde = request.args.get('desde') %}
-        <a href="{{ url_for('admin.admin_alumnos') if desde == 'alumnos' else url_for('admin.admin_mensajes') }}" class="back-btn">
-            <i class="ti ti-arrow-left" style="font-size:20px;"></i>
-        </a>
-        <div class="parent-avatar">{{ alumno.nombre[:2] | upper }}</div>
-        <div class="parent-info">
-            <div class="parent-name">{{ alumno.nombre }}</div>
-            <div class="parent-sub">Papá / mamá · CURP {{ alumno.curp }}</div>
+    <div style="flex:1;min-width:0;">
+        <div class="chat-nombre">
+            {% if alumno.nombre_tutor %}
+                {{ alumno.nombre_tutor }}
+            {% else %}
+                Tutor de {{ alumno.nombre }}
+            {% endif %}
+        </div>
+        <div class="chat-estado">
+            <i class="ti ti-user" style="font-size:12px;"></i>
+            {{ alumno.nombre }} · {{ alumno.curp }}
         </div>
     </div>
 
-    <!-- Messages -->
-    <div class="messages-area" id="messagesArea">
-        {% if mensajes %}
-            {% set ns = namespace(fecha_actual='') %}
-            {% for msg in mensajes %}
-                {% set fecha_msg = msg.fecha | fecha_local if msg.fecha else '' %}
-                {% if fecha_msg != ns.fecha_actual %}
-                    {% set ns.fecha_actual = fecha_msg %}
-                    <div class="day-marker">{{ fecha_msg }}</div>
-                {% endif %}
-
-                {% if msg.remitente == 'maestra' %}
-                <div class="message msg-maestra">
-                    <div class="message-text">{{ msg.contenido }}</div>
-                    <div class="message-time">
-                        {{ msg.fecha | hora_local if msg.fecha else '' }}
-                        {% if msg.visto %}
-                            <i class="ti ti-checks" style="font-size:14px;color:#0f8fd6;"></i>
-                        {% else %}
-                            <i class="ti ti-check" style="font-size:14px;"></i>
-                        {% endif %}
-                    </div>
-                </div>
-                {% else %}
-                <div class="message msg-padre">
-                    <div class="message-text">{{ msg.contenido }}</div>
-                    <div class="message-time">{{ msg.fecha | hora_local if msg.fecha else '' }}</div>
-                </div>
-                {% endif %}
-            {% endfor %}
-        {% else %}
-        <div class="empty-chat">
-            <div class="empty-icon-big">
-                <i class="ti ti-message-2" style="color:#fff;font-size:52px;"></i>
-            </div>
-            <div class="empty-title">Sin mensajes todavía</div>
-            <div class="empty-text">Escribe el primer mensaje al padre / madre de {{ alumno.nombre }}.</div>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Input area -->
-    <div class="input-area">
-        <form method="POST" class="input-form" id="chatForm">
-            <textarea name="contenido"
-                      class="message-input"
-                      id="messageInput"
-                      placeholder="Escribe una respuesta..."
-                      required
-                      onkeydown="handleEnter(event)"></textarea>
-            <button type="submit" class="send-btn">
-                <i class="ti ti-send"></i>
-            </button>
-        </form>
-    </div>
-
+    <a href="{{ url_for('admin.admin_expediente', id_alumno=alumno.id) }}"
+       class="btn btn-chico btn-borde">
+        <i class="ti ti-folder"></i> Expediente
+    </a>
 </div>
 
+<div class="chat-privado">
+    <i class="ti ti-shield-check" style="font-size:16px;"></i>
+    Conversación privada · solo tú y este tutor pueden verla
+</div>
+
+<div class="chat-mensajes" id="listaMensajes">
+    {% if mensajes %}
+        {% set ns = namespace(dia='') %}
+        {% for m in mensajes %}
+            {% set fecha = m.fecha[:10] if m.fecha else '' %}
+            {% if fecha != ns.dia %}
+                {% set ns.dia = fecha %}
+                <div class="dia-marca">{{ fecha }}</div>
+            {% endif %}
+
+            {% if m.remitente == 'maestra' %}
+            <div class="burbuja burbuja-mia">
+                <div class="burbuja-texto">{{ m.contenido }}</div>
+                <div class="burbuja-hora">
+                    {{ m.fecha[11:16] if m.fecha else '' }}
+                    <i class="ti {% if m.visto %}ti-checks{% else %}ti-check{% endif %}" style="font-size:14px;"></i>
+                </div>
+            </div>
+            {% else %}
+            <div class="burbuja burbuja-maestra">
+                {% if m.ref_titulo %}
+                <div class="referencia">
+                    <i class="ti ti-corner-down-right" style="font-size:12px;"></i>
+                    {{ m.ref_titulo }}
+                </div>
+                {% endif %}
+                <div class="burbuja-texto">{{ m.contenido }}</div>
+                <div class="burbuja-hora">{{ m.fecha[11:16] if m.fecha else '' }}</div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                padding:32px 20px;text-align:center;">
+        <div style="width:88px;height:88px;border-radius:26px;background:var(--azul);
+                    box-shadow:0 4px 0 var(--azul-oscuro);display:flex;align-items:center;
+                    justify-content:center;margin-bottom:15px;">
+            <i class="ti ti-message-2" style="font-size:44px;color:#fff;"></i>
+        </div>
+        <div style="font-size:18px;font-weight:800;color:var(--texto);margin-bottom:6px;">
+            Todavía no han conversado
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--texto-tenue);max-width:340px;line-height:1.5;">
+            Escríbele al tutor de {{ alumno.nombre }}. Recibirá un correo si tiene
+            las notificaciones activas.
+        </div>
+
+        <div class="sugerencias">
+            <button class="sugerencia" onclick="usar('Buenas tardes, quería comentarle algo sobre {{ alumno.nombre }}.')">
+                <i class="ti ti-message"></i> Buenas tardes, quería comentarle algo…
+            </button>
+            <button class="sugerencia" onclick="usar('{{ alumno.nombre }} tuvo un muy buen día hoy.')">
+                <i class="ti ti-mood-happy"></i> {{ alumno.nombre }} tuvo un muy buen día
+            </button>
+            <button class="sugerencia" onclick="usar('¿Podríamos agendar una cita para platicar sobre {{ alumno.nombre }}?')">
+                <i class="ti ti-calendar"></i> ¿Podríamos agendar una cita?
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="chat-escribir">
+    <form method="POST" class="chat-forma" id="formaChat">
+        <textarea name="contenido" class="chat-campo" id="campoMensaje"
+                  placeholder="Escribe un mensaje al tutor..." required
+                  onkeydown="enviarConEnter(event)"></textarea>
+        <button type="submit" class="chat-enviar"><i class="ti ti-send"></i></button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block js_extra %}
 <script>
-    window.addEventListener('load', function() {
-        var area = document.getElementById('messagesArea');
-        area.scrollTop = area.scrollHeight;
+    window.addEventListener('load', function () {
+        var lista = document.getElementById('listaMensajes');
+        lista.scrollTop = lista.scrollHeight;
     });
 
-    function handleEnter(e) {
+    function enviarConEnter(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            document.getElementById('chatForm').submit();
+            document.getElementById('formaChat').submit();
         }
     }
 
-    var input = document.getElementById('messageInput');
-    input.addEventListener('input', function() {
+    function usar(texto) {
+        var campo = document.getElementById('campoMensaje');
+        campo.value = texto;
+        campo.focus();
+    }
+
+    var campo = document.getElementById('campoMensaje');
+    campo.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 </script>
-
-</body>
-</html>
+{% endblock %}

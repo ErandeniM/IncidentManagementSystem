@@ -1,136 +1,200 @@
 {% extends "base_admin.html" %}
 {% set activo = 'incidencias' %}
 
-{% block titulo %}Todas las incidencias{% endblock %}
-
-{% block css_extra %}
-<style>
-    .filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:16px;}
-    .filter-chip{background:#fff;border:2px solid #e5e5e5;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:800;color:#777;white-space:nowrap;box-shadow:0 2px 0 #e5e5e5;display:flex;align-items:center;gap:5px;text-decoration:none;}
-    .filter-chip.active{background:#ff9600;color:#fff;border-color:#cc5028;box-shadow:0 2px 0 #cc5028;}
-
-    .inc-card{background:#fff;border:2px solid #e5e5e5;border-radius:16px;padding:14px;box-shadow:0 3px 0 #e5e5e5;text-decoration:none;color:inherit;display:block;margin-bottom:10px;}
-    .inc-card:hover{background:#fefcf5;}
-    .inc-card.pendiente{border-color:#ffc107;box-shadow:0 3px 0 #e0a800;background:#fffbf0;}
-    .inc-card.firmada{border-color:#89e219;box-shadow:0 3px 0 #58cc02;background:#f4fce4;}
-
-    .inc-header-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
-    .inc-avatar{width:44px;height:44px;font-size:14px;}
-    .inc-info{flex:1;min-width:0;}
-    .inc-alumno{font-size:15px;font-weight:900;color:#3c3c3c;}
-    .inc-time{font-size:11px;font-weight:700;color:#777;margin-top:1px;display:flex;align-items:center;gap:4px;}
-
-    .inc-tipo-chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 0 rgba(0,0,0,.15);color:#fff;}
-    .chip-caida{background:#ff4b4b;box-shadow:0 2px 0 #d33;}
-    .chip-llanto{background:#ffc107;box-shadow:0 2px 0 #b08800;color:#3c3c3c;}
-    .chip-logro{background:#58cc02;box-shadow:0 2px 0 #43a800;}
-    .chip-comentario{background:#1cb0f6;box-shadow:0 2px 0 #0f8fd6;}
-    .chip-otro{background:#777;box-shadow:0 2px 0 #555;}
-
-    .inc-desc{background:#fff;border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;color:#3c3c3c;line-height:1.4;margin-top:6px;border:2px solid #e5e5e5;}
-    .inc-estados{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
-    .estado-badge{font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;background:#f2f2f2;color:#777;border:1.5px solid #e5e5e5;}
-    .badge-ok{background:#e8f9d5;color:#58a002;border-color:#89e219;}
-    .badge-alert{background:#fff4e5;color:#e07800;border-color:#ffc107;}
-
-    .inc-comentario-padre{background:#dcf4ff;border-left:3px solid #1cb0f6;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;font-weight:700;color:#0a3a6b;}
-    .inc-comentario-label{font-size:10px;font-weight:900;color:#0f8fd6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
-</style>
-{% endblock %}
+{% block titulo %}Incidencias{% endblock %}
 
 {% block encabezado %}
-<div class="topbar">
-    <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
-        <i class="ti ti-arrow-left" style="font-size:20px;"></i>
-    </a>
+<div class="barra">
     <div>
-        <div class="page-title">Todas las incidencias</div>
-        <div class="page-sub">{{ incidencias | length }} incidencia(s)</div>
+        <div class="barra-titulo">Incidencias</div>
+        <div class="barra-sub">{{ incidencias | length }} registro(s) del grupo</div>
     </div>
-    <div class="page-icon ic-naranja"><i class="ti ti-alert-triangle" style="font-size:22px;"></i></div>
+
+    <button class="btn btn-chico btn-coral" style="margin-left:auto;" onclick="abrirNueva()">
+        <i class="ti ti-plus"></i> Nueva incidencia
+    </button>
+</div>
+
+<div class="chips" style="margin-bottom:18px;">
+    <a href="{{ url_for('admin.admin_todas_incidencias') }}"
+       class="chip {% if filtro == 'todo' %}activo{% endif %}">Todas</a>
+    <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes"
+       class="chip {% if filtro == 'pendientes' %}activo{% endif %}">Sin firmar</a>
+    <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=firmadas"
+       class="chip {% if filtro == 'firmadas' %}activo{% endif %}">Firmadas</a>
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<div class="filters">
-    <a href="{{ url_for('admin.admin_todas_incidencias') }}" class="filter-chip {% if filtro == 'todo' %}active{% endif %}">
-        <i class="ti ti-list" style="font-size:14px;"></i> Todas
-    </a>
-    <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=pendientes" class="filter-chip {% if filtro == 'pendientes' %}active{% endif %}">
-        <i class="ti ti-clock" style="font-size:14px;"></i> Sin firmar
-    </a>
-    <a href="{{ url_for('admin.admin_todas_incidencias') }}?filtro=firmadas" class="filter-chip {% if filtro == 'firmadas' %}active{% endif %}">
-        <i class="ti ti-check" style="font-size:14px;"></i> Firmadas
-    </a>
-</div>
-
 {% if incidencias %}
     {% for inc in incidencias %}
-    <a href="{{ url_for('admin.admin_expediente', id_alumno=inc.id_alumno) }}"
-       class="inc-card {% if not inc.enterado %}pendiente{% else %}firmada{% endif %}">
-        <div class="inc-header-row">
-            <div class="avatar inc-avatar" style="background:{{ inc.id_alumno | color_avatar }}">{{ inc.nombre_alumno[:2] | upper }}</div>
-            <div class="inc-info">
-                <div class="inc-alumno">{{ inc.nombre_alumno }}</div>
-                <div class="inc-time">
-                    <i class="ti ti-clock" style="font-size:11px;"></i>
-                    {{ inc.fecha[:16] if inc.fecha else '' }}
-                </div>
+    {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'icono':'ti-alert-triangle', 'color':'#777'}) %}
+    {% set n = niveles_map.get(inc.nivel, {'etiqueta':'Informativo'}) %}
+
+    <div class="fila {% if not inc.enterado %}fila-pendiente{% else %}fila-lista{% endif %}"
+         style="flex-direction:column;align-items:stretch;gap:10px;">
+
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div class="avatar" style="width:44px;height:44px;font-size:13px;
+                 background:{{ inc.id_alumno | color_avatar }};">
+                {{ inc.nombre_alumno[:2] | upper }}
             </div>
-          {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'icono': 'ti-alert-triangle', 'color': '#777777'}) %}
-            {% set n = niveles_map.get(inc.nivel, {'etiqueta': 'Informativo', 'color': '#7dd3fc'}) %}
-            <span class="inc-tipo-chip" style="background:{{ t.color }};box-shadow:0 2px 0 rgba(0,0,0,.2);">
-                <i class="ti {{ t.icono }}" style="font-size:11px;"></i> {{ t.etiqueta }}
-            </span>
-            <span class="inc-tipo-chip" style="background:{{ n.color }};color:#3c3c3c;box-shadow:0 2px 0 rgba(0,0,0,.15);">
-                {{ n.etiqueta }}
-            </span>
+
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;">
+                    <span class="etiqueta" style="background:{{ t.color }};color:#fff;">
+                        <i class="ti {{ t.icono }}" style="font-size:11px;"></i> {{ t.etiqueta }}
+                    </span>
+                    <span class="etiqueta
+                        {% if inc.nivel == 'urgente' %}eti-coral
+                        {% elif inc.nivel == 'seguimiento' %}eti-amarilla
+                        {% else %}eti-gris{% endif %}">
+                        {{ n.etiqueta }}
+                    </span>
+                    <span class="fila-sub">{{ inc.fecha[:16] if inc.fecha else '' }}</span>
+                </div>
+
+                <div class="fila-titulo">{{ inc.nombre_alumno }}</div>
+                <div class="fila-sub" style="font-size:13px;line-height:1.45;margin-top:3px;color:var(--texto);">
+                    {{ inc.descripcion }}
+                </div>
+
+                {% if inc.accion_docente %}
+                <div style="background:var(--verde-suave);border-left:3px solid var(--verde);
+                            border-radius:9px;padding:8px 11px;margin-top:8px;font-size:12px;
+                            font-weight:700;color:var(--verde-texto);line-height:1.45;">
+                    <i class="ti ti-first-aid-kit" style="font-size:13px;vertical-align:-2px;"></i>
+                    {{ inc.accion_docente }}
+                </div>
+                {% endif %}
+
+                {% if inc.comentario_padre %}
+                <div style="background:var(--azul-suave);border-left:3px solid var(--azul);
+                            border-radius:9px;padding:8px 11px;margin-top:8px;font-size:12px;
+                            font-weight:700;color:var(--azul-texto);line-height:1.45;">
+                    <strong>{{ inc.firmado_por or 'El tutor' }} respondió:</strong>
+                    {{ inc.comentario_padre }}
+                </div>
+                {% endif %}
+            </div>
         </div>
 
-        <div class="inc-desc">{{ inc.descripcion }}</div>
-        {% if inc.accion_docente %}
-        <div style="background:#f4fce4;border-left:3px solid #58cc02;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;font-weight:700;color:#2d4a02;">
-            <strong>Atención brindada:</strong> {{ inc.accion_docente }}
-        </div>
-        {% endif %}
-        <div class="inc-estados">
-            <span class="estado-badge {% if inc.visto %}badge-ok{% endif %}">
-                {% if inc.visto %}<i class="ti ti-eye" style="font-size:11px;"></i> Visto
-                {% else %}<i class="ti ti-eye-off" style="font-size:11px;"></i> No visto{% endif %}
+        <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+            <span class="etiqueta {% if inc.visto %}eti-verde{% else %}eti-gris{% endif %}">
+                <i class="ti {% if inc.visto %}ti-eye{% else %}ti-eye-off{% endif %}" style="font-size:12px;"></i>
+                {% if inc.visto %}Vista{% else %}Sin abrir{% endif %}
             </span>
-            <span class="estado-badge {% if inc.enterado %}badge-ok{% else %}badge-alert{% endif %}">
-                {% if inc.enterado %}<i class="ti ti-check" style="font-size:11px;"></i> Firmado
-                {% else %}<i class="ti ti-clock" style="font-size:11px;"></i> Sin firmar{% endif %}
-            </span>
-            {% if inc.fecha_enterado %}
-            <span class="estado-badge badge-ok">
-                <i class="ti ti-calendar" style="font-size:11px;"></i> {{ inc.fecha_enterado[:16] }}
-            </span>
-            {% endif %}
-        </div>
 
-        {% if inc.comentario_padre %}
-        <div class="inc-comentario-padre">
-            <div class="inc-comentario-label">Respuesta de {{ inc.firmado_por or 'el tutor' }}</div>
-            {{ inc.comentario_padre }}
+            <span class="etiqueta {% if inc.enterado %}eti-verde{% else %}eti-coral{% endif %}">
+                <i class="ti {% if inc.enterado %}ti-check{% else %}ti-clock{% endif %}" style="font-size:12px;"></i>
+                {% if inc.enterado %}
+                    Firmada {{ inc.fecha_enterado[:10] if inc.fecha_enterado else '' }}
+                {% else %}
+                    Sin firmar
+                {% endif %}
+            </span>
+
+            <div class="acciones-fila" style="margin-left:auto;">
+                <a href="{{ url_for('admin.acta_pdf', id_incidencia=inc.id) }}"
+                   target="_blank" class="btn btn-chico btn-borde">
+                    <i class="ti ti-file-text"></i> Acta PDF
+                </a>
+                <a href="{{ url_for('admin.admin_expediente', id_alumno=inc.id_alumno) }}"
+                   class="btn btn-chico btn-azul">
+                    <i class="ti ti-folder"></i> Expediente
+                </a>
+            </div>
         </div>
-        {% endif %}
-    </a>
+    </div>
     {% endfor %}
 {% else %}
-<div class="empty">
-    <div class="empty-icon"><i class="ti ti-mood-happy"></i></div>
-    <div class="empty-title">
+<div class="vacio">
+    <div class="vacio-icono"><i class="ti ti-mood-happy"></i></div>
+    <div class="vacio-titulo">
         {% if filtro == 'pendientes' %}No hay incidencias pendientes
-        {% elif filtro == 'firmadas' %}No hay incidencias firmadas aún
+        {% elif filtro == 'firmadas' %}Todavía no hay incidencias firmadas
         {% else %}No hay incidencias registradas{% endif %}
     </div>
-    <div class="empty-text">
-        {% if filtro == 'pendientes' %}Todos los padres han firmado sus incidencias.
-        {% else %}Cuando registres una incidencia aparecerá aquí.{% endif %}
+    <div class="vacio-texto">
+        {% if filtro == 'pendientes' %}Todos los tutores han firmado.
+        {% else %}Registra la primera con el botón de arriba.{% endif %}
     </div>
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block modales %}
+<div class="modal-fondo" id="modalNueva">
+    <div class="modal" style="border-color:var(--coral);">
+        <div class="modal-cabecera" style="background:var(--coral);">
+            <div class="modal-icono"><i class="ti ti-plus" style="font-size:22px;"></i></div>
+            <div class="modal-titulo">Nueva incidencia</div>
+            <button class="modal-cerrar" onclick="cerrarNueva()">
+                <i class="ti ti-x" style="font-size:18px;"></i>
+            </button>
+        </div>
+
+        <div class="modal-cuerpo">
+            <form method="POST" id="formaNueva">
+                <label class="campo-etiqueta">Alumno</label>
+                <select name="id_alumno" class="campo" id="selectorAlumno" required
+                        onchange="ajustarDestino()">
+                    <option value="">Elige un alumno</option>
+                    {% for a in alumnos %}
+                    <option value="{{ a.id }}">{{ a.nombre }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="campo-etiqueta">Tipo</label>
+                <select name="tipo" class="campo" required>
+                    {% for clave, etiqueta, icono, color in tipos %}
+                    <option value="{{ clave }}">{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="campo-etiqueta">Nivel de atención</label>
+                <select name="nivel" class="campo" required>
+                    {% for clave, etiqueta, color in niveles %}
+                    <option value="{{ clave }}">{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="campo-etiqueta">¿Qué ocurrió?</label>
+                <textarea name="descripcion" class="campo" required
+                          placeholder="Describe el hecho: qué pasó, dónde y a qué hora..."></textarea>
+
+                <label class="campo-etiqueta">¿Qué hiciste al respecto?</label>
+                <textarea name="accion_docente" class="campo"
+                          placeholder="Ejemplo: se revisó la rodilla, se aplicó hielo, se avisó a dirección..."></textarea>
+                <div class="campo-ayuda">
+                    Este campo es tu respaldo. Documenta la atención que diste.
+                </div>
+
+                <button type="submit" class="btn btn-ancho btn-coral">
+                    <i class="ti ti-check" style="font-size:17px;"></i> Registrar incidencia
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    function abrirNueva()  { document.getElementById('modalNueva').classList.add('abierto'); }
+    function cerrarNueva() { document.getElementById('modalNueva').classList.remove('abierto'); }
+
+    // La ruta lleva el id del alumno, así que se arma al elegirlo
+    function ajustarDestino() {
+        var id = document.getElementById('selectorAlumno').value;
+        document.getElementById('formaNueva').action =
+            id ? '/admin/nueva_incidencia/' + id : '';
+    }
+
+    document.getElementById('modalNueva').addEventListener('click', function (e) {
+        if (e.target === this) cerrarNueva();
+    });
+</script>
 {% endblock %}

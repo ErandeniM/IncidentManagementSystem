@@ -222,13 +222,24 @@ def acta_incidencia(inc, alumno):
 
     # 5. Trazabilidad
     story.append(Paragraph('5. Trazabilidad de la notificación', s['h2']))
-    story.append(Table([
-        ['Registrada',       fecha[:16] or '—'],
-        ['Vista por tutor',  (inc.get('fecha_visto') or '')[:16] or 'Sin abrir'],
-        ['Firma de enterado', (inc.get('fecha_enterado') or '')[:16] or 'Pendiente'],
-        ['Firmada por',      inc.get('firmado_por') or '—'],
-    ], colWidths=[1.6 * inch, 4.4 * inch], style=_estilo_tabla()))
 
+    filas_traza = [
+        ['Registrada',        fecha[:16] or '—'],
+        ['Vista por tutor',   (inc.get('fecha_visto') or '')[:16] or 'Sin abrir'],
+        ['Firma de enterado', (inc.get('fecha_enterado') or '')[:16] or 'Pendiente'],
+        ['Firmada por',       inc.get('firmado_por') or '—'],
+    ]
+
+    # El texto que el tutor aceptó al firmar, tal como estaba en ese momento
+    if inc.get('texto_declaracion'):
+        filas_traza.append([
+            'Declaración aceptada',
+            Paragraph(f'<i>"{inc["texto_declaracion"]}"</i>', s['texto'])
+        ])
+
+    story.append(Table(filas_traza,
+                       colWidths=[1.6 * inch, 4.4 * inch],
+                       style=_estilo_tabla()))
     # 6. Respuesta del tutor
     if inc.get('comentario_padre'):
         story.append(Paragraph('6. Respuesta del tutor', s['h2']))

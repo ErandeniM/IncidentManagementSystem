@@ -1,389 +1,378 @@
 {% extends "base_admin.html" %}
 {% set activo = 'alumnos' %}
 
-{% block titulo %}{{ alumno.nombre }} — Expediente{% endblock %}
-{% block clase_main %}main-sin-padding{% endblock %}
-
-{% block css_extra %}
-<style>
-    .expediente-header{background:#fff;padding:20px 28px;display:flex;align-items:center;gap:16px;border-bottom:3px solid #f0eee5;flex-wrap:wrap;}
-    .exp-back{width:44px;height:44px;background:#f2f2f2;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#777;text-decoration:none;flex-shrink:0;}
-    .avatar-alumno{width:64px;height:64px;border-radius:20px;font-size:22px;border-width:3px;}
-    .alumno-detail{flex:1;min-width:0;}
-    .alumno-name{font-size:22px;font-weight:900;color:#3c3c3c;}
-    .alumno-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;}
-    .meta-item{font-size:12px;font-weight:700;color:#777;display:flex;align-items:center;gap:4px;}
-    .meta-item.mail{color:#0f8fd6;}
-    .meta-item.tutor{color:#58a002;}
-    .meta-item i{font-size:14px;}
-
-    .tabs-nav{background:#fff;padding:0 28px;border-bottom:3px solid #f0eee5;display:flex;gap:6px;overflow-x:auto;}
-    .tab-btn{padding:14px 18px;font-size:13px;font-weight:800;color:#777;background:none;border:none;cursor:pointer;position:relative;display:flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;}
-    .tab-btn.active{color:#ff6b35;}
-    .tab-btn.active::after{content:"";position:absolute;bottom:-3px;left:12px;right:12px;height:3px;background:#ff6b35;border-radius:2px 2px 0 0;}
-
-    .tab-panel{display:none;padding:24px 28px 60px;}
-    .tab-panel.active{display:block;}
-    .panel-grid{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start;}
-
-    .flash{margin:16px 28px 0;}
-
-    .inc-item{background:#fefcf5;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 0 #e5e5e5;}
-    .inc-item.pending{background:#fffbf0;border-color:#ffc107;box-shadow:0 2px 0 #e0a800;}
-    .inc-item.firmed{background:#f4fce4;border-color:#89e219;box-shadow:0 2px 0 #58cc02;}
-    .inc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
-    .inc-type{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:900;text-transform:uppercase;color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.15);}
-    .t-caida{background:#ff4b4b;}
-    .t-llanto{background:#ffc107;color:#3c3c3c;}
-    .t-logro{background:#58cc02;}
-    .t-comentario{background:#1cb0f6;}
-    .t-otro{background:#777;}
-    .inc-time{font-size:11px;font-weight:700;color:#777;}
-    .inc-desc{font-size:13px;font-weight:700;color:#3c3c3c;line-height:1.4;margin:4px 0;}
-    .inc-badges{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
-    .badge-status{font-size:10px;font-weight:900;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;background:#e5e5e5;color:#777;}
-    .badge-status.ok{background:#d7ffb8;color:#58a002;}
-    .badge-status.warn{background:#fff4e5;color:#e07800;}
-    .comentario-padre{background:#dcf4ff;border-left:3px solid #1cb0f6;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;color:#0a3a6b;margin-top:6px;}
-
-    .trim-card{background:#fefcf5;border:2px solid #e5e5e5;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 0 #e5e5e5;}
-    .trim-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #f0eee5;}
-    .trim-label{font-size:14px;font-weight:900;color:#ff6b35;}
-    .cal-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;}
-    .cal-materia{font-size:12px;font-weight:800;color:#3c3c3c;}
-    .cal-num{font-size:20px;font-weight:900;min-width:44px;text-align:center;}
-    .num-high{color:#58cc02;}
-    .num-mid{color:#ff9600;}
-    .num-low{color:#ff4b4b;}
-    .num-none{color:#c4c4c4;}
-    .faltas-line{font-size:11px;font-weight:800;color:#777;margin-top:8px;}
-
-    .slider-group{margin-bottom:14px;}
-    .slider-label{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:#3c3c3c;margin-bottom:6px;}
-    .slider-val{color:#ff6b35;font-weight:900;}
-    input[type=range]{width:100%;accent-color:#ff6b35;}
-    .perfil-bar-row{margin-bottom:12px;}
-    .perfil-bar-label{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:#3c3c3c;margin-bottom:5px;}
-    .perfil-bar-bg{background:#f0eee5;height:10px;border-radius:20px;overflow:hidden;}
-    .perfil-bar-fill{height:100%;background:linear-gradient(90deg,#ff9600,#ff6b35);border-radius:20px;}
-
-    .act-item{background:#fefcf5;border:2px solid #e5e5e5;border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
-    .act-chip{font-size:10px;font-weight:900;padding:3px 8px;border-radius:20px;background:#dcf4ff;color:#0f8fd6;text-transform:uppercase;}
-    .act-text{flex:1;font-size:13px;font-weight:700;color:#3c3c3c;}
-    .act-date{font-size:10px;font-weight:700;color:#afafaf;}
-
-    @media (max-width:900px){
-        .panel-grid{grid-template-columns:1fr;}
-        .tab-panel{padding:16px;padding-bottom:100px;}
-        .expediente-header{padding:16px;}
-        .tabs-nav{padding:0 16px;}
-        .alumno-name{font-size:18px;}
-        .flash{margin:16px 16px 0;}
-    }
-</style>
-{% endblock %}
+{% block titulo %}{{ alumno.nombre }}{% endblock %}
 
 {% block encabezado %}
-<div class="expediente-header">
-{% set desde = request.args.get('desde') %}
-    <a href="{{ url_for('admin.admin_alumnos') if desde == 'alumnos' else url_for('admin.admin_dashboard') }}" class="exp-back">
+<div class="barra">
+    <a href="{{ url_for('admin.admin_alumnos') }}" class="btn-atras">
         <i class="ti ti-arrow-left" style="font-size:20px;"></i>
     </a>
-    <div class="avatar avatar-alumno av-1">{{ alumno.nombre[:2] | upper }}</div>
-    <div class="alumno-detail">
-        <div class="alumno-name">{{ alumno.nombre }}</div>
-        <div class="alumno-meta">
-            <span class="meta-item"><i class="ti ti-id"></i> {{ alumno.curp }}</span>
-            {% if alumno.nombre_tutor %}
-            <span class="meta-item tutor"><i class="ti ti-user-check"></i> {{ alumno.nombre_tutor }}</span>
-            {% endif %}
-            {% if alumno.correo_padre %}
-            <span class="meta-item mail"><i class="ti ti-mail"></i> {{ alumno.correo_padre }}</span>
-            {% endif %}
+
+    <div class="avatar" style="width:52px;height:52px;font-size:16px;
+         background:{{ alumno.id | color_avatar }};">
+        {{ alumno.nombre[:2] | upper }}
+    </div>
+
+    <div>
+        <div class="barra-titulo">{{ alumno.nombre }}</div>
+        <div class="barra-sub">
+            {{ alumno.curp }}
+            {% if alumno.nombre_tutor %} · Tutor: {{ alumno.nombre_tutor }}{% endif %}
         </div>
     </div>
-    <a href="{{ url_for('admin.expediente_pdf', id_alumno=id_alumno) }}" class="btn-chico btn-azul">
-        <i class="ti ti-file-download" style="font-size:15px;"></i> PDF
-    </a>
+
+    <div class="acciones-fila" style="margin-left:auto;">
+        <a href="{{ url_for('admin.admin_chat', id_alumno=id_alumno) }}"
+           class="btn btn-chico btn-borde">
+            <i class="ti ti-message-circle"></i> Escribir
+        </a>
+        <a href="{{ url_for('admin.expediente_pdf', id_alumno=id_alumno) }}"
+           class="btn btn-chico btn-borde">
+            <i class="ti ti-file-download"></i> PDF
+        </a>
+        <button class="btn btn-chico btn-borde" onclick="abrirClave()">
+            <i class="ti ti-key"></i> Contraseña
+        </button>
+    </div>
 </div>
 
-<div class="tabs-nav">
-    <button class="tab-btn active" data-tab="incidencias"><i class="ti ti-alert-triangle" style="font-size:16px;"></i> Incidencias</button>
-    <button class="tab-btn" data-tab="calificaciones"><i class="ti ti-chart-bar" style="font-size:16px;"></i> Calificaciones</button>
-    <button class="tab-btn" data-tab="perfil"><i class="ti ti-brain" style="font-size:16px;"></i> Perfil</button>
-    <button class="tab-btn" data-tab="actividades"><i class="ti ti-bulb" style="font-size:16px;"></i> Actividades</button>
+<div class="pestanas">
+    <button class="pestana activa" onclick="verHoja('incidencias', this)">
+        <i class="ti ti-alert-triangle" style="font-size:17px;"></i>
+        Incidencias
+        {% if incidencias %}<span class="pestana-contador"
+              style="background:var(--borde-fuerte);color:var(--texto-suave);">{{ incidencias | length }}</span>{% endif %}
+    </button>
+
+    <button class="pestana" onclick="verHoja('calificaciones', this)">
+        <i class="ti ti-chart-bar" style="font-size:17px;"></i>
+        Calificaciones
+    </button>
+
+    <button class="pestana" onclick="verHoja('perfil', this)">
+        <i class="ti ti-star" style="font-size:17px;"></i>
+        Perfil
+    </button>
+
+    <button class="pestana" onclick="verHoja('actividades', this)">
+        <i class="ti ti-bulb" style="font-size:17px;"></i>
+        Actividades
+        {% if actividades %}<span class="pestana-contador"
+              style="background:var(--borde-fuerte);color:var(--texto-suave);">{{ actividades | length }}</span>{% endif %}
+    </button>
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<!-- ══ INCIDENCIAS ══ -->
-<div class="tab-panel active" id="tab-incidencias">
-    <div class="panel-grid">
-        <div class="card">
-            <div class="card-title"><i class="ti ti-plus" style="color:#ff9600;"></i> Nueva incidencia</div>
-            <form action="{{ url_for('admin.nueva_incidencia', id_alumno=id_alumno) }}" method="POST">
-                <label class="form-label">Tipo de incidencia</label>
-                <select name="tipo" class="form-input" required>
-                    {% for clave, etiqueta, icono, color in tipos %}
-                    <option value="{{ clave }}">{{ etiqueta }}</option>
-                    {% endfor %}
-                </select>
+<!-- ══════════ INCIDENCIAS ══════════ -->
 
-                <label class="form-label">Nivel de atención</label>
-                <select name="nivel" class="form-input" required>
-                    {% for clave, etiqueta, color in niveles %}
-                    <option value="{{ clave }}">{{ etiqueta }}</option>
-                    {% endfor %}
-                </select>
-                <label class="form-label">¿Qué ocurrió?</label>
-                <textarea name="descripcion" class="form-input" required
-                          placeholder="Describe el hecho con detalle: qué pasó, dónde y a qué hora..."></textarea>
+<div class="hoja activa" id="hoja-incidencias">
+    <div class="dos-columnas">
 
-                <label class="form-label">¿Qué hiciste al respecto?</label>
-                <textarea name="accion_docente" class="form-input"
-                          placeholder="Ejemplo: Se aplicó agua fría, se revisó la rodilla, se avisó a dirección..."></textarea>
-                <div style="font-size:11px;font-weight:700;color:#afafaf;margin-top:-8px;margin-bottom:12px;">
-                    Este campo es tu respaldo. Documenta la atención que diste.
-                </div>
+        <!-- Registrar -->
+        <div class="panel panel-coral">
+            <div class="panel-cabecera">
+                <i class="ti ti-plus" style="font-size:19px;"></i>
+                <span class="panel-titulo">Nueva incidencia</span>
+            </div>
 
-                <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Registrar</button>
-            </form>
+            <div class="panel-cuerpo">
+                <form action="{{ url_for('admin.nueva_incidencia', id_alumno=id_alumno) }}" method="POST">
+                    <label class="campo-etiqueta">Tipo</label>
+                    <select name="tipo" class="campo" required>
+                        {% for clave, etiqueta, icono, color in tipos %}
+                        <option value="{{ clave }}">{{ etiqueta }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="campo-etiqueta">Nivel de atención</label>
+                    <select name="nivel" class="campo" required>
+                        {% for clave, etiqueta, color in niveles %}
+                        <option value="{{ clave }}">{{ etiqueta }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="campo-etiqueta">¿Qué ocurrió?</label>
+                    <textarea name="descripcion" class="campo" required
+                              placeholder="Describe el hecho: qué pasó, dónde y a qué hora..."></textarea>
+
+                    <label class="campo-etiqueta">¿Qué hiciste al respecto?</label>
+                    <textarea name="accion_docente" class="campo"
+                              placeholder="Ejemplo: se revisó la rodilla, se aplicó hielo..."></textarea>
+                    <div class="campo-ayuda">
+                        Este campo es tu respaldo. Documenta la atención que diste.
+                    </div>
+
+                    <button type="submit" class="btn btn-ancho btn-coral">
+                        <i class="ti ti-check" style="font-size:17px;"></i> Registrar
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="list-title">
-                Historial
-                <span class="count-chip">{{ incidencias | length }}</span>
-            </div>
+        <!-- Historial -->
+        <div>
+            <div class="seccion-titulo">Historial ({{ incidencias | length }})</div>
+
             {% if incidencias %}
                 {% for inc in incidencias %}
-                <div class="inc-item {% if inc.enterado %}firmed{% elif inc.tipo != 'Logro' %}pending{% endif %}">
-                    <div class="inc-head">
-                        {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'color': '#777777', 'icono': 'ti-alert-triangle'}) %}
-                        {% set n = niveles_map.get(inc.nivel, {'etiqueta': 'Informativo', 'color': '#7dd3fc'}) %}
-                        <span class="inc-type" style="background:{{ t.color }};box-shadow:0 2px 0 rgba(0,0,0,.2);">
-                            <i class="ti {{ t.icono }}" style="font-size:10px;"></i> #{{ inc.numero }} · {{ t.etiqueta }}
-                        </span>
-                        <span class="inc-type" style="background:{{ n.color }};color:#3c3c3c;box-shadow:0 2px 0 rgba(0,0,0,.15);">
-                            {{ n.etiqueta }}
-                        </span>
-                        <span class="inc-time">{{ inc.fecha[:16] if inc.fecha else '' }}</span>
+                {% set t = tipos_map.get(inc.tipo, {'etiqueta': inc.tipo or 'General', 'icono':'ti-alert-triangle', 'color':'#777'}) %}
+                {% set n = niveles_map.get(inc.nivel, {'etiqueta':'Informativo'}) %}
+
+                <div class="fila {% if not inc.enterado %}fila-pendiente{% else %}fila-lista{% endif %}"
+                     style="flex-direction:column;align-items:stretch;gap:9px;">
+
+                    <div style="display:flex;align-items:flex-start;gap:11px;">
+                        <div class="indicador-icono" style="background:{{ t.color }};width:36px;height:36px;">
+                            <i class="ti {{ t.icono }}" style="font-size:18px;"></i>
+                        </div>
+
+                        <div style="flex:1;min-width:0;">
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
+                                <span style="font-size:11px;font-weight:800;color:var(--texto-tenue);">
+                                    #{{ inc.numero }}
+                                </span>
+                                <span class="etiqueta
+                                    {% if inc.nivel == 'urgente' %}eti-coral
+                                    {% elif inc.nivel == 'seguimiento' %}eti-amarilla
+                                    {% else %}eti-gris{% endif %}">{{ n.etiqueta }}</span>
+                                <span class="fila-sub">{{ inc.fecha[:16] if inc.fecha else '' }}</span>
+                            </div>
+
+                            <div class="fila-titulo" style="font-size:13px;">{{ t.etiqueta }}</div>
+                            <div class="fila-sub" style="font-size:13px;line-height:1.45;margin-top:3px;color:var(--texto);">
+                                {{ inc.descripcion }}
+                            </div>
+
+                            {% if inc.accion_docente %}
+                            <div style="background:var(--verde-suave);border-left:3px solid var(--verde);
+                                        border-radius:9px;padding:7px 10px;margin-top:7px;font-size:12px;
+                                        font-weight:700;color:var(--verde-texto);line-height:1.45;">
+                                {{ inc.accion_docente }}
+                            </div>
+                            {% endif %}
+
+                            {% if inc.comentario_padre %}
+                            <div style="background:var(--azul-suave);border-left:3px solid var(--azul);
+                                        border-radius:9px;padding:7px 10px;margin-top:7px;font-size:12px;
+                                        font-weight:700;color:var(--azul-texto);line-height:1.45;">
+                                <strong>{{ inc.firmado_por or 'El tutor' }}:</strong> {{ inc.comentario_padre }}
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+
+                    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                        <span class="etiqueta {% if inc.enterado %}eti-verde{% else %}eti-coral{% endif %}">
+                            <i class="ti {% if inc.enterado %}ti-check{% else %}ti-clock{% endif %}"
+                               style="font-size:12px;"></i>
+                            {% if inc.enterado %}Firmada{% else %}Sin firmar{% endif %}
+                        </span>
+
                         <a href="{{ url_for('admin.acta_pdf', id_incidencia=inc.id) }}"
-                           target="_blank" class="btn-chico btn-azul"
-                           style="padding:5px 10px;font-size:10px;">
-                            <i class="ti ti-file-text" style="font-size:12px;"></i> Acta PDF
+                           target="_blank" class="btn btn-chico btn-borde" style="margin-left:auto;">
+                            <i class="ti ti-file-text"></i> Acta
                         </a>
                     </div>
-                    <div class="inc-desc">{{ inc.descripcion }}</div>
-                    {% if inc.accion_docente %}
-                    <div style="background:#e8f9d5;border-left:3px solid #58cc02;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;color:#2d4a02;margin-top:6px;">
-                        <strong>Atención brindada:</strong> {{ inc.accion_docente }}
-                    </div>
-                    {% endif %}
-                    <div class="inc-badges">
-                        <span class="badge-status {% if inc.visto %}ok{% endif %}">
-                            <i class="ti ti-eye" style="font-size:10px;"></i>
-                            {% if inc.visto %}Visto{% else %}No visto{% endif %}
-                        </span>
-                        <span class="badge-status {% if inc.enterado %}ok{% else %}warn{% endif %}">
-                            <i class="ti ti-check" style="font-size:10px;"></i>
-                            {% if inc.enterado %}Firmado{% else %}Sin firmar{% endif %}
-                        </span>
-                    </div>
-                    {% if inc.comentario_padre %}
-                    <div class="comentario-padre">
-                        <strong>{{ inc.firmado_por or 'El tutor' }} respondió:</strong> {{ inc.comentario_padre }}
-                    </div>
-                    {% endif %}
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="empty-mini">
-                    <i class="ti ti-clipboard-off"></i>
-                    <div class="empty-mini-title">Sin incidencias registradas</div>
-                </div>
+            <div class="vacio">
+                <div class="vacio-icono"><i class="ti ti-mood-happy"></i></div>
+                <div class="vacio-titulo">Sin incidencias</div>
+                <div class="vacio-texto">Este alumno no tiene registros todavía.</div>
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- ══ CALIFICACIONES ══ -->
-<div class="tab-panel" id="tab-calificaciones">
-    <div class="card">
-        <div class="list-title">
-            Calificaciones por trimestre
-            <a href="{{ url_for('admin.admin_calificaciones') }}" class="btn-chico btn-verde">
-                <i class="ti ti-table" style="font-size:15px;"></i> Capturar en tabla
-            </a>
-        </div>
 
-        {% if calificaciones %}
-            {% for cal in calificaciones %}
-            {% set llenas = [cal.lenguajes, cal.ciencias, cal.etica, cal.comunitario] | reject('none') | list %}
-            <div class="trim-card">
-                <div class="trim-head">
-                    <span class="trim-label">{{ cal.trimestre }}º trimestre</span>
-                    {% if llenas %}
-                        {% set prom = (llenas | sum / llenas | length) | round(1) %}
-                        <span class="cal-num {% if prom >= 8 %}num-high{% elif prom >= 7 %}num-mid{% else %}num-low{% endif %}">{{ prom }}</span>
-                    {% else %}
-                        <span class="cal-num num-none">—</span>
-                    {% endif %}
-                </div>
+<!-- ══════════ CALIFICACIONES ══════════ -->
 
-                {% for campo, label in [('lenguajes','Lenguajes'),('ciencias','Saberes y Pensamiento Científico'),('etica','Ética, Naturaleza y Sociedades'),('comunitario','De lo Humano y lo Comunitario')] %}
-                <div class="cal-row">
-                    <span class="cal-materia">{{ label }}</span>
-                    {% if cal[campo] is none %}
-                        <span class="cal-num num-none">—</span>
-                    {% else %}
-                        <span class="cal-num {% if cal[campo] >= 8 %}num-high{% elif cal[campo] >= 7 %}num-mid{% else %}num-low{% endif %}">{{ cal[campo] | int }}</span>
-                    {% endif %}
+<div class="hoja" id="hoja-calificaciones">
+    {% if calificaciones %}
+        {% for cal in calificaciones %}
+        {% set llenas = [cal.lenguajes, cal.ciencias, cal.etica, cal.comunitario] | reject('none') | list %}
+
+        <div class="panel panel-verde">
+            <div class="panel-cabecera">
+                <i class="ti ti-chart-bar" style="font-size:19px;"></i>
+                <span class="panel-titulo">{{ cal.trimestre }}º trimestre</span>
+                {% if llenas %}
+                <span class="panel-marca">Promedio {{ (llenas | sum / llenas | length) | round(1) }}</span>
+                {% endif %}
+            </div>
+
+            <div class="panel-cuerpo">
+                {% for campo, etiqueta in [('lenguajes','Lenguajes'), ('ciencias','Saberes y Pensamiento Científico'),
+                                           ('etica','Ética, Naturaleza y Sociedades'), ('comunitario','De lo Humano y lo Comunitario')] %}
+                <div class="materia-linea">
+                    <span class="materia-texto">{{ etiqueta }}</span>
+                    <span class="materia-mini">
+                        {% if cal[campo] %}
+                        <span class="materia-mini-relleno" style="display:block;width:{{ (cal[campo] * 10) | int }}%;
+                              background:{% if cal[campo] >= 8 %}var(--verde){% elif cal[campo] >= 7 %}var(--naranja){% else %}var(--coral){% endif %};"></span>
+                        {% endif %}
+                    </span>
+                    <span class="materia-cifra" style="color:{% if not cal[campo] %}var(--texto-tenue)
+                          {% elif cal[campo] >= 8 %}var(--verde-oscuro){% elif cal[campo] >= 7 %}var(--naranja-oscuro)
+                          {% else %}var(--coral-oscuro){% endif %};">
+                        {{ cal[campo] if cal[campo] else '—' }}
+                    </span>
                 </div>
                 {% endfor %}
 
-                <div class="faltas-line">
-                    <i class="ti ti-calendar-off" style="font-size:12px;vertical-align:-2px;"></i>
+                <div style="font-size:12px;font-weight:700;color:var(--texto-tenue);margin-top:11px;">
+                    <i class="ti ti-calendar-off" style="font-size:13px;vertical-align:-2px;"></i>
                     Inasistencias: {{ cal.inasistencias or 0 }}
                 </div>
 
                 {% if cal.observaciones %}
-                <div class="comentario-padre" style="margin-top:8px;">
-                    <strong>Observaciones:</strong> {{ cal.observaciones }}
+                <div style="background:var(--azul-suave);border-left:3px solid var(--azul);
+                            border-radius:9px;padding:8px 11px;margin-top:9px;font-size:12px;
+                            font-weight:700;color:var(--azul-texto);line-height:1.45;">
+                    <strong>Observación:</strong> {{ cal.observaciones }}
                 </div>
                 {% endif %}
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-mini">
-                <i class="ti ti-chart-bar-off"></i>
-                <div class="empty-mini-title">Sin calificaciones capturadas</div>
-            </div>
-        {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="vacio">
+        <div class="vacio-icono"><i class="ti ti-chart-bar-off"></i></div>
+        <div class="vacio-titulo">Sin calificaciones</div>
+        <div class="vacio-texto">Captúralas desde la sección de Calificaciones.</div>
     </div>
+    {% endif %}
+
+    <a href="{{ url_for('admin.admin_calificaciones') }}" class="btn btn-ancho btn-verde">
+        <i class="ti ti-pencil" style="font-size:17px;"></i> Ir a capturar calificaciones
+    </a>
 </div>
 
-<!-- ══ PERFIL ══ -->
-<div class="tab-panel" id="tab-perfil">
-    <div class="panel-grid">
-        <div class="card">
-            <div class="card-title"><i class="ti ti-brain" style="color:#ff9600;"></i> Editar perfil</div>
-            <form action="{{ url_for('admin.guardar_perfil', id_alumno=id_alumno) }}" method="POST">
-                {% for campo, label in [('logico','Lógico-matemático'),('fisico','Físico-deportivo'),('artistico','Artístico'),('social','Social'),('lenguaje','Lenguaje')] %}
-                <div class="slider-group">
-                    <div class="slider-label">
-                        <span>{{ label }}</span>
-                        <span class="slider-val" id="val-{{ campo }}">{{ perfil[campo] if perfil else 0 }}</span>
-                    </div>
-                    <input type="range" name="{{ campo }}" min="0" max="100"
-                           value="{{ perfil[campo] if perfil else 0 }}"
-                           oninput="document.getElementById('val-{{ campo }}').textContent = this.value">
-                </div>
-                {% endfor %}
-                <label class="form-label">Observación</label>
-                <textarea name="nota" class="form-input" placeholder="Nota de la maestra...">{{ perfil.nota if perfil else '' }}</textarea>
-                <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Guardar perfil</button>
-            </form>
+
+<!-- ══════════ PERFIL ══════════ -->
+
+<div class="hoja" id="hoja-perfil">
+    <div class="panel panel-morado">
+        <div class="panel-cabecera">
+            <i class="ti ti-star" style="font-size:19px;"></i>
+            <span class="panel-titulo">Perfil de habilidades</span>
         </div>
 
-        <div class="card">
-            <div class="list-title">Vista del perfil</div>
-            {% if perfil %}
-                {% for campo, label in [('logico','Lógico-matemático'),('fisico','Físico-deportivo'),('artistico','Artístico'),('social','Social'),('lenguaje','Lenguaje')] %}
-                <div class="perfil-bar-row">
-                    <div class="perfil-bar-label">
-                        <span>{{ label }}</span>
-                        <span style="color:#ff6b35;">{{ perfil[campo] }}%</span>
-                    </div>
-                    <div class="perfil-bar-bg"><div class="perfil-bar-fill" style="width:{{ perfil[campo] }}%"></div></div>
-                </div>
-                {% endfor %}
-                {% if perfil.nota %}
-                <div class="comentario-padre" style="margin-top:14px;">
-                    <strong>Observación:</strong> {{ perfil.nota }}
-                </div>
-                {% endif %}
-            {% else %}
-                <div class="empty-mini">
-                    <i class="ti ti-brain"></i>
-                    <div class="empty-mini-title">Perfil sin registrar</div>
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="card">
-            <div class="card-title"><i class="ti ti-key" style="color:#1cb0f6;"></i> Contraseña de acceso</div>
-            <div style="font-size:12px;font-weight:700;color:#777;margin-bottom:14px;">
-                Usa esto si el padre olvidó su contraseña.
+        <div class="panel-cuerpo">
+            <div class="campo-ayuda" style="margin-bottom:16px;">
+                Es una apreciación pedagógica, no un diagnóstico. Los tutores la ven
+                en su portal.
             </div>
-            <form action="{{ url_for('admin.resetear_password', id_alumno=id_alumno) }}" method="POST"
-                  onsubmit="return confirm('¿Restablecer la contraseña de este padre?');">
-                <label class="form-label">Nueva contraseña</label>
-                <input type="text" name="password_nueva" class="form-input" required minlength="6"
-                       value="luna-{{ range(1000, 9999) | random }}">
-                <div class="form-hint">Anótala antes de guardar. Se la tendrás que dictar al padre.</div>
-                <button type="submit" class="btn-save azul">
-                    <i class="ti ti-key" style="font-size:16px;"></i> Restablecer contraseña
+
+            <form action="{{ url_for('admin.guardar_perfil', id_alumno=id_alumno) }}" method="POST">
+                {% for campo, etiqueta in [('logico','Pensamiento lógico'), ('fisico','Desarrollo físico'),
+                                           ('artistico','Expresión artística'), ('social','Habilidad social'),
+                                           ('lenguaje','Lenguaje y comunicación')] %}
+                {% set valor = perfil[campo] if perfil else 0 %}
+                <div style="margin-bottom:15px;">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;
+                                font-weight:800;color:var(--texto);margin-bottom:6px;">
+                        <span>{{ etiqueta }}</span>
+                        <span style="color:var(--morado-oscuro);" id="val-{{ campo }}">{{ valor }}%</span>
+                    </div>
+                    <input type="range" name="{{ campo }}" min="0" max="100" step="5"
+                           value="{{ valor }}" style="width:100%;accent-color:var(--morado);"
+                           oninput="document.getElementById('val-{{ campo }}').textContent = this.value + '%'">
+                </div>
+                {% endfor %}
+
+                <label class="campo-etiqueta">Observación general</label>
+                <textarea name="nota" class="campo"
+                          placeholder="Lo que quieras que el tutor sepa sobre el avance...">{{ perfil.nota if perfil else '' }}</textarea>
+
+                <button type="submit" class="btn btn-ancho" style="background:var(--morado);color:#fff;
+                        box-shadow:0 var(--caida) 0 var(--morado-oscuro);">
+                    <i class="ti ti-check" style="font-size:17px;"></i> Guardar perfil
                 </button>
             </form>
         </div>
-
-
-
-
-
     </div>
 </div>
 
-<!-- ══ ACTIVIDADES ══ -->
-<div class="tab-panel" id="tab-actividades">
-    <div class="panel-grid">
-        <div class="card">
-            <div class="card-title"><i class="ti ti-plus" style="color:#ff9600;"></i> Nueva actividad</div>
-            <form action="{{ url_for('admin.nueva_actividad', id_alumno=id_alumno) }}" method="POST">
-                <label class="form-label">Actividad</label>
-                <textarea name="actividad" class="form-input" required placeholder="Describe la actividad..."></textarea>
-                <label class="form-label">Categoría</label>
-                <select name="categoria" class="form-input">
-                    <option>Cognitiva</option>
-                    <option>Física</option>
-                    <option>Artística</option>
-                    <option>Social</option>
-                    <option>Lenguaje</option>
-                    <option>General</option>
-                </select>
-                <label class="toggle-row" style="margin-bottom:12px;">
-                    <input type="checkbox" name="todo_el_grupo">
-                    <span class="toggle-track"><span class="toggle-knob"></span></span>
-                    <span style="font-size:12px;font-weight:800;color:#3c3c3c;">Asignar a todo el grupo</span>
-                </label>
 
+<!-- ══════════ ACTIVIDADES ══════════ -->
 
-                <button type="submit" class="btn-save"><i class="ti ti-check" style="font-size:16px;"></i> Agregar</button>
-            </form>
+<div class="hoja" id="hoja-actividades">
+    <div class="dos-columnas">
+
+        <div class="panel panel-amarillo">
+            <div class="panel-cabecera">
+                <i class="ti ti-plus" style="font-size:19px;"></i>
+                <span class="panel-titulo">Nueva actividad</span>
+            </div>
+
+            <div class="panel-cuerpo">
+                <form action="{{ url_for('admin.nueva_actividad', id_alumno=id_alumno) }}" method="POST">
+                    <label class="campo-etiqueta">Actividad sugerida</label>
+                    <textarea name="actividad" class="campo" required
+                              placeholder="Ej: Leer 10 minutos en voz alta cada noche"></textarea>
+
+                    <label class="campo-etiqueta">Categoría</label>
+                    <select name="categoria" class="campo">
+                        <option value="General">General</option>
+                        <option value="Lectura">Lectura</option>
+                        <option value="Matemáticas">Matemáticas</option>
+                        <option value="Motricidad">Motricidad</option>
+                        <option value="Convivencia">Convivencia</option>
+                        <option value="Creatividad">Creatividad</option>
+                    </select>
+
+                    <label class="declaracion" id="cajaGrupo" style="margin-bottom:15px;
+                           background:var(--azul-suave);border-color:var(--azul);
+                           box-shadow:0 var(--caida-chica) 0 var(--azul);">
+                        <input type="checkbox" name="todo_el_grupo" id="chkGrupo">
+                        <span class="casilla" style="border-color:var(--azul-oscuro);"></span>
+                        <span class="declaracion-texto" style="color:var(--azul-texto);">
+                            Asignar a todo el grupo
+                        </span>
+                    </label>
+
+                    <button type="submit" class="btn btn-ancho btn-amarillo">
+                        <i class="ti ti-check" style="font-size:17px;"></i> Agregar actividad
+                    </button>
+                    <div class="campo-ayuda" style="text-align:center;margin-top:9px;">
+                        Son sugerencias sin obligación de entrega
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="list-title">
-                Actividades
-                <span class="count-chip">{{ actividades | length }}</span>
-            </div>
+        <div>
+            <div class="seccion-titulo">Actividades asignadas ({{ actividades | length }})</div>
+
             {% if actividades %}
-                {% for act in actividades %}
-                <div class="act-item">
-                    <span class="act-chip">{{ act.categoria }}</span>
-                    <span class="act-text">{{ act.actividad }}</span>
-                    <span class="act-date">{{ act.fecha[:10] if act.fecha else '' }}</span>
+                {% for a in actividades %}
+                <div class="fila">
+                    <div class="indicador-icono" style="background:var(--naranja);
+                         box-shadow:0 2px 0 var(--naranja-oscuro);width:38px;height:38px;">
+                        <i class="ti ti-bulb" style="font-size:19px;"></i>
+                    </div>
+                    <div class="fila-cuerpo">
+                        <div style="font-size:10px;font-weight:800;color:var(--amarillo-oscuro);
+                                    text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">
+                            {{ a.categoria or 'General' }}
+                        </div>
+                        <div class="fila-titulo" style="font-size:13px;">{{ a.actividad }}</div>
+                        <div class="fila-sub">{{ a.fecha[:10] if a.fecha else '' }}</div>
+                    </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="empty-mini">
-                    <i class="ti ti-bulb-off"></i>
-                    <div class="empty-mini-title">Sin actividades</div>
-                </div>
+            <div class="vacio">
+                <div class="vacio-icono"><i class="ti ti-bulb-off"></i></div>
+                <div class="vacio-titulo">Sin actividades</div>
+                <div class="vacio-texto">Sugiere algo para reforzar en casa.</div>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -391,32 +380,74 @@
 
 {% endblock %}
 
+{% block modales %}
+<div class="modal-fondo" id="modalClave">
+    <div class="modal" style="border-color:var(--coral);">
+        <div class="modal-cabecera" style="background:var(--coral);">
+            <div class="modal-icono"><i class="ti ti-key" style="font-size:22px;"></i></div>
+            <div class="modal-titulo">Restablecer contraseña</div>
+            <button class="modal-cerrar" onclick="cerrarClave()">
+                <i class="ti ti-x" style="font-size:18px;"></i>
+            </button>
+        </div>
+
+        <div class="modal-cuerpo">
+            <div style="background:var(--amarillo-suave);border:2px solid var(--amarillo);
+                        border-radius:var(--radio);padding:11px 14px;margin-bottom:15px;
+                        font-size:12px;font-weight:700;color:var(--amarillo-texto);
+                        display:flex;gap:9px;">
+                <i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0;"></i>
+                Anota la contraseña nueva antes de guardar. No se puede recuperar después.
+            </div>
+
+            <form action="{{ url_for('admin.resetear_password', id_alumno=id_alumno) }}" method="POST">
+                <label class="campo-etiqueta">Nueva contraseña</label>
+                <input type="text" name="password_nueva" class="campo" required minlength="6"
+                       placeholder="Mínimo 6 caracteres">
+
+                <button type="submit" class="btn btn-ancho btn-coral">
+                    <i class="ti ti-key" style="font-size:17px;"></i> Restablecer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block js_extra %}
 <script>
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const t = this.dataset.tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            this.classList.add('active');
-            document.getElementById('tab-' + t).classList.add('active');
-            window.location.hash = 'tab-' + t;
-        });
+    function verHoja(nombre, boton) {
+        document.querySelectorAll('.hoja').forEach(function (h) { h.classList.remove('activa'); });
+        document.querySelectorAll('.pestana').forEach(function (p) { p.classList.remove('activa'); });
+
+        document.getElementById('hoja-' + nombre).classList.add('activa');
+        boton.classList.add('activa');
+        location.hash = nombre;
+    }
+
+    // Al volver de guardar, se abre la pestaña que estaba
+    if (location.hash) {
+        var nombre = location.hash.replace('#', '').replace('tab-', '');
+        var hoja   = document.getElementById('hoja-' + nombre);
+        if (hoja) {
+            var indices = { incidencias: 0, calificaciones: 1, perfil: 2, actividades: 3 };
+            var boton   = document.querySelectorAll('.pestana')[indices[nombre]];
+            if (boton) verHoja(nombre, boton);
+        }
+    }
+
+    function abrirClave()  { document.getElementById('modalClave').classList.add('abierto'); }
+    function cerrarClave() { document.getElementById('modalClave').classList.remove('abierto'); }
+
+    document.getElementById('modalClave').addEventListener('click', function (e) {
+        if (e.target === this) cerrarClave();
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const hash = window.location.hash;
-        if (hash) {
-            const t = hash.replace('#tab-', '');
-            const btn = document.querySelector('[data-tab="' + t + '"]');
-            const panel = document.getElementById('tab-' + t);
-            if (btn && panel) {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-                btn.classList.add('active');
-                panel.classList.add('active');
-            }
-        }
-    });
+    var chk = document.getElementById('chkGrupo');
+    if (chk) {
+        chk.addEventListener('change', function () {
+            document.getElementById('cajaGrupo').classList.toggle('marcada', this.checked);
+        });
+    }
 </script>
 {% endblock %}

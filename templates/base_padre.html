@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,149 +26,146 @@
         })();
     </script>
 </head>
+
 <body>
 
-<div class="layout">
+    <div class="layout">
 
-    <aside class="menu">
+        <aside class="menu">
 
-        <div class="menu-marca">
-            <div class="menu-logo"><i class="ti ti-school"></i></div>
-            <div>
-                <div class="menu-titulo">{{ GRUPO }}</div>
-                <div class="menu-sub">Mtra. {{ DOCENTE }}</div>
+            <div class="menu-marca">
+                <div class="menu-logo">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+                </div>
+                <div>
+                    <div class="menu-titulo">{{ GRUPO }}</div>
+                    <div class="menu-sub">Mtra. {{ DOCENTE }}</div>
+                </div>
             </div>
-        </div>
 
-        <a href="{{ url_for('alumno.panel_alumno') }}"
-           class="menu-item {% if activo == 'inicio' %}activo{% endif %}"
-           {% if activo == 'inicio' %}style="background:var(--naranja-fondo);color:var(--naranja-texto);"{% endif %}>
-            <span class="menu-icono i-naranja"><i class="ti ti-home"></i></span>
-            <span>Inicio</span>
-        </a>
+            <a href="{{ url_for('alumno.panel_alumno') }}"
+                class="menu-item {% if activo == 'inicio' %}activo{% endif %}" {% if activo=='inicio'
+                %}style="background:var(--naranja-fondo);color:var(--naranja-texto);" {% endif %}>
+                <span class="menu-icono i-naranja"><i class="ti ti-home"></i></span>
+                <span>Inicio</span>
+            </a>
 
-        <a href="{{ url_for('alumno.tareas') }}"
-           class="menu-item"
-           {% if activo == 'tareas' %}style="background:var(--amarillo-fondo);color:var(--amarillo-texto);"{% endif %}>
-            <span class="menu-icono i-amarillo"><i class="ti ti-notebook"></i></span>
-            <span>Tareas</span>
-           <span class="menu-contador {% if not pendientes.tareas %}vacio{% endif %}">{{ pendientes.tareas if pendientes is defined else 0 }}</span>
-        </a>
+            <a href="{{ url_for('alumno.tareas') }}" class="menu-item" {% if activo=='tareas'
+                %}style="background:var(--amarillo-fondo);color:var(--amarillo-texto);" {% endif %}>
+                <span class="menu-icono i-amarillo"><i class="ti ti-notebook"></i></span>
+                <span>Tareas</span>
+                            {% if pendientes.tareas %}<span class="menu-contador">{{ pendientes.tareas }}</span>{% endif %}
+            </a>
 
-        <a href="{{ url_for('alumno.avisos') }}"
-           class="menu-item"
-           {% if activo == 'avisos' %}style="background:var(--verde-fondo);color:var(--verde-texto);"{% endif %}>
-            <span class="menu-icono i-verde"><i class="ti ti-bell-ringing"></i></span>
-            <span>Avisos</span>
-            <span class="menu-contador {% if not pendientes.avisos %}vacio{% endif %}">
-                {{ pendientes.avisos if pendientes is defined else 0 }}
-            </span>
-        </a>
+            <a href="{{ url_for('alumno.avisos') }}" class="menu-item" {% if activo=='avisos'
+                %}style="background:var(--verde-fondo);color:var(--verde-texto);" {% endif %}>
+                <span class="menu-icono i-verde"><i class="ti ti-bell-ringing"></i></span>
+                <span>Avisos</span>
+                {% if pendientes.avisos %}<span class="menu-contador">{{ pendientes.avisos }}</span>{% endif %}
+            </a>
 
-        <a href="{{ url_for('alumno.como_vamos') }}"
+                    <a href="{{ url_for('alumno.como_vamos') }}"
            class="menu-item"
            {% if activo == 'vamos' %}style="background:var(--azul-fondo);color:var(--azul-texto);"{% endif %}>
             <span class="menu-icono i-azul"><i class="ti ti-mood-smile"></i></span>
             <span>¿Cómo vamos?</span>
-            <span class="menu-contador vacio">0</span>
         </a>
 
-        <div class="menu-separador"></div>
+            <div class="menu-separador"></div>
 
-        <a href="{{ url_for('alumno.chat_maestra') }}"
-           class="menu-item"
-           {% if activo == 'chat' %}style="background:var(--morado-fondo);color:var(--morado-texto);"{% endif %}>
-            <span class="menu-icono i-morado"><i class="ti ti-message-circle"></i></span>
-            <span>Chat</span>
-            <span class="menu-contador {% if not pendientes.mensajes %}vacio{% endif %}">
-                {{ pendientes.mensajes if pendientes is defined else 0 }}
-            </span>
-        </a>
-
-        <a href="{{ url_for('alumno.avisar_maestra') }}"
-           class="menu-item"
-           {% if activo == 'rapidos' %}style="background:var(--amarillo-fondo);color:var(--amarillo-texto);"{% endif %}>
-            <span class="menu-icono i-amarillo"><i class="ti ti-send"></i></span>
-            <span>Avisos rápidos</span>
-        </a>
-
-        <div class="menu-pie">
-            <button class="menu-item" onclick="cambiarTema()" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;">
-                <span class="menu-icono i-gris"><i class="ti ti-moon" id="iconoTema"></i></span>
-                <span id="textoTema">Modo oscuro</span>
-            </button>
-
-            <a href="{{ url_for('alumno.configuracion') }}"
-               class="menu-item {% if activo == 'cuenta' %}activo{% endif %}">
-                <span class="menu-icono i-gris"><i class="ti ti-user"></i></span>
-                <span>Mi cuenta</span>
+            <a href="{{ url_for('alumno.chat_maestra') }}" class="menu-item" {% if activo=='chat'
+                %}style="background:var(--morado-fondo);color:var(--morado-texto);" {% endif %}>
+                <span class="menu-icono i-morado"><i class="ti ti-message-circle"></i></span>
+                <span>Chat</span>
+                {% if pendientes.mensajes %}<span class="menu-contador">{{ pendientes.mensajes }}</span>{% endif %}
             </a>
 
-            <a href="{{ url_for('auth.logout') }}" class="menu-item menu-salir">
-                <span class="menu-icono" style="background:var(--alerta);"><i class="ti ti-logout"></i></span>
-                <span>Salir</span>
+            <a href="{{ url_for('alumno.avisar_maestra') }}" class="menu-item" {% if activo=='rapidos'
+                %}style="background:var(--amarillo-fondo);color:var(--amarillo-texto);" {% endif %}>
+                <span class="menu-icono i-amarillo"><i class="ti ti-send"></i></span>
+                <span>Avisos rápidos</span>
             </a>
-        </div>
-    </aside>
 
-    <main class="{% block clase_contenido %}contenido{% endblock %}">
+            <div class="menu-pie">
+                <button class="menu-item" onclick="cambiarTema()"
+                    style="width:100%;background:none;border:none;cursor:pointer;text-align:left;">
+                    <span class="menu-icono i-gris"><i class="ti ti-moon" id="iconoTema"></i></span>
+                    <span id="textoTema">Modo oscuro</span>
+                </button>
 
-        {% block encabezado %}{% endblock %}
+                <a href="{{ url_for('alumno.configuracion') }}"
+                    class="menu-item {% if activo == 'cuenta' %}activo{% endif %}">
+                    <span class="menu-icono i-gris"><i class="ti ti-user"></i></span>
+                    <span>Mi cuenta</span>
+                </a>
 
-        {% block flash %}
-        {% with mensajes = get_flashed_messages() %}
+                <a href="{{ url_for('auth.logout') }}" class="menu-item menu-salir">
+                    <span class="menu-icono" style="background:var(--alerta);"><i class="ti ti-logout"></i></span>
+                    <span>Salir</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="{% block clase_contenido %}contenido{% endblock %}">
+
+            {% block encabezado %}{% endblock %}
+
+            {% block flash %}
+            {% with mensajes = get_flashed_messages() %}
             {% if mensajes %}
-                {% for msg in mensajes %}
-                <div class="flash {% if '✓' in msg %}flash-ok{% else %}flash-error{% endif %}">
-                    <i class="ti {% if '✓' in msg %}ti-check{% else %}ti-alert-circle{% endif %}" style="font-size:17px;"></i>
-                    {{ msg }}
-                </div>
-                {% endfor %}
+            {% for msg in mensajes %}
+            <div class="flash {% if '✓' in msg %}flash-ok{% else %}flash-error{% endif %}">
+                <i class="ti {% if '✓' in msg %}ti-check{% else %}ti-alert-circle{% endif %}"
+                    style="font-size:17px;"></i>
+                {{ msg }}
+            </div>
+            {% endfor %}
             {% endif %}
-        {% endwith %}
-        {% endblock %}
+            {% endwith %}
+            {% endblock %}
 
-        {% block contenido %}{% endblock %}
-    </main>
-</div>
+            {% block contenido %}{% endblock %}
+        </main>
+    </div>
 
-{% block modales %}{% endblock %}
+    {% block modales %}{% endblock %}
 
-<script>
-    // ── Tema claro / oscuro ──
-    function esOscuro() {
-        return document.documentElement.getAttribute('data-tema') === 'oscuro';
-    }
-
-    function pintarBotonTema() {
-        var icono = document.getElementById('iconoTema');
-        var texto = document.getElementById('textoTema');
-        if (!icono) return;
-
-        if (esOscuro()) {
-            icono.className = 'ti ti-sun';
-            texto.textContent = 'Modo claro';
-        } else {
-            icono.className = 'ti ti-moon';
-            texto.textContent = 'Modo oscuro';
+    <script>
+        // ── Tema claro / oscuro ──
+        function esOscuro() {
+            return document.documentElement.getAttribute('data-tema') === 'oscuro';
         }
-    }
 
-    function cambiarTema() {
-        if (esOscuro()) {
-            document.documentElement.removeAttribute('data-tema');
-            localStorage.setItem('tema', 'claro');
-        } else {
-            document.documentElement.setAttribute('data-tema', 'oscuro');
-            localStorage.setItem('tema', 'oscuro');
+        function pintarBotonTema() {
+            var icono = document.getElementById('iconoTema');
+            var texto = document.getElementById('textoTema');
+            if (!icono) return;
+
+            if (esOscuro()) {
+                icono.className = 'ti ti-sun';
+                texto.textContent = 'Modo claro';
+            } else {
+                icono.className = 'ti ti-moon';
+                texto.textContent = 'Modo oscuro';
+            }
         }
+
+        function cambiarTema() {
+            if (esOscuro()) {
+                document.documentElement.removeAttribute('data-tema');
+                localStorage.setItem('tema', 'claro');
+            } else {
+                document.documentElement.setAttribute('data-tema', 'oscuro');
+                localStorage.setItem('tema', 'oscuro');
+            }
+            pintarBotonTema();
+        }
+
         pintarBotonTema();
-    }
+    </script>
 
-    pintarBotonTema();
-</script>
-
-{% block js_extra %}{% endblock %}
+    {% block js_extra %}{% endblock %}
 
 </body>
+
 </html>

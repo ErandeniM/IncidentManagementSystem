@@ -90,24 +90,45 @@ def admin_dashboard():
     tareas      = repo_tareas.todas()
     por_revisar = sum((t['total_alumnos'] or 0) - t['revisados'] for t in tareas)
 
+    # La tarea con más entregas sin marcar, para dar contexto
+    tarea_pendiente = None
+    for t in tareas:
+        if (t['total_alumnos'] or 0) - t['revisados'] > 0:
+            tarea_pendiente = t['titulo']
+            break
+
     materias_incompletas = sum(
         1 for campo, _ in repo_academico.MATERIAS
         if resumen['por_materia'][campo] is None
     )
+
+    # La incidencia sin firmar más antigua, para saber qué tan urgente es
+    pendientes = repo_incidencias.todas('pendientes')
+    mas_vieja  = pendientes[-1]['fecha'][:10] if pendientes else None
+
+    # Quiénes escribieron sin respuesta
+    conversaciones = repo_mensajes.conversaciones()
+    con_mensajes   = [c['nombre'] for c in conversaciones if c['no_leidos']]
 
     return render_template('admin_dashboard.html',
         alumnos                = repo_alumnos.obtener_todos(),
         mensajes_pendientes    = repo_mensajes.contar_no_leidos_maestra(),
         avisos_pendientes      = repo_avisos.contar_pendientes_de_padres(),
         incidencias_sin_firmar = repo_incidencias.contar_sin_firmar(),
+        incidencia_mas_vieja   = mas_vieja,
+        quien_escribio         = ', '.join(con_mensajes[:3]),
+        total_incidencias      = len(repo_incidencias.todas()),
+        total_tareas           = len(tareas),
         trimestre              = trimestre,
         resumen                = resumen,
         materias               = repo_academico.MATERIAS,
-        conversaciones         = repo_mensajes.conversaciones()[:5],
-        avisos_recientes       = repo_avisos.todos()[:4],
+        conversaciones         = conversaciones[:5],
+        avisos_recientes       = repo_avisos.todos(),
         tareas_por_revisar     = por_revisar,
-        materias_incompletas   = materias_incompletas)
-
+        tarea_pendiente        = tarea_pendiente,
+        materias_incompletas   = materias_incompletas,
+        tipos                  = repo_incidencias.TIPOS,
+        niveles                = repo_incidencias.NIVELES)
 
 @admin_bp.route('/buscar')
 def admin_buscar():
@@ -263,10 +284,12 @@ def admin_todas_incidencias():
     return render_template('admin_todas_incidencias.html',
                            incidencias = repo_incidencias.todas(filtro),
                            filtro      = filtro,
+                           alumnos     = repo_alumnos.obtener_todos(),
+                           tipos       = repo_incidencias.TIPOS,
+                           niveles     = repo_incidencias.NIVELES,
                            tipos_map   = repo_incidencias.TIPOS_MAP,
                            niveles_map = repo_incidencias.NIVELES_MAP)
-
-
+    
 @admin_bp.route('/incidencia/<int:id_incidencia>/acta')
 def acta_pdf(id_incidencia):
     if not _es_admin():
@@ -465,6 +488,15 @@ def acusar_aviso_padre(id_aviso):
     flash('Aviso marcado como leído ✓')
     return redirect(url_for('admin.admin_avisos_padres'))
 
+
+@admin_bp.route('/aviso/restaurar/<int:id_aviso>', methods=['POST'])
+def restaurar_aviso(id_aviso):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_avisos.restaurar(id_aviso)
+    flash('Aviso restaurado ✓')
+    return redirect(url_for('admin.admin_comunicacion') + '?hoja=avisos')
 # ═══════════ MENSAJES ═══════════
 
 @admin_bp.route('/mensajes')
@@ -677,3 +709,26 @@ def plantilla_csv():
     respuesta.headers['Content-Disposition'] = 'attachment; filename=plantilla_alumnos.csv'
     
     return respuesta
+
+@admin_bp.route('/comunicacion')
+def admin_comunicacion():
+    """Mensajes, avisos publicados y avisos de tutores, en pestañas."""
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    return render_template('admin_comunicacion.html',
+        conversaciones = repo_mensajes.conversaciones(),
+        avisos         = repo_avisos.todos(),
+        avisos_padres  = repo_avisos.todos_de_padres(),
+        hoja           = request.args.get('hoja', 'mensajes'))
+
+
+@admin_bp.route('/ajustes')
+def admin_ajustes():
+    """Accesos al sistema y datos del grupo."""
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    return render_template('admin_ajustes.html',
+        accesos = repo_accesos.todos(),
+        alumnos = repo_alumnos.obtener_todos())

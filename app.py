@@ -59,6 +59,26 @@ def inyectar_pendientes(): # Se define la función inyectar_pendientes que devue
     if 'alumno_id' not in session:
         return {}
     return {'pendientes': repo_pendientes.contadores(session['alumno_id'])}
+
+@app.context_processor
+def inyectar_pendientes_docente():
+    """Contadores del menú de la maestra."""
+    if not session.get('admin'):
+        return {}
+
+    from repositorios import incidencias as repo_inc
+    from repositorios import mensajes as repo_msg
+    from repositorios import avisos as repo_av
+    from repositorios import tareas as repo_tar
+
+    tareas = repo_tar.todas()
+
+    return {
+        'sin_firmar':      repo_inc.contar_sin_firmar(),
+        'mensajes_nuevos': repo_msg.contar_no_leidos_maestra(),
+        'avisos_nuevos':   repo_av.contar_pendientes_de_padres(),
+        'por_revisar':     sum((t['total_alumnos'] or 0) - t['revisados'] for t in tareas),
+    }
     
 @app.template_filter('color_avatar') # Se define un filtro de plantilla llamado 'color_avatar' que se puede usar en los templates de Jinja2 para generar un color único y estable para cada alumno, derivado de su id.
 def color_avatar(valor):
@@ -103,4 +123,4 @@ if __name__ == '__main__':
     print("=" * 55)
     app.run(debug=DEBUG, host='0.0.0.0')
     
-   
+
