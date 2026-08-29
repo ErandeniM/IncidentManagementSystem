@@ -28,6 +28,7 @@ COLUMNAS = [
     ('mensajes',                 'ref_tipo',       'TEXT'),
     ('mensajes',                 'ref_id',         'INTEGER'),
     ('mensajes',                 'ref_titulo',     'TEXT'),
+    ('avisos_padre',             'acusado_por',    'TEXT')
 ]
 
 

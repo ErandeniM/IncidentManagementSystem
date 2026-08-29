@@ -104,6 +104,22 @@
         {% if av.detalle %}
         <div class="aviso-detalle">{{ av.detalle }}</div>
         {% endif %}
+
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+            {% if av.visto_maestra %}
+            <span class="badge-status ok">
+                <i class="ti ti-checks" style="font-size:12px;"></i>
+                Enterada{% if av.acusado_por %} · {{ av.acusado_por }}{% endif %}
+                {% if av.fecha_visto %} · {{ av.fecha_visto[:16] }}{% endif %}
+            </span>
+            {% else %}
+            <form method="POST" action="{{ url_for('admin.acusar_aviso_padre', id_aviso=av.id) }}" style="margin:0;">
+                <button type="submit" class="btn-chico btn-verde">
+                    <i class="ti ti-check" style="font-size:14px;"></i> Marcar como leído
+                </button>
+            </form>
+            {% endif %}
+        </div>
     </div>
     {% endfor %}
 </div>

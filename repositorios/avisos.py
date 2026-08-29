@@ -166,16 +166,20 @@ def todos_de_padres(limite=100):
         ''', (limite,)).fetchall()
     return a_lista(filas)
 
+def acusar_de_padre(id_aviso, docente):
+    """
+    La maestra confirma que leyó un aviso del tutor.
 
-def marcar_vistos_por_maestra():
-    """Marca como leídos todos los avisos pendientes de los padres."""
+    Es un acto explícito, no un marcado automático al abrir la lista:
+    de lo contrario el tutor vería "ya lo vio" sin que existiera
+    constancia de que alguien lo leyó de verdad.
+    """
     with conexion() as conn:
         conn.execute('''
             UPDATE avisos_padre
-            SET visto_maestra = 1, fecha_visto = ?
-            WHERE visto_maestra = 0
-        ''', (ahora(),))
-
+            SET visto_maestra = 1, fecha_visto = ?, acusado_por = ?
+            WHERE id = ?
+        ''', (ahora(), docente, id_aviso))
 
 def contar_pendientes_de_padres():
     """Cuántos avisos de padres no ha leído la maestra."""

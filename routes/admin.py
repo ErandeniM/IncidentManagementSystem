@@ -14,7 +14,7 @@ from flask import (Blueprint, render_template, request, redirect,
                    url_for, session, flash, jsonify, make_response)
 from werkzeug.security import check_password_hash
 
-from config import ADMIN_PASSWORD_HASH
+from config import ADMIN_PASSWORD_HASH, DOCENTE_NOMBRE
 from database import hash_password
 from seguridad import esta_bloqueado, registrar_fallo, limpiar
 from documentos import acta_incidencia, expediente_completo
@@ -142,8 +142,10 @@ def nuevo_alumno():
         curp          = request.form['curp'].strip().upper(),
         nombre        = nombre,
         password_hash = hash_password(request.form['password']),
-        correo_padre  = request.form.get('correo_padre', '').strip()
+        correo_padre  = request.form.get('correo_padre', '').strip(),
+        nombre_tutor  = request.form.get('nombre_tutor', '').strip()
     )
+    
 
     flash(f'Alumno {nombre} registrado correctamente ✓' if creado
           else 'Error: ese CURP ya existe')
@@ -445,16 +447,23 @@ def ver_confirmaciones(id_aviso):
                            confirmados = repo_avisos.quien_confirmo(id_aviso),
                            pendientes  = repo_avisos.quien_falta(id_aviso))
 
-
 @admin_bp.route('/avisos-padres')
 def admin_avisos_padres():
     if not _es_admin():
         return redirect(url_for('admin.admin_panel'))
 
-    repo_avisos.marcar_vistos_por_maestra()
     return render_template('admin_avisos_padres.html',
                            avisos = repo_avisos.todos_de_padres())
 
+
+@admin_bp.route('/aviso-padre/<int:id_aviso>/acusar', methods=['POST'])
+def acusar_aviso_padre(id_aviso):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_avisos.acusar_de_padre(id_aviso, DOCENTE_NOMBRE)
+    flash('Aviso marcado como leído ✓')
+    return redirect(url_for('admin.admin_avisos_padres'))
 
 # ═══════════ MENSAJES ═══════════
 
@@ -633,6 +642,7 @@ def importar_alumnos():
             curp   = (fila.get('curp')   or '').strip().upper()
             nombre = (fila.get('nombre') or '').strip()
             correo = (fila.get('correo') or '').strip()
+            tutor  = (fila.get('tutor')  or '').strip()
             passwd = (fila.get('contrasena') or '').strip() or generar_password()
 
             if not curp or not nombre:
@@ -642,7 +652,7 @@ def importar_alumnos():
                 errores.append(f'Fila {num}: el CURP debe tener 10 caracteres ({curp})')
                 continue
 
-            if repo_alumnos.crear(curp, nombre, hash_password(passwd), correo):
+            if repo_alumnos.crear(curp, nombre, hash_password(passwd), correo, tutor):
                 creados.append({'curp': curp, 'nombre': nombre, 'password': passwd})
             else:
                 errores.append(f'Fila {num}: el CURP {curp} ya existe')
@@ -650,7 +660,6 @@ def importar_alumnos():
         resultados = {'creados': creados, 'errores': errores}
 
     return render_template('admin_importar.html', resultados=resultados)
-
 
 @admin_bp.route('/alumnos/plantilla-csv')
 def plantilla_csv():
@@ -666,4 +675,5 @@ def plantilla_csv():
     respuesta = make_response('\ufeff' + salida.getvalue())
     respuesta.headers['Content-Type'] = 'text/csv; charset=utf-8'
     respuesta.headers['Content-Disposition'] = 'attachment; filename=plantilla_alumnos.csv'
+    
     return respuesta

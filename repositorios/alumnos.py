@@ -130,3 +130,18 @@ def correos_para_notificar():
               AND notif_correo = 1
         ''').fetchall()
     return [f['correo_padre'] for f in filas]
+
+def crear(curp, nombre, password_hash, correo_padre='', nombre_tutor=''):
+    """
+    Registra un alumno nuevo.
+    Devuelve el id creado, o None si el CURP ya existía.
+    """
+    try:
+        with conexion() as conn:
+            cur = conn.execute('''
+                INSERT INTO alumnos (curp, nombre, password_hash, correo_padre, nombre_tutor)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (curp, nombre, password_hash, correo_padre, nombre_tutor))
+            return cur.lastrowid
+    except Exception:
+        return None

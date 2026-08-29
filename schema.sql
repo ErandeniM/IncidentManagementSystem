@@ -154,7 +154,8 @@ CREATE TABLE avisos_padre (
     fecha_creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     visto_maestra BOOLEAN DEFAULT 0,
     fecha_visto TIMESTAMP,
-    FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
+    FOREIGN KEY(id_alumno) REFERENCES alumnos(id),
+    acusado_por TEXT
 );
 
 
