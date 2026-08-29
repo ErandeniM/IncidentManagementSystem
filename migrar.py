@@ -29,8 +29,10 @@ COLUMNAS = [
     ('mensajes',                 'ref_id',         'INTEGER'),
     ('mensajes',                 'ref_titulo',     'TEXT'),
     ('avisos_padre',             'acusado_por',    'TEXT'),
-        ('incidencia_seguimiento', 'texto_declaracion', 'TEXT')
-    
+        ('incidencia_seguimiento', 'texto_declaracion', 'TEXT'),
+            ('alumnos', 'acepto_aviso',       'INTEGER DEFAULT 0'),
+    ('alumnos', 'fecha_acepto_aviso', 'TIMESTAMP'),
+    ('alumnos', 'acepto_aviso_por',   'TEXT')    
 ]
 
 

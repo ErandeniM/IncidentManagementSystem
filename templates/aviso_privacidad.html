@@ -1,0 +1,352 @@
+{% extends "base_padre.html" %}
+{% set activo = '' %}
+
+{% block titulo %}Antes de empezar{% endblock %}
+
+{% block css_extra %}
+<style>
+    .clave {
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+        padding: 16px;
+        border: var(--borde-medio) solid;
+        border-radius: var(--radio);
+        margin-bottom: 11px;
+    }
+
+    .clave-icono {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radio-chico);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .clave-icono i { font-size: 25px; }
+    .clave-titulo { font-size: 16px; font-weight: 800; line-height: 1.3; }
+    .clave-texto { font-size: 14px; font-weight: 600; line-height: 1.5; margin-top: 4px; }
+
+    .desplegable {
+        background: var(--superficie);
+        border: var(--borde-medio) solid var(--borde);
+        border-radius: var(--radio);
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    .desplegable-boton {
+        width: 100%;
+        padding: 14px 17px;
+        background: var(--superficie-2);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--texto);
+        text-align: left;
+    }
+
+    .desplegable-cuerpo { display: none; padding: 4px 17px 18px; }
+    .desplegable-cuerpo.abierto { display: block; }
+
+    .apartado { font-size: 14px; font-weight: 800; color: var(--coral-oscuro); margin: 18px 0 7px; }
+    .apartado:first-child { margin-top: 6px; }
+    .parrafo { font-size: 13px; font-weight: 600; color: var(--texto-suave); line-height: 1.6; margin-bottom: 8px; }
+    .lista { margin: 0 0 10px 18px; }
+    .lista li { font-size: 13px; font-weight: 600; color: var(--texto-suave); line-height: 1.6; margin-bottom: 4px; }
+
+    .contacto {
+        background: var(--azul-suave);
+        border: var(--borde-medio) solid var(--azul);
+        border-radius: var(--radio);
+        padding: 13px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--azul-texto);
+        line-height: 1.6;
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}
+
+{% block encabezado %}
+<div class="bienvenida">Antes de empezar</div>
+<div class="bienvenida-sub">
+    Lee esto una vez. Después no te lo volveremos a pedir.
+</div>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- ══════════ LO ESENCIAL ══════════ -->
+
+<div class="clave" style="background:var(--verde-suave);border-color:var(--verde);
+     box-shadow:0 var(--caida-chica) 0 var(--verde);">
+    <div class="clave-icono" style="background:var(--verde);box-shadow:0 2px 0 var(--verde-oscuro);">
+        <i class="ti ti-eye"></i>
+    </div>
+    <div>
+        <div class="clave-titulo" style="color:var(--verde-texto);">Solo la maestra ve esto</div>
+        <div class="clave-texto" style="color:var(--verde-texto);">
+            Nadie más. Ningún otro papá puede ver la información de {{ nombre }},
+            y tú tampoco puedes ver la de otros niños. No se vende ni se comparte
+            con nadie.
+        </div>
+    </div>
+</div>
+
+<div class="clave" style="background:var(--azul-suave);border-color:var(--azul);
+     box-shadow:0 var(--caida-chica) 0 var(--azul);">
+    <div class="clave-icono" style="background:var(--azul);box-shadow:0 2px 0 var(--azul-oscuro);">
+        <i class="ti ti-writing-sign"></i>
+    </div>
+    <div>
+        <div class="clave-titulo" style="color:var(--azul-texto);">Aquí te enteras y firmas</div>
+        <div class="clave-texto" style="color:var(--azul-texto);">
+            La maestra te avisa lo que pasa con {{ nombre }} durante el día.
+            Tú lees, firmas de enterado y le respondes. Queda registrado que
+            te avisaron y que lo leíste.
+        </div>
+    </div>
+</div>
+
+<div class="clave" style="background:var(--amarillo-suave);border-color:var(--amarillo);
+     box-shadow:0 var(--caida-chica) 0 var(--amarillo);">
+    <div class="clave-icono" style="background:var(--amarillo);box-shadow:0 2px 0 var(--amarillo-oscuro);">
+        <i class="ti ti-hand-stop" style="color:var(--amarillo-texto);"></i>
+    </div>
+    <div>
+        <div class="clave-titulo" style="color:var(--amarillo-texto);">Puedes decir que no</div>
+        <div class="clave-texto" style="color:var(--amarillo-texto);">
+            Si prefieres no usar el sistema, avísale a la maestra. Vas a seguir
+            recibiendo toda la información en papel, como siempre. No afecta en
+            nada a {{ nombre }}.
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════ QUÉ HACE EL SISTEMA ══════════ -->
+
+<div class="desplegable">
+    <button class="desplegable-boton" onclick="alternar('queHace', this)">
+        <i class="ti ti-list-check" style="font-size:19px;color:var(--coral);"></i>
+        ¿Qué puedo hacer aquí?
+        <i class="ti ti-chevron-down" style="font-size:18px;margin-left:auto;"></i>
+    </button>
+
+    <div class="desplegable-cuerpo" id="queHace">
+        <div class="apartado">Enterarte de lo que pasa</div>
+        <p class="parrafo">
+            Si {{ nombre }} se cayó, se sintió mal, tuvo un problema con un compañero
+            o hizo algo que vale la pena celebrar, la maestra lo registra y tú lo ves
+            aquí. Cada aviso te dice qué pasó y qué hizo ella al respecto.
+        </p>
+
+        <div class="apartado">Firmar de enterado</div>
+        <p class="parrafo">
+            Cuando algo requiere tu firma, lo lees, marcas una casilla y escribes tu
+            respuesta. Eso deja constancia de que te avisaron y de que estás enterado.
+            Es lo mismo que firmar un papel, pero sin papel.
+        </p>
+
+        <div class="apartado">Ver cómo va en la escuela</div>
+        <p class="parrafo">
+            Sus calificaciones por trimestre, cuántas tareas ha cumplido, sus
+            inasistencias y las cosas en las que va bien o necesita apoyo.
+        </p>
+
+        <div class="apartado">Escribirle a la maestra</div>
+        <p class="parrafo">
+            Hay un chat privado. Solo ella lo lee. Puedes preguntarle sobre cualquier
+            cosa que veas en el portal, y ella te responde ahí mismo.
+        </p>
+
+        <div class="apartado">Avisarle cosas rápidas</div>
+        <p class="parrafo">
+            Que {{ nombre }} no va a ir, que va a llegar tarde, que pasas temprano por
+            ella, que va con dolor de cabeza, o que hoy la recoge alguien más. Se lo
+            avisas en dos toques y te aparece cuando ella ya lo leyó.
+        </p>
+    </div>
+</div>
+
+
+<!-- ══════════ AVISO COMPLETO ══════════ -->
+
+<div class="desplegable">
+    <button class="desplegable-boton" onclick="alternar('avisoCompleto', this)">
+        <i class="ti ti-shield-lock" style="font-size:19px;color:var(--azul);"></i>
+        Aviso de privacidad completo
+        <i class="ti ti-chevron-down" style="font-size:18px;margin-left:auto;"></i>
+    </button>
+
+    <div class="desplegable-cuerpo" id="avisoCompleto">
+        <p class="parrafo">
+            {{ ESCUELA }}, a través de la docente {{ DOCENTE }}, es responsable del
+            tratamiento de los datos personales que se recaban mediante este sistema,
+            conforme a la Ley Federal de Protección de Datos Personales en Posesión
+            de los Particulares.
+        </p>
+
+        <div class="apartado">1. Qué datos se recaban</div>
+        <p class="parrafo">Del alumno:</p>
+        <ul class="lista">
+            <li>Nombre corto y los primeros diez caracteres de su CURP.</li>
+            <li>Registros de lo que ocurre en el aula: accidentes, malestares, conductas, logros y comunicaciones.</li>
+            <li>Calificaciones por trimestre, inasistencias y observaciones.</li>
+            <li>Cumplimiento de las tareas asignadas.</li>
+            <li>Perfil de habilidades registrado por la docente.</li>
+        </ul>
+
+        <p class="parrafo">De la madre, padre o tutor:</p>
+        <ul class="lista">
+            <li>Nombre completo.</li>
+            <li>Correo electrónico de contacto.</li>
+            <li>Fecha, hora y dirección de cada ingreso al portal.</li>
+            <li>Mensajes enviados y respuestas registradas al firmar de enterado.</li>
+        </ul>
+
+        <div class="apartado">2. Para qué se utilizan</div>
+        <ul class="lista">
+            <li>Informar de manera oportuna sobre lo que ocurre con el alumno durante la jornada escolar.</li>
+            <li>Dejar constancia verificable de que esa información fue comunicada, recibida y respondida.</li>
+            <li>Generar, de forma anonimizada, información estadística para un proyecto de investigación educativa.</li>
+        </ul>
+        <p class="parrafo">No se utilizarán para ninguna finalidad distinta a las señaladas.</p>
+
+        <div class="apartado">3. Quién puede consultarlos</div>
+        <ul class="lista">
+            <li>Únicamente la docente {{ DOCENTE }}, responsable del grupo.</li>
+            <li>Cada tutor puede consultar exclusivamente la información de su propio hijo o hija.</li>
+            <li>El sistema impide técnicamente que un tutor acceda a datos de otro alumno.</li>
+        </ul>
+        <p class="parrafo">
+            No se comparten, venden ni transfieren datos a terceros. No se utilizan
+            servicios de publicidad ni de análisis externo.
+        </p>
+
+        <div class="apartado">4. Cómo se resguardan</div>
+        <ul class="lista">
+            <li>Las contraseñas se almacenan cifradas y no pueden recuperarse, ni siquiera por la docente.</li>
+            <li>El acceso está limitado por contraseña individual, con bloqueo temporal tras varios intentos fallidos.</li>
+            <li>Se realizan respaldos periódicos de la información.</li>
+            <li>Todo ingreso queda registrado con fecha, hora y origen.</li>
+        </ul>
+
+        <div class="apartado">5. Cuánto tiempo se conservan</div>
+        <p class="parrafo">
+            Los registros digitales se conservan únicamente durante el trimestre que
+            dura la prueba. Al concluir, la información se imprime y se resguarda en
+            el expediente físico del grupo, y el archivo digital se elimina de forma
+            definitiva.
+        </p>
+        <p class="parrafo">
+            La información utilizada con fines de investigación se conserva solo en
+            forma anonimizada, sin nombre, sin CURP y sin ningún dato que permita
+            identificar a una persona.
+        </p>
+        <p class="parrafo">
+            Si al concluir la prueba se decidiera continuar con el sistema, se
+            informará a las familias y se solicitará nuevamente su consentimiento.
+        </p>
+
+        <div class="apartado">6. Cómo ejercer tus derechos</div>
+        <p class="parrafo">
+            Puedes solicitar en cualquier momento el acceso, la rectificación o la
+            cancelación de tus datos, u oponerte a su tratamiento. También puedes
+            revocar el consentimiento otorgado.
+        </p>
+
+        <div class="contacto">
+            <i class="ti ti-mail" style="font-size:16px;vertical-align:-3px;"></i>
+            Escribe a <strong>maestra.erandeni@gmail.com</strong> o dile directamente
+            a la maestra. Se te responderá en un plazo máximo de veinte días hábiles.
+        </div>
+
+        <p class="parrafo">
+            Revocar el consentimiento no tendrá ninguna consecuencia para el alumno.
+            La comunicación continuará por los medios tradicionales de la escuela.
+        </p>
+
+        <div class="apartado">7. Cambios a este aviso</div>
+        <p class="parrafo">
+            Cualquier modificación se comunicará por este mismo sistema y, en su caso,
+            se te pedirá confirmarlo nuevamente.
+        </p>
+    </div>
+</div>
+
+
+<!-- ══════════ ACEPTAR ══════════ -->
+
+{% if ya %}
+<div class="bloque bloque-firmado">
+    <div class="bloque-etiqueta">
+        <i class="ti ti-circle-check-filled" style="font-size:14px;vertical-align:-2px;"></i>
+        Ya aceptaste este aviso
+    </div>
+    <div style="font-size:13px;font-weight:700;color:var(--verde-oscuro);margin-top:6px;">
+        {{ alumno.acepto_aviso_por or 'El tutor' }} lo aceptó el
+        {{ alumno.fecha_acepto_aviso[:16] if alumno.fecha_acepto_aviso else '' }}
+    </div>
+</div>
+
+<a href="{{ url_for('alumno.panel_alumno') }}" class="btn btn-ancho btn-verde">
+    <i class="ti ti-arrow-left" style="font-size:18px;"></i> Volver al inicio
+</a>
+
+{% else %}
+
+<form method="POST" action="{{ url_for('alumno.aceptar_aviso') }}">
+    <label class="declaracion" id="cajaAcepto">
+        <input type="checkbox" id="casilla" required>
+        <span class="casilla"><i class="ti ti-check"></i></span>
+        <span class="declaracion-texto">
+            Leí el aviso y entiendo cómo se usa la información de {{ nombre }}
+        </span>
+    </label>
+
+    <button type="submit" class="btn btn-ancho btn-verde" id="botonAceptar" disabled>
+        <i class="ti ti-check" style="font-size:18px;"></i> Entrar al portal
+    </button>
+</form>
+
+<div class="campo-ayuda" style="text-align:center;margin-top:11px;">
+    Queda registrado tu nombre y la fecha, igual que cuando firmas un papel.
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block js_extra %}
+<script>
+    function alternar(id, boton) {
+        var cuerpo = document.getElementById(id);
+        var abierto = cuerpo.classList.toggle('abierto');
+        boton.querySelector('.ti-chevron-down, .ti-chevron-up').className =
+            'ti ti-chevron-' + (abierto ? 'up' : 'down');
+        boton.querySelector('.ti-chevron-up, .ti-chevron-down').style.cssText =
+            'font-size:18px;margin-left:auto;';
+    }
+
+    var casilla = document.getElementById('casilla');
+    var boton   = document.getElementById('botonAceptar');
+    var caja    = document.getElementById('cajaAcepto');
+
+    if (casilla) {
+        casilla.addEventListener('change', function () {
+            caja.classList.toggle('marcada', this.checked);
+            boton.disabled = !this.checked;
+        });
+    }
+</script>
+{% endblock %}

@@ -18,7 +18,10 @@ CREATE TABLE alumnos (
     nombre_tutor TEXT,
     notif_correo BOOLEAN DEFAULT 1,
     id_grupo INTEGER DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        acepto_aviso INTEGER DEFAULT 0,
+    fecha_acepto_aviso TIMESTAMP,
+    acepto_aviso_por TEXT
 );
 
 

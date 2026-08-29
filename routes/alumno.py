@@ -401,3 +401,45 @@ def buscar():
                            r           = repo_busqueda.buscar_del_padre(session['alumno_id'], consulta),
                            tipos_map   = repo_incidencias.TIPOS_MAP,
                            estados_map = repo_tareas.ESTADOS_MAP)
+@alumno_bp.before_request
+def exigir_aviso():
+    """
+    Antes de cualquier pantalla, se revisa que el tutor haya aceptado
+    el aviso de privacidad. Si no, se le muestra primero.
+    """
+    if not _sesion_activa():
+        return
+
+    permitidas = ('alumno.aviso_privacidad', 'alumno.aceptar_aviso')
+    if request.endpoint in permitidas:
+        return
+
+    if not repo_alumnos.acepto_el_aviso(session['alumno_id']):
+        return redirect(url_for('alumno.aviso_privacidad'))
+
+
+@alumno_bp.route('/aviso-privacidad')
+def aviso_privacidad():
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    alumno = repo_alumnos.obtener_por_id(session['alumno_id'])
+    return render_template('aviso_privacidad.html',
+                           nombre = session['nombre'],
+                           alumno = alumno,
+                           ya     = bool(alumno['acepto_aviso']))
+
+
+@alumno_bp.route('/aviso-privacidad/aceptar', methods=['POST'])
+def aceptar_aviso():
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    alumno_id = session['alumno_id']
+    tutor     = repo_alumnos.nombre_del_tutor(alumno_id)
+
+    repo_alumnos.registrar_acepto_aviso(
+        alumno_id, tutor or f'Tutor de {session["nombre"]}'
+    )
+    flash('Gracias. Ya puedes usar el portal ✓')
+    return redirect(url_for('alumno.panel_alumno'))

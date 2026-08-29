@@ -5,8 +5,7 @@ Todo el SQL de la tabla `alumnos` vive aquí. Ninguna ruta debe
 escribir consultas sobre esta tabla directamente.
 """
 
-from repositorios.base import conexion, a_dict, a_lista
-
+from repositorios.base import conexion, a_dict, a_lista, ahora  
 
 # ═══════════ LECTURA ═══════════
 
@@ -145,3 +144,26 @@ def crear(curp, nombre, password_hash, correo_padre='', nombre_tutor=''):
             return cur.lastrowid
     except Exception:
         return None
+def acepto_el_aviso(id_alumno):
+    """¿Este tutor ya aceptó el aviso de privacidad?"""
+    with conexion() as conn:
+        fila = conn.execute(
+            'SELECT acepto_aviso FROM alumnos WHERE id = ?', (id_alumno,)
+        ).fetchone()
+    return bool(fila and fila['acepto_aviso'])
+
+
+def registrar_acepto_aviso(id_alumno, quien):
+    """
+    Guarda que el tutor aceptó el aviso de privacidad.
+
+    Se registra el nombre con el que aceptó en ese momento, igual que
+    en las firmas de enterado: si después lo cambia, esta constancia
+    conserva el original.
+    """
+    with conexion() as conn:
+        conn.execute('''
+            UPDATE alumnos
+            SET acepto_aviso = 1, fecha_acepto_aviso = ?, acepto_aviso_por = ?
+            WHERE id = ?
+        ''', (ahora(), quien, id_alumno))
