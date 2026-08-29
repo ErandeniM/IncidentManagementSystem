@@ -6,6 +6,10 @@ pasa por la capa de repositorios.
 """
 
 from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import calendar
+
 
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, session, flash)
@@ -21,6 +25,8 @@ from repositorios import mensajes as repo_mensajes
 from repositorios import academico as repo_academico
 from repositorios import tareas as repo_tareas
 from repositorios import busqueda as repo_busqueda
+from repositorios import eventos as repo_eventos
+
 
 alumno_bp = Blueprint('alumno', __name__)
 
@@ -443,3 +449,32 @@ def aceptar_aviso():
     )
     flash('Gracias. Ya puedes usar el portal ✓')
     return redirect(url_for('alumno.panel_alumno'))
+@alumno_bp.route('/calendario')
+def calendario():
+    if not _sesion_activa():
+        return redirect(url_for('auth.login'))
+
+    import calendar
+
+    hoy  = datetime.now(ZoneInfo('America/Hermosillo'))
+    anio = request.args.get('anio', hoy.year, type=int)
+    mes  = request.args.get('mes',  hoy.month, type=int)
+
+    if mes < 1:
+        anio, mes = anio - 1, 12
+    elif mes > 12:
+        anio, mes = anio + 1, 1
+
+    hueco, dias_mes = calendar.monthrange(anio, mes)
+
+    return render_template('padre_calendario.html',
+        nombre    = session['nombre'],
+        anio      = anio,
+        mes       = mes,
+        hueco     = hueco,
+        dias_mes  = dias_mes,
+        eventos   = repo_eventos.del_mes(anio, mes),
+        proximos  = repo_eventos.proximos(5),
+        tipos_map = repo_eventos.TIPOS_MAP,
+        meses     = repo_eventos.MESES,
+        hoy       = hoy.strftime('%Y-%m-%d'))

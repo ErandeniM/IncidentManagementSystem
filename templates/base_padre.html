@@ -63,7 +63,12 @@
                 <span>Avisos</span>
                 {% if pendientes.avisos %}<span class="menu-contador">{{ pendientes.avisos }}</span>{% endif %}
             </a>
-
+        <a href="{{ url_for('alumno.calendario') }}"
+           class="menu-item"
+           {% if activo == 'calendario' %}style="background:var(--coral-suave);color:var(--coral-oscuro);"{% endif %}>
+            <span class="menu-icono i-coral"><i class="ti ti-calendar"></i></span>
+            <span>Calendario</span>
+        </a>
                     <a href="{{ url_for('alumno.como_vamos') }}"
            class="menu-item"
            {% if activo == 'vamos' %}style="background:var(--azul-fondo);color:var(--azul-texto);"{% endif %}>

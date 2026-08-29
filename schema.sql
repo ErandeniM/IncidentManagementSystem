@@ -192,6 +192,20 @@ CREATE TABLE registro_accesos (
     FOREIGN KEY(id_alumno) REFERENCES alumnos(id)
 );
 
+-- ── Calendario escolar ─────────────────────────────────────
+
+CREATE TABLE eventos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha DATE NOT NULL,
+    fecha_fin DATE,                    -- para periodos como vacaciones
+    titulo TEXT NOT NULL,
+    detalle TEXT,
+    tipo TEXT DEFAULT 'escuela',       -- ver TIPOS en repositorios/eventos.py
+    oficial INTEGER DEFAULT 0,         -- 1 = viene del calendario SEC
+    hay_clases INTEGER DEFAULT 1,
+    creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_docente INTEGER DEFAULT 1
+);
 
 -- ═══════════════════════════════════════════════════════════
 --  Índices
@@ -212,3 +226,4 @@ CREATE INDEX idx_confirmaciones_alumno ON avisos_confirmaciones(id_alumno);
 CREATE INDEX idx_avisos_padre_alumno   ON avisos_padre(id_alumno);
 CREATE INDEX idx_mensajes_alumno       ON mensajes(id_alumno, fecha);
 CREATE INDEX idx_accesos_alumno        ON registro_accesos(id_alumno, fecha);
+CREATE INDEX idx_eventos_fecha ON eventos(fecha);

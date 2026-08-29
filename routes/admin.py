@@ -29,6 +29,7 @@ from repositorios import academico as repo_academico
 from repositorios import tareas as repo_tareas
 from repositorios import busqueda as repo_busqueda
 from zoneinfo import ZoneInfo
+from repositorios import eventos as repo_eventos
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -732,3 +733,64 @@ def admin_ajustes():
     return render_template('admin_ajustes.html',
         accesos = repo_accesos.todos(),
         alumnos = repo_alumnos.obtener_todos())
+    
+# ═══════════ CALENDARIO ═══════════
+
+@admin_bp.route('/calendario')
+def admin_calendario():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    hoy  = datetime.now(ZoneInfo('America/Hermosillo'))
+    anio = request.args.get('anio', hoy.year, type=int)
+    mes  = request.args.get('mes',  hoy.month, type=int)
+
+    if mes < 1:
+        anio, mes = anio - 1, 12
+    elif mes > 12:
+        anio, mes = anio + 1, 1
+
+    return render_template('admin_calendario.html',
+        anio      = anio,
+        mes       = mes,
+        eventos   = repo_eventos.del_mes(anio, mes),
+        proximos  = repo_eventos.proximos(5),
+        tipos     = repo_eventos.TIPOS,
+        tipos_map = repo_eventos.TIPOS_MAP,
+        meses     = repo_eventos.MESES,
+        hoy       = hoy.strftime('%Y-%m-%d'))
+
+
+@admin_bp.route('/calendario/nuevo', methods=['POST'])
+def nuevo_evento():
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_eventos.crear(
+        fecha     = request.form['fecha'],
+        fecha_fin = request.form.get('fecha_fin') or None,
+        titulo    = request.form['titulo'].strip(),
+        detalle   = request.form.get('detalle', '').strip(),
+        tipo      = request.form.get('tipo', 'escuela')
+    )
+
+    notificaciones.avisar_a_todos(
+        asunto  = f'Nuevo evento — {request.form["titulo"].strip()}',
+        titulo  = request.form['titulo'].strip(),
+        mensaje = (request.form.get('detalle', '').strip() or 'Se agregó un evento al calendario.')
+                  + f'<br><br><b>Fecha:</b> {request.form["fecha"]}',
+        tipo    = 'aviso'
+    )
+
+    flash('Evento agregado al calendario ✓')
+    return redirect(url_for('admin.admin_calendario'))
+
+
+@admin_bp.route('/calendario/<int:id_evento>/eliminar', methods=['POST'])
+def eliminar_evento(id_evento):
+    if not _es_admin():
+        return redirect(url_for('admin.admin_panel'))
+
+    repo_eventos.eliminar(id_evento)
+    flash('Evento eliminado')
+    return redirect(url_for('admin.admin_calendario'))
