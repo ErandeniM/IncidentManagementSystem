@@ -40,7 +40,6 @@
         <div class="acceso-row">
             <div class="acceso-icon"><i class="ti ti-clock" style="font-size:16px;"></i></div>
             <div class="acceso-fecha">{{ a.fecha[:16] if a.fecha else '' }}</div>
-            <div class="acceso-ip">{{ a.ip or '—' }}</div>
         </div>
         {% endfor %}
     {% else %}

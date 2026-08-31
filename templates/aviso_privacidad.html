@@ -318,7 +318,14 @@
         <i class="ti ti-check" style="font-size:18px;"></i> Entrar al portal
     </button>
 </form>
+<a href="{{ url_for('auth.logout') }}" class="btn btn-ancho btn-borde" style="margin-top:11px;">
+    <i class="ti ti-logout" style="font-size:17px;"></i> Salir sin aceptar
+</a>
 
+<div class="campo-ayuda" style="text-align:center;margin-top:9px;">
+    Si prefieres no usar el portal, dile a la maestra y seguirás recibiendo
+    la información en papel.
+</div>
 <div class="campo-ayuda" style="text-align:center;margin-top:11px;">
     Queda registrado tu nombre y la fecha, igual que cuando firmas un papel.
 </div>

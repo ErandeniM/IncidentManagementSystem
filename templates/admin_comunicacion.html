@@ -11,9 +11,15 @@
     </div>
 </div>
 
+<div class="buscador" style="max-width:none;margin:0 0 16px;">
+    <i class="ti ti-search"></i>
+    <input type="text" id="buscador" oninput="filtrar()"
+           placeholder="Buscar por nombre, título o contenido...">
+</div>
+
 <div class="pestanas">
     <a href="{{ url_for('admin.admin_comunicacion') }}?hoja=mensajes"
-        class="pestana {% if hoja == 'mensajes' %}activa{% endif %}">
+       class="pestana {% if hoja == 'mensajes' %}activa{% endif %}">
         <i class="ti ti-messages" style="font-size:17px;"></i>
         Mensajes
         {% set nuevos = conversaciones | selectattr('no_leidos') | list | length %}
@@ -21,13 +27,13 @@
     </a>
 
     <a href="{{ url_for('admin.admin_comunicacion') }}?hoja=avisos"
-        class="pestana {% if hoja == 'avisos' %}activa{% endif %}">
+       class="pestana {% if hoja == 'avisos' %}activa{% endif %}">
         <i class="ti ti-speakerphone" style="font-size:17px;"></i>
         Avisos publicados
     </a>
 
     <a href="{{ url_for('admin.admin_comunicacion') }}?hoja=padres"
-        class="pestana {% if hoja == 'padres' %}activa{% endif %}">
+       class="pestana {% if hoja == 'padres' %}activa{% endif %}">
         <i class="ti ti-inbox" style="font-size:17px;"></i>
         Avisos de tutores
         {% set sin_acusar = avisos_padres | rejectattr('visto_maestra') | list | length %}
@@ -46,35 +52,38 @@
     </div>
 
     {% if conversaciones %}
-    {% for c in conversaciones %}
-    <a href="{{ url_for('admin.admin_chat', id_alumno=c.id) }}" class="fila {% if c.no_leidos %}fila-nueva{% endif %}">
-        <div class="avatar" style="width:44px;height:44px;font-size:14px;
+        {% for c in conversaciones %}
+        <a href="{{ url_for('admin.admin_chat', id_alumno=c.id) }}"
+           class="fila {% if c.no_leidos %}fila-nueva{% endif %}"
+           data-buscar="{{ (c.nombre ~ ' ' ~ (c.ultimo_mensaje or '')) | lower }}">
+
+            <div class="avatar" style="width:44px;height:44px;font-size:14px;
                  background:{{ c.id | color_avatar }};">
-            {{ c.nombre[:2] | upper }}
-        </div>
-
-        <div class="fila-cuerpo">
-            <div class="fila-titulo">{{ c.nombre }}</div>
-            <div class="fila-sub">
-                {% if c.total_mensajes %}
-                {% if c.ultimo_remitente == 'maestra' %}<strong>Tú:</strong> {% endif %}
-                {{ c.ultimo_mensaje[:70] }}
-                {% else %}
-                Todavía no han conversado · toca para iniciar
-                {% endif %}
+                {{ c.nombre[:2] | upper }}
             </div>
-        </div>
 
-        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-            {% if c.no_leidos %}
-            <span class="menu-contador" style="margin-left:0;">{{ c.no_leidos }}</span>
-            {% else %}
-            <span class="fila-sub">{{ c.ultima_fecha[:16] if c.ultima_fecha else '' }}</span>
-            {% endif %}
-            <i class="ti ti-chevron-right fila-flecha"></i>
-        </div>
-    </a>
-    {% endfor %}
+            <div class="fila-cuerpo">
+                <div class="fila-titulo">{{ c.nombre }}</div>
+                <div class="fila-sub">
+                    {% if c.total_mensajes %}
+                        {% if c.ultimo_remitente == 'maestra' %}<strong>Tú:</strong> {% endif %}
+                        {{ c.ultimo_mensaje[:70] }}
+                    {% else %}
+                        Todavía no han conversado · toca para iniciar
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                {% if c.no_leidos %}
+                <span class="menu-contador" style="margin-left:0;">{{ c.no_leidos }}</span>
+                {% else %}
+                <span class="fila-sub">{{ c.ultima_fecha[:16] if c.ultima_fecha else '' }}</span>
+                {% endif %}
+                <i class="ti ti-chevron-right fila-flecha"></i>
+            </div>
+        </a>
+        {% endfor %}
     {% else %}
     <div class="vacio">
         <div class="vacio-icono"><i class="ti ti-message-off"></i></div>
@@ -82,6 +91,12 @@
         <div class="vacio-texto">Registra alumnos para poder conversar con sus tutores.</div>
     </div>
     {% endif %}
+
+    <div class="vacio" id="sinMensajes" style="display:none;">
+        <div class="vacio-icono"><i class="ti ti-search-off"></i></div>
+        <div class="vacio-titulo">Sin coincidencias</div>
+        <div class="vacio-texto">Ninguna conversación coincide con lo que buscas.</div>
+    </div>
 </div>
 
 
@@ -95,14 +110,16 @@
                 <i class="ti ti-plus" style="font-size:19px;"></i>
                 <span class="panel-titulo">Nuevo aviso general</span>
             </div>
+
             <div class="panel-cuerpo">
                 <form action="{{ url_for('admin.nuevo_aviso') }}" method="POST">
                     <label class="campo-etiqueta">Título</label>
-                    <input type="text" name="titulo" class="campo" required placeholder="Ej: Reunión de padres">
+                    <input type="text" name="titulo" class="campo" required
+                           placeholder="Ej: Reunión de padres">
 
                     <label class="campo-etiqueta">Contenido</label>
                     <textarea name="contenido" class="campo" required
-                        placeholder="Los tutores lo verán al entrar al portal..."></textarea>
+                              placeholder="Los tutores lo verán al entrar al portal..."></textarea>
 
                     <button type="submit" class="btn btn-ancho btn-azul">
                         <i class="ti ti-send" style="font-size:17px;"></i> Publicar aviso
@@ -115,28 +132,31 @@
             <div class="seccion-titulo">Avisos publicados ({{ avisos | length }})</div>
 
             {% if avisos %}
-            {% for av in avisos %}
-            <div class="fila" style="flex-direction:column;align-items:stretch;gap:9px;">
-                <div style="display:flex;align-items:flex-start;gap:11px;">
-                    <div class="indicador-icono" style="background:var(--azul);
+                {% for av in avisos %}
+                <div class="fila" style="flex-direction:column;align-items:stretch;gap:9px;"
+                     data-buscar="{{ (av.titulo ~ ' ' ~ av.contenido) | lower }}">
+
+                    <div style="display:flex;align-items:flex-start;gap:11px;">
+                        <div class="indicador-icono" style="background:var(--azul);
                              box-shadow:0 2px 0 var(--azul-oscuro);width:36px;height:36px;">
-                        <i class="ti ti-speakerphone" style="font-size:18px;"></i>
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                        {% if av.fecha_actualizado %}
-                        <span class="etiqueta eti-amarilla" style="margin-bottom:4px;">
-                            <i class="ti ti-refresh" style="font-size:11px;"></i> Editado
-                        </span>
-                        {% endif %}
-                        <div class="fila-titulo">{{ av.titulo }}</div>
-                        <div class="fila-sub" style="line-height:1.45;margin-top:3px;">{{ av.contenido }}</div>
-                        <div class="fila-sub" style="margin-top:5px;">
-                            {{ av.fecha[:10] if av.fecha else '' }}
+                            <i class="ti ti-speakerphone" style="font-size:18px;"></i>
+                        </div>
+
+                        <div style="flex:1;min-width:0;">
+                            {% if av.fecha_actualizado %}
+                            <span class="etiqueta eti-amarilla" style="margin-bottom:4px;">
+                                <i class="ti ti-refresh" style="font-size:11px;"></i> Editado
+                            </span>
+                            {% endif %}
+                            <div class="fila-titulo">{{ av.titulo }}</div>
+                            <div class="fila-sub" style="line-height:1.45;margin-top:3px;">{{ av.contenido }}</div>
+                            <div class="fila-sub" style="margin-top:5px;">
+                                {{ av.fecha[:10] if av.fecha else '' }}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                                    <div class="acciones-fila" style="justify-content:flex-end;">
+                    <div class="acciones-fila" style="justify-content:flex-end;">
                         <a href="{{ url_for('admin.ver_confirmaciones', id_aviso=av.id) }}"
                            class="btn btn-chico btn-borde">
                             <i class="ti ti-users"></i> Confirmaciones
@@ -157,7 +177,8 @@
                             </button>
                         </form>
                     </div>
-            {% endfor %}
+                </div>
+                {% endfor %}
             {% else %}
             <div class="vacio">
                 <div class="vacio-icono"><i class="ti ti-speakerphone"></i></div>
@@ -165,6 +186,12 @@
                 <div class="vacio-texto">Crea el primero con el formulario de la izquierda.</div>
             </div>
             {% endif %}
+
+            <div class="vacio" id="sinAvisos" style="display:none;">
+                <div class="vacio-icono"><i class="ti ti-search-off"></i></div>
+                <div class="vacio-titulo">Sin coincidencias</div>
+                <div class="vacio-texto">Ningún aviso coincide con lo que buscas.</div>
+            </div>
         </div>
 
     </div>
@@ -179,19 +206,20 @@
     </div>
 
     {% if avisos_padres %}
-    {% for av in avisos_padres %}
-    <div class="fila {% if not av.visto_maestra %}fila-pendiente{% endif %}"
-        style="flex-direction:column;align-items:stretch;gap:9px;">
+        {% for av in avisos_padres %}
+        <div class="fila {% if not av.visto_maestra %}fila-pendiente{% endif %}"
+             style="flex-direction:column;align-items:stretch;gap:9px;"
+             data-buscar="{{ (av.nombre_alumno ~ ' ' ~ av.tipo ~ ' ' ~ (av.detalle or '')) | lower }}">
 
-        <div style="display:flex;align-items:flex-start;gap:11px;">
-            <div class="avatar" style="width:42px;height:42px;font-size:13px;
+            <div style="display:flex;align-items:flex-start;gap:11px;">
+                <div class="avatar" style="width:42px;height:42px;font-size:13px;
                      background:{{ av.id_alumno | color_avatar }};">
-                {{ av.nombre_alumno[:2] | upper }}
-            </div>
+                    {{ av.nombre_alumno[:2] | upper }}
+                </div>
 
-            <div style="flex:1;min-width:0;">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
-                    <span class="etiqueta" style="background:
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
+                        <span class="etiqueta" style="background:
                               {% if av.tipo == 'temprano' %}var(--azul)
                               {% elif av.tipo == 'noasiste' %}var(--coral)
                               {% elif av.tipo == 'tarde' %}var(--amarillo)
@@ -199,53 +227,54 @@
                               {% elif av.tipo == 'salud' %}var(--verde)
                               {% else %}var(--borde-fuerte){% endif %};
                               color:{% if av.tipo == 'tarde' %}var(--amarillo-texto){% else %}#fff{% endif %};">
-                        {% if av.tipo == 'temprano' %}Paso temprano
-                        {% elif av.tipo == 'noasiste' %}No asistirá
-                        {% elif av.tipo == 'tarde' %}Llegará tarde
-                        {% elif av.tipo == 'tutor' %}Cambio de tutor
-                        {% elif av.tipo == 'salud' %}Salud
-                        {% else %}Otro{% endif %}
-                    </span>
-                    <span class="fila-sub">{{ av.fecha_creado[:16] if av.fecha_creado else '' }}</span>
-                </div>
+                            {% if av.tipo == 'temprano' %}Paso temprano
+                            {% elif av.tipo == 'noasiste' %}No asistirá
+                            {% elif av.tipo == 'tarde' %}Llegará tarde
+                            {% elif av.tipo == 'tutor' %}Cambio de tutor
+                            {% elif av.tipo == 'salud' %}Salud
+                            {% else %}Otro{% endif %}
+                        </span>
+                        <span class="fila-sub">{{ av.fecha_creado[:16] if av.fecha_creado else '' }}</span>
+                    </div>
 
-                <div class="fila-titulo">{{ av.nombre_alumno }}</div>
+                    <div class="fila-titulo">{{ av.nombre_alumno }}</div>
 
-                {% if av.fecha_aplica or av.hora_aplica %}
-                <div class="fila-sub" style="margin-top:4px;">
-                    <i class="ti ti-calendar" style="font-size:12px;vertical-align:-2px;"></i>
-                    {% if av.fecha_aplica %}{{ av.fecha_aplica }}{% endif %}
-                    {% if av.hora_aplica %} · {{ av.hora_aplica }}{% endif %}
-                </div>
-                {% endif %}
+                    {% if av.fecha_aplica or av.hora_aplica %}
+                    <div class="fila-sub" style="margin-top:4px;">
+                        <i class="ti ti-calendar" style="font-size:12px;vertical-align:-2px;"></i>
+                        {% if av.fecha_aplica %}{{ av.fecha_aplica }}{% endif %}
+                        {% if av.hora_aplica %} · {{ av.hora_aplica }}{% endif %}
+                    </div>
+                    {% endif %}
 
-                {% if av.detalle %}
-                <div style="background:var(--superficie-3);border-left:3px solid var(--borde-fuerte);
+                    {% if av.detalle %}
+                    <div style="background:var(--superficie-3);border-left:3px solid var(--borde-fuerte);
                                 border-radius:9px;padding:8px 11px;margin-top:7px;font-size:13px;
                                 font-weight:700;color:var(--texto-suave);line-height:1.45;">
-                    {{ av.detalle }}
+                        {{ av.detalle }}
+                    </div>
+                    {% endif %}
                 </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;">
+                {% if av.visto_maestra %}
+                <span class="etiqueta eti-verde">
+                    <i class="ti ti-checks" style="font-size:12px;"></i>
+                    Enterada{% if av.acusado_por %} · {{ av.acusado_por }}{% endif %}
+                    {% if av.fecha_visto %} · {{ av.fecha_visto[:16] }}{% endif %}
+                </span>
+                {% else %}
+                <form method="POST" action="{{ url_for('admin.acusar_aviso_padre', id_aviso=av.id) }}"
+                      style="margin:0;">
+                    <button type="submit" class="btn btn-chico btn-verde">
+                        <i class="ti ti-check"></i> Marcar como leído
+                    </button>
+                </form>
                 {% endif %}
             </div>
         </div>
-
-        <div style="display:flex;justify-content:flex-end;">
-            {% if av.visto_maestra %}
-            <span class="etiqueta eti-verde">
-                <i class="ti ti-checks" style="font-size:12px;"></i>
-                Enterada{% if av.acusado_por %} · {{ av.acusado_por }}{% endif %}
-                {% if av.fecha_visto %} · {{ av.fecha_visto[:16] }}{% endif %}
-            </span>
-            {% else %}
-            <form method="POST" action="{{ url_for('admin.acusar_aviso_padre', id_aviso=av.id) }}" style="margin:0;">
-                <button type="submit" class="btn btn-chico btn-verde">
-                    <i class="ti ti-check"></i> Marcar como leído
-                </button>
-            </form>
-            {% endif %}
-        </div>
-    </div>
-    {% endfor %}
+        {% endfor %}
     {% else %}
     <div class="vacio">
         <div class="vacio-icono"><i class="ti ti-inbox"></i></div>
@@ -253,6 +282,12 @@
         <div class="vacio-texto">Cuando alguien te avise algo aparecerá aquí.</div>
     </div>
     {% endif %}
+
+    <div class="vacio" id="sinTutores" style="display:none;">
+        <div class="vacio-icono"><i class="ti ti-search-off"></i></div>
+        <div class="vacio-titulo">Sin coincidencias</div>
+        <div class="vacio-texto">Ningún aviso coincide con lo que buscas.</div>
+    </div>
 </div>
 
 {% endblock %}
@@ -296,7 +331,7 @@
 {% block js_extra %}
 <script>
     function abrirEditar(id, titulo, contenido) {
-        document.getElementById('edTitulo').value = titulo;
+        document.getElementById('edTitulo').value    = titulo;
         document.getElementById('edContenido').value = contenido;
         document.getElementById('formaEditar').action = '/admin/aviso/editar/' + id;
         document.getElementById('modalEditar').classList.add('abierto');
@@ -309,5 +344,51 @@
     document.getElementById('modalEditar').addEventListener('click', function (e) {
         if (e.target === this) cerrarEditar();
     });
+
+    // ── Buscador ──
+    // Filtra las tres pestañas a la vez; cada una tiene su propio
+    // mensaje de "sin coincidencias".
+       function filtrar() {
+        var texto  = document.getElementById('buscador').value.toLowerCase().trim();
+        var vistos = { mensajes: 0, avisos: 0, tutores: 0 };
+
+        document.querySelectorAll('.hoja').forEach(function (hoja, i) {
+            var clave = ['mensajes', 'avisos', 'tutores'][i];
+
+            hoja.querySelectorAll('[data-buscar]').forEach(function (f) {
+                var coincide = !texto || f.dataset.buscar.includes(texto);
+                f.style.display = coincide ? '' : 'none';
+                if (coincide) vistos[clave]++;
+            });
+        });
+
+        mostrarVacio('sinMensajes', texto, vistos.mensajes);
+        mostrarVacio('sinAvisos',   texto, vistos.avisos);
+        mostrarVacio('sinTutores',  texto, vistos.tutores);
+
+        // Muestra cuántos hay en cada pestaña mientras se busca
+        var pestanas = document.querySelectorAll('.pestana');
+        var claves   = ['mensajes', 'avisos', 'tutores'];
+
+        pestanas.forEach(function (p, i) {
+            var marca = p.querySelector('.marca-busqueda');
+            if (marca) marca.remove();
+
+            if (texto) {
+                var n = vistos[claves[i]];
+                var span = document.createElement('span');
+                span.className = 'pestana-contador marca-busqueda';
+                span.textContent = n;
+                span.style.background = n ? 'var(--verde)' : 'var(--borde-fuerte)';
+                span.style.color = n ? '#fff' : 'var(--texto-tenue)';
+                p.appendChild(span);
+            }
+        });
+    }
+    
+    function mostrarVacio(id, texto, cuantos) {
+        var caja = document.getElementById(id);
+        if (caja) caja.style.display = (texto && cuantos === 0) ? 'block' : 'none';
+    }
 </script>
 {% endblock %}

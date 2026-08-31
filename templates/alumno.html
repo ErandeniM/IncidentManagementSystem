@@ -91,6 +91,41 @@
         </a>
     </div>
 
+{% if eventos_proximos %}
+<div class="panel panel-morado">
+    <div class="panel-cabecera">
+        <i class="ti ti-calendar-event" style="font-size:19px;"></i>
+        <span class="panel-titulo">Fechas importantes</span>
+    </div>
+
+    <div class="panel-cuerpo">
+        {% for e in eventos_proximos %}
+        {% set t = tipos_evento.get(e.tipo, {'etiqueta':'Evento','color':'var(--verde)','icono':'ti-calendar'}) %}
+        <a href="{{ url_for('alumno.calendario') }}" class="pieza pieza-morada">
+            <div class="pieza-icono" style="background:{{ t.color }};">
+                <i class="ti {{ t.icono }}"></i>
+            </div>
+            <div class="pieza-cuerpo">
+                <div class="pieza-titulo">{{ e.titulo }}</div>
+                <div class="pieza-sub">
+                    {{ e.fecha }}{% if not e.hay_clases %} · sin clases{% endif %}
+                </div>
+            </div>
+            <i class="ti ti-chevron-right pieza-flecha"></i>
+        </a>
+        {% endfor %}
+    </div>
+
+        <a href="{{ url_for('alumno.calendario') }}" class="panel-pie" style="color:var(--morado-oscuro);">
+        <i class="ti ti-calendar" style="font-size:15px;"></i>
+        Ver todo el calendario
+        <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
+    </a>
+</div>
+{% endif %}
+
+</div>
+
 
     <!-- ══════════ TAREAS ══════════ -->
     <div class="panel panel-amarillo">
@@ -153,7 +188,9 @@
         </a>
     </div>
 
-</div>
+
+
+
 
 
 <!-- ══════════ ¿CÓMO VAMOS? ══════════ -->

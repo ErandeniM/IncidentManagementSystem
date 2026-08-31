@@ -101,37 +101,7 @@
 
 
 <!-- ── Último acceso ── -->
-<div class="panel panel-morado">
-    <div class="panel-cabecera">
-        <i class="ti ti-login" style="font-size:19px;"></i>
-        <span class="panel-titulo">Último acceso</span>
-    </div>
-
-    <div class="panel-cuerpo">
-        {% if accesos %}
-        <div class="pieza pieza-morada">
-            <div class="pieza-icono" style="background:var(--morado);box-shadow:0 2px 0 var(--morado-oscuro);">
-                <i class="ti ti-clock"></i>
-            </div>
-            <div class="pieza-cuerpo">
-                <div class="pieza-titulo">{{ accesos[0].fecha[:16] if accesos[0].fecha else '' }}</div>
-                <div class="pieza-sub" style="font-family:monospace;">{{ accesos[0].ip or '—' }}</div>
-            </div>
-        </div>
-        {% else %}
-        <div class="vacio-mini">
-            <i class="ti ti-login" style="color:var(--morado);"></i>
-            <div class="vacio-mini-titulo">Sin accesos registrados</div>
-        </div>
-        {% endif %}
-    </div>
-
-    <a href="{{ url_for('alumno.mis_accesos') }}" class="panel-pie" style="color:var(--morado-oscuro);">
-        <i class="ti ti-history" style="font-size:15px;"></i>
-        Ver todos mis accesos
-        <i class="ti ti-chevron-right" style="font-size:16px;margin-left:auto;"></i>
-    </a>
-</div>
+@
 <a href="{{ url_for('alumno.aviso_privacidad') }}" class="btn btn-ancho btn-borde" style="margin-bottom:14px;">
     <i class="ti ti-shield-lock" style="font-size:17px;"></i> Ver el aviso de privacidad
 </a>

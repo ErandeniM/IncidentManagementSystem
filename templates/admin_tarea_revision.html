@@ -1,183 +1,256 @@
 {% extends "base_admin.html" %}
 {% set activo = 'tareas' %}
 
-{% block titulo %}Revisar tarea{% endblock %}
+{% block titulo %}Revisar entregas{% endblock %}
 
 {% block css_extra %}
 <style>
-    .tarea-box{background:#e8f9d5;border:2px solid #89e219;border-radius:18px;padding:16px 18px;box-shadow:0 3px 0 #58cc02;margin-bottom:16px;}
-    .tarea-titulo{font-size:18px;font-weight:900;color:#2d4a02;}
-    .tarea-desc{font-size:13px;font-weight:700;color:#3c5c10;line-height:1.4;margin-top:6px;}
-    .tarea-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-weight:800;color:#58a002;margin-top:10px;}
-    .tarea-meta i{font-size:13px;vertical-align:-2px;}
-
-    .resumen{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
-    .res-card{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:12px;text-align:center;box-shadow:0 3px 0 #e5e5e5;}
-    .res-num{font-size:24px;font-weight:900;line-height:1;}
-    .res-label{font-size:10px;font-weight:900;color:#777;text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
-
-    .acciones-masivas{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
-    .acciones-label{font-size:11px;font-weight:900;color:#afafaf;text-transform:uppercase;letter-spacing:.05em;}
-
-    .fila{background:#fff;border:2px solid #e5e5e5;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 0 #e5e5e5;flex-wrap:wrap;}
-    .fila-avatar{width:44px;height:44px;border-radius:14px;font-size:14px;}
-    .fila-nombre{flex:1;min-width:130px;font-size:14px;font-weight:900;color:#3c3c3c;}
-
-    .botones-estado{display:flex;gap:5px;flex-wrap:wrap;}
-    .btn-estado{padding:8px 12px;border-radius:11px;font-size:11px;font-weight:900;cursor:pointer;border:2px solid #e5e5e5;background:#fff;color:#afafaf;font-family:inherit;display:inline-flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.02em;transition:all .12s;}
-    .btn-estado:hover{border-color:#c4c4c4;}
-    .btn-estado.activo{color:#fff;border-color:transparent;box-shadow:0 3px 0 rgba(0,0,0,.2);}
-    .btn-estado i{font-size:13px;}
-
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#58cc02;color:#fff;padding:12px 22px;border-radius:16px;font-size:13px;font-weight:900;box-shadow:0 4px 0 #43a800;opacity:0;transition:all .25s;z-index:100;}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-    .toast.err{background:#ff4b4b;box-shadow:0 4px 0 #d33;}
-
-    @media (max-width:900px){
-        .resumen{grid-template-columns:repeat(2,1fr);}
-        .botones-estado{width:100%;}
-        .btn-estado{flex:1;justify-content:center;}
+    .alumno-fila {
+        background: var(--superficie);
+        border: 2px solid var(--borde);
+        border-left-width: 5px;
+        border-left-color: var(--borde-fuerte);
+        border-radius: var(--radio);
+        padding: 12px 14px;
+        margin-bottom: 9px;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        flex-wrap: wrap;
     }
+
+    .alumno-fila.cumplio    { border-left-color: var(--verde);    background: var(--verde-suave); }
+    .alumno-fila.incompleta { border-left-color: var(--amarillo); background: var(--amarillo-suave); }
+    .alumno-fila.no_cumplio { border-left-color: var(--coral);    background: var(--coral-suave); }
+
+    .estados { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    .btn-estado {
+        padding: 8px 13px;
+        border: 2px solid var(--borde-fuerte);
+        border-radius: var(--radio-chico);
+        background: var(--superficie);
+        color: var(--texto-suave);
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+
+    .btn-estado:hover { background: var(--superficie-2); }
+    .btn-estado:active { transform: translateY(2px); }
+
+    .btn-estado.activo[data-estado="cumplio"] {
+        background: var(--verde); border-color: var(--verde-oscuro);
+        color: #fff; box-shadow: 0 2px 0 var(--verde-oscuro);
+    }
+    .btn-estado.activo[data-estado="incompleta"] {
+        background: var(--amarillo); border-color: var(--amarillo-oscuro);
+        color: var(--amarillo-texto); box-shadow: 0 2px 0 var(--amarillo-oscuro);
+    }
+    .btn-estado.activo[data-estado="no_cumplio"] {
+        background: var(--coral); border-color: var(--coral-oscuro);
+        color: #fff; box-shadow: 0 2px 0 var(--coral-oscuro);
+    }
+    .btn-estado.activo[data-estado="pendiente"] {
+        background: var(--borde-fuerte); border-color: var(--texto-tenue);
+        color: var(--texto); box-shadow: 0 2px 0 var(--texto-tenue);
+    }
+
+    .campo-nota {
+        flex: 1;
+        min-width: 170px;
+        padding: 9px 12px;
+        background: var(--superficie-2);
+        border: 2px solid var(--borde-fuerte);
+        border-radius: var(--radio-chico);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--texto);
+        outline: none;
+    }
+
+    .campo-nota:focus { background: var(--superficie); border-color: var(--azul); }
+    .campo-nota::placeholder { color: var(--texto-tenue); font-weight: 600; }
 </style>
 {% endblock %}
 
 {% block encabezado %}
-<div class="topbar">
-    <a href="{{ url_for('admin.admin_tareas') }}" class="back-btn">
+<div class="barra">
+    <a href="{{ url_for('admin.admin_tareas') }}" class="btn-atras">
         <i class="ti ti-arrow-left" style="font-size:20px;"></i>
     </a>
+
     <div>
-        <div class="page-title">Revisar entregas</div>
-        <div class="page-sub">Marca el estado de cada alumno — se guarda solo</div>
+        <div class="barra-titulo">{{ tarea.titulo }}</div>
+        <div class="barra-sub">
+            {{ tarea.materia or 'General' }}
+            {% if tarea.fecha_entrega %} · entrega el {{ tarea.fecha_entrega }}{% endif %}
+        </div>
     </div>
-    <div class="page-icon ic-verde"><i class="ti ti-checklist" style="font-size:22px;"></i></div>
 </div>
 {% endblock %}
 
 {% block contenido %}
 
-<div class="tarea-box">
-    <div class="tarea-titulo">{{ tarea.titulo }}</div>
-    {% if tarea.descripcion %}
-    <div class="tarea-desc">{{ tarea.descripcion }}</div>
-    {% endif %}
-    <div class="tarea-meta">
-        <span><i class="ti ti-book"></i> {{ tarea.materia or 'General' }}</span>
-        {% if tarea.fecha_entrega %}
-        <span><i class="ti ti-calendar-check"></i> Entrega {{ tarea.fecha_entrega }}</span>
-        {% endif %}
+{% if tarea.descripcion %}
+<div class="tarjeta" style="background:var(--amarillo-suave);border-color:var(--amarillo);
+     box-shadow:0 var(--caida-chica) 0 var(--amarillo);">
+    <div style="font-size:11px;font-weight:800;color:var(--amarillo-texto);
+                text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">
+        Instrucciones que ven los tutores
     </div>
-</div>
-
-<div class="resumen">
-    {% for clave, etiqueta, color, icono in estados %}
-    <div class="res-card">
-        <div class="res-num" style="color:{{ color }};" id="num-{{ clave }}">0</div>
-        <div class="res-label">{{ etiqueta }}</div>
+    <div style="font-size:14px;font-weight:700;color:var(--texto);line-height:1.5;">
+        {{ tarea.descripcion }}
     </div>
-    {% endfor %}
-</div>
-
-<div class="acciones-masivas">
-    <span class="acciones-label">Marcar a todos:</span>
-    {% for clave, etiqueta, color, icono in estados %}
-    {% if clave != 'pendiente' %}
-    <form method="POST" action="{{ url_for('admin.marcar_todos_entrega', id_tarea=tarea.id) }}"
-          style="margin:0;" onsubmit="return confirm('¿Marcar a TODO el grupo como {{ etiqueta }}?');">
-        <input type="hidden" name="estado" value="{{ clave }}">
-        <button type="submit" class="btn-estado" style="border-color:{{ color }};color:{{ color }};">
-            <i class="ti {{ icono }}"></i> {{ etiqueta }}
-        </button>
-    </form>
-    {% endif %}
-    {% endfor %}
-</div>
-
-{% if alumnos %}
-    {% for a in alumnos %}
-    <div class="fila" data-alumno="{{ a.id }}">
-        <div class="avatar fila-avatar" style="background:{{ a.id | color_avatar }}">{{ a.nombre[:2] | upper }}</div>
-        <div class="fila-nombre">{{ a.nombre }}</div>
-        <div class="botones-estado">
-            {% for clave, etiqueta, color, icono in estados %}
-            <button class="btn-estado {% if a.estado == clave %}activo{% endif %}"
-                    data-estado="{{ clave }}"
-                    data-color="{{ color }}"
-                    style="{% if a.estado == clave %}background:{{ color }};{% endif %}"
-                    onclick="marcar(this, {{ a.id }})">
-                <i class="ti {{ icono }}"></i> {{ etiqueta }}
-            </button>
-            {% endfor %}
-        </div>
-    </div>
-    {% endfor %}
-{% else %}
-<div class="empty">
-    <div class="empty-icon"><i class="ti ti-users-off"></i></div>
-    <div class="empty-title">No hay alumnos registrados</div>
-    <div class="empty-text">Registra alumnos para poder revisar entregas.</div>
 </div>
 {% endif %}
 
-{% endblock %}
 
-{% block modales %}
-<div class="toast" id="toast"><span id="toastMsg">Guardado</span></div>
+<!-- ══════════ MARCAR A TODOS ══════════ -->
+
+<div class="tarjeta">
+    <div class="tarjeta-titulo">
+        <i class="ti ti-users" style="color:var(--azul);"></i>
+        Marcar a todo el grupo
+    </div>
+
+    <div class="campo-ayuda" style="margin-top:-8px;margin-bottom:12px;">
+        Marca a todos de un jalón y luego corrige las excepciones una por una.
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        {% for clave, etiqueta, color, icono in estados %}
+        <form method="POST" action="{{ url_for('admin.marcar_todos_entrega', id_tarea=tarea.id) }}"
+              style="margin:0;"
+              onsubmit="return confirm('¿Marcar a los {{ alumnos | length }} alumnos como «{{ etiqueta }}»? Esto sobrescribe lo que ya hayas marcado.');">
+            <input type="hidden" name="estado" value="{{ clave }}">
+            <button type="submit" class="btn btn-chico
+                {% if clave == 'cumplio' %}btn-verde
+                {% elif clave == 'incompleta' %}btn-amarillo
+                {% elif clave == 'no_cumplio' %}btn-coral
+                {% else %}btn-borde{% endif %}">
+                <i class="ti {{ icono }}"></i> Todos: {{ etiqueta }}
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+</div>
+
+
+<!-- ══════════ LISTA ══════════ -->
+
+<div class="seccion-titulo">
+    Marca el estado de cada alumno · se guarda solo
+</div>
+
+{% for a in alumnos %}
+{% set estado = a.estado or 'pendiente' %}
+
+<div class="alumno-fila {{ estado }}" id="fila-{{ a.id }}">
+    <div class="avatar" style="width:44px;height:44px;font-size:13px;
+         background:{{ a.id | color_avatar }};">
+        {{ a.nombre[:2] | upper }}
+    </div>
+
+    <div style="min-width:130px;">
+        <div class="fila-titulo">{{ a.nombre }}</div>
+        <div class="fila-sub fila-sub-mono">{{ a.curp }}</div>
+    </div>
+
+    <div class="estados">
+        {% for clave, etiqueta, color, icono in estados %}
+        <button class="btn-estado {% if estado == clave %}activo{% endif %}"
+                data-estado="{{ clave }}"
+                data-alumno="{{ a.id }}"
+                onclick="marcar({{ a.id }}, '{{ clave }}')">
+            <i class="ti {{ icono }}" style="font-size:14px;"></i>
+            {{ etiqueta }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <input type="text" class="campo-nota"
+           id="nota-{{ a.id }}"
+           value="{{ a.nota or '' }}"
+           placeholder="Nota para el tutor (opcional)..."
+           onblur="marcar({{ a.id }})">
+</div>
+{% endfor %}
+
+{% if not alumnos %}
+<div class="vacio">
+    <div class="vacio-icono"><i class="ti ti-users-off"></i></div>
+    <div class="vacio-titulo">No hay alumnos registrados</div>
+    <div class="vacio-texto">Registra alumnos para poder llevar el control de entregas.</div>
+</div>
+{% endif %}
+
+<div class="aviso-flotante" id="aviso">
+    <i class="ti ti-check" style="font-size:17px;"></i>
+    <span id="avisoTexto">Guardado</span>
+</div>
+
 {% endblock %}
 
 {% block js_extra %}
 <script>
-const ID_TAREA = {{ tarea.id }};
+    var ID_TAREA = {{ tarea.id }};
 
-function toast(msg, err) {
-    const t = document.getElementById('toast');
-    document.getElementById('toastMsg').textContent = msg;
-    t.classList.toggle('err', !!err);
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 1500);
-}
+    async function marcar(idAlumno, estado) {
+        var fila = document.getElementById('fila-' + idAlumno);
 
-function contar() {
-    const conteo = {};
-    document.querySelectorAll('.fila').forEach(f => {
-        const activo = f.querySelector('.btn-estado.activo');
-        const estado = activo ? activo.dataset.estado : 'pendiente';
-        conteo[estado] = (conteo[estado] || 0) + 1;
-    });
-    document.querySelectorAll('[id^="num-"]').forEach(el => {
-        const clave = el.id.replace('num-', '');
-        el.textContent = conteo[clave] || 0;
-    });
-}
+        // Si no viene estado, es porque solo cambió la nota
+        if (!estado) {
+            var activo = fila.querySelector('.btn-estado.activo');
+            estado = activo ? activo.dataset.estado : 'pendiente';
+        }
 
-async function marcar(boton, idAlumno) {
-    const fila = boton.closest('.fila');
+        var nota = document.getElementById('nota-' + idAlumno).value;
 
-    fila.querySelectorAll('.btn-estado').forEach(b => {
-        b.classList.remove('activo');
-        b.style.background = '';
-    });
-    boton.classList.add('activo');
-    boton.style.background = boton.dataset.color;
-    contar();
+        try {
+            var r = await fetch('{{ url_for("admin.marcar_entrega") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_tarea:  ID_TAREA,
+                    id_alumno: idAlumno,
+                    estado:    estado,
+                    nota:      nota
+                })
+            });
+            var res = await r.json();
 
-    try {
-        const r = await fetch('{{ url_for("admin.marcar_entrega") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id_tarea:  ID_TAREA,
-                id_alumno: idAlumno,
-                estado:    boton.dataset.estado
-            })
-        });
-        const res = await r.json();
-        if (!res.ok) throw new Error();
-    } catch (e) {
-        toast('No se pudo guardar', true);
+            if (res.ok) {
+                // Se resalta el botón elegido
+                fila.querySelectorAll('.btn-estado').forEach(function (b) {
+                    b.classList.toggle('activo', b.dataset.estado === estado);
+                });
+
+                fila.className = 'alumno-fila ' + estado;
+                mostrarAviso('Guardado ✓', false);
+            } else {
+                mostrarAviso('No se pudo guardar', true);
+            }
+        } catch (e) {
+            mostrarAviso('Error de conexión', true);
+        }
     }
-}
 
-contar();
+    var temporizador;
+    function mostrarAviso(texto, esError) {
+        var aviso = document.getElementById('aviso');
+        document.getElementById('avisoTexto').textContent = texto;
+        aviso.classList.toggle('error', esError);
+        aviso.classList.add('visible');
+
+        clearTimeout(temporizador);
+        temporizador = setTimeout(function () {
+            aviso.classList.remove('visible');
+        }, 1600);
+    }
 </script>
 {% endblock %}

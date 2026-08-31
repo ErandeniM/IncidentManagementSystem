@@ -34,6 +34,10 @@
     --texto-tenue:      #8c8a7e;
 
     /* ── COLORES ── */
+    --rosa:            #ff5c8a;
+    --rosa-oscuro:     #d13a68;
+    --rosa-suave:      #ffe8ee;
+    --rosa-texto:      #7a1030;
 
     --verde:            #58cc02;
     --verde-oscuro:     #46a302;
@@ -106,6 +110,9 @@
 
     /* Los sólidos se quedan igual: es lo que da la identidad.
        Solo se oscurecen los fondos suaves y se aclara su texto. */
+
+    --rosa-suave:      #3a1520;
+    --rosa-texto:      #ffa8bf;
 
     --verde-suave:      #1e2e11;
     --verde-texto:      #a8e063;

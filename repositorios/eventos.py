@@ -25,8 +25,11 @@ TIPOS = [
     ('evaluacion',  'Evaluación',            'ti-clipboard-check', 'var(--azul)',     1),
     ('conmemora',   'Fecha conmemorativa',   'ti-star',            'var(--naranja)',  1),
     ('junta',       'Junta de padres',       'ti-users',           'var(--morado)',   1),
-    ('escuela',     'Actividad de la escuela', 'ti-school',        'var(--verde)',    1),
-]
+    ('escuela',     'Actividad de la escuela', 'ti-confetti',      'var(--rosa)',     1),
+    ('jornada',     'Jornada de concientización', 'ti-shield-heart', 'var(--azul)',     1),
+    ('escuela',     'Actividad de la escuela', 'ti-confetti',      'var(--rosa)',    1),
+    ('festival',    'Festival',          'ti-confetti',   'var(--rosa)',   1),
+    ('honores',     'Honores a la bandera', 'ti-flag-3',  'var(--azul)',   1)]
 
 TIPOS_MAP = {
     clave: {'etiqueta': etiqueta, 'icono': icono,
@@ -55,7 +58,7 @@ CALENDARIO_OFICIAL = [
     ('2026-08-31', None,         'Inicio de clases del ciclo 2026-2027', 'inicio'),
 
     # Septiembre 2026
-    ('2026-09-07', None, 'Jornada sobre prevención del abuso infantil', 'suspension'),
+    ('2026-09-07', None, 'Jornada sobre prevención del abuso infantil', 'jornada'),
     ('2026-09-15', None, 'Reflexión — Independencia de México',         'conmemora'),
     ('2026-09-16', None, 'Aniversario de la Independencia de México',   'conmemora'),
     ('2026-09-25', None, 'Consejo Técnico Escolar',                     'consejo'),

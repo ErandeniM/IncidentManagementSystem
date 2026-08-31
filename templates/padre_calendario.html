@@ -12,7 +12,12 @@
         margin-bottom: 16px;
     }
 
-    .mes-nombre { font-size: 20px; font-weight: 800; color: var(--texto); flex: 1; }
+    .mes-nombre {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--texto);
+        flex: 1;
+    }
 
     .mes-flecha {
         width: 40px;
@@ -28,7 +33,10 @@
         flex-shrink: 0;
     }
 
-    .mes-flecha:active { transform: translateY(var(--caida-chica)); box-shadow: none; }
+    .mes-flecha:active {
+        transform: translateY(var(--caida-chica));
+        box-shadow: none;
+    }
 
     .rejilla {
         display: grid;
@@ -59,16 +67,40 @@
         min-height: 62px;
     }
 
-    .celda.vacia { background: transparent; border-color: transparent; }
-    .celda.hoy { border-color: var(--coral); border-width: 3px; box-shadow: 0 2px 0 var(--coral); }
-    .celda.sin-clases { background: var(--superficie-3); }
-    .celda.fin-semana { background: var(--superficie-2); }
+    .celda.vacia {
+        background: transparent;
+        border-color: transparent;
+    }
 
-    .celda-numero { font-size: 13px; font-weight: 800; color: var(--texto); }
-    .celda.hoy .celda-numero { color: var(--coral-oscuro); }
-    .celda.fin-semana .celda-numero { color: var(--texto-tenue); }
+    .celda.hoy {
+        border-color: var(--coral);
+        border-width: 3px;
+        box-shadow: 0 2px 0 var(--coral);
+    }
 
-       .celda-evento {
+    .celda.sin-clases {
+        background: var(--superficie-3);
+    }
+
+    .celda.fin-semana {
+        background: var(--superficie-2);
+    }
+
+    .celda-numero {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--texto);
+    }
+
+    .celda.hoy .celda-numero {
+        color: var(--coral-oscuro);
+    }
+
+    .celda.fin-semana .celda-numero {
+        color: var(--texto-tenue);
+    }
+
+    .celda-evento {
         font-size: 8px;
         font-weight: 700;
         color: #fff;
@@ -81,6 +113,10 @@
         -webkit-box-orient: vertical;
     }
 
+    .celda-evento.propio {
+        border: 1px dashed rgba(255, 255, 255, .7);
+    }
+
     .celda-mas {
         font-size: 8px;
         font-weight: 700;
@@ -88,7 +124,7 @@
         padding-left: 3px;
     }
 
-        .celda {
+    .celda {
         min-height: 88px;
         aspect-ratio: auto;
         border: var(--borde-medio) solid var(--borde);
@@ -100,7 +136,11 @@
         gap: 3px;
     }
 
-    .lista-eventos { display: flex; flex-direction: column; gap: 9px; }
+    .lista-eventos {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
 
     .evento {
         display: flex;
@@ -122,19 +162,65 @@
         color: #fff;
     }
 
-    .evento-dia { font-size: 17px; font-weight: 800; line-height: 1; }
-    .evento-mes { font-size: 8px; font-weight: 700; letter-spacing: .06em; margin-top: 2px; }
+    .evento-dia {
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1;
+    }
 
-    .evento-titulo { font-size: 14px; font-weight: 800; color: var(--texto); line-height: 1.3; }
-    .evento-sub { font-size: 11px; font-weight: 600; color: var(--texto-tenue); margin-top: 3px; }
+    .evento-mes {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        margin-top: 2px;
+    }
 
-    .leyenda { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
-    .leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--texto-suave); }
-    .leyenda-muestra { width: 13px; height: 13px; border-radius: 4px; flex-shrink: 0; }
+    .evento-titulo {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--texto);
+        line-height: 1.3;
+    }
+
+    .evento-sub {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--texto-tenue);
+        margin-top: 3px;
+    }
+
+    .leyenda {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .leyenda-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--texto-suave);
+    }
+
+    .leyenda-muestra {
+        width: 13px;
+        height: 13px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
 
     @media (max-width: 600px) {
-        .celda { min-height: 46px; padding: 3px; }
-        .celda-numero { font-size: 11px; }
+        .celda {
+            min-height: 46px;
+            padding: 3px;
+        }
+
+        .celda-numero {
+            font-size: 11px;
+        }
     }
 </style>
 {% endblock %}
@@ -217,7 +303,7 @@
         <span class="leyenda-muestra" style="background:var(--morado);"></span> Consejo Técnico
     </span>
     <span class="leyenda-item">
-        <span class="leyenda-muestra" style="background:var(--verde);"></span> Evento de la escuela
+        <span class="leyenda-muestra" style="background:var(--verde);border:1px dashed #fff;"></span> De la escuela
     </span>
 </div>
 
@@ -234,20 +320,21 @@
     {% set fecha = '%04d-%02d-%02d' | format(anio, mes, dia) %}
     {% set del_dia = eventos | selectattr('fecha', 'equalto', fecha) | list %}
     {% set periodo = eventos | selectattr('fecha_fin') | selectattr('fecha', 'le', fecha)
-                     | selectattr('fecha_fin', 'ge', fecha) | list %}
+    | selectattr('fecha_fin', 'ge', fecha) | list %}
     {% set todos_dia = del_dia + periodo %}
     {% set sin_clases = todos_dia | rejectattr('hay_clases') | list %}
     {% set finde = ((hueco + dia - 1) % 7) >= 5 %}
 
     <div class="celda {% if fecha == hoy %}hoy{% endif %}
                 {% if sin_clases %}sin-clases{% elif finde %}fin-semana{% endif %}"
-         title="{% for e in todos_dia %}{{ e.titulo }}{% if not loop.last %} · {% endif %}{% endfor %}">
+        title="{% for e in todos_dia %}{{ e.titulo }}{% if not loop.last %} · {% endif %}{% endfor %}">
 
-               <div class="celda-numero">{{ dia }}</div>
+        <div class="celda-numero">{{ dia }}</div>
 
         {% for e in todos_dia[:2] %}
         {% set t = tipos_map.get(e.tipo, {'color':'var(--verde)'}) %}
-        <div class="celda-evento" style="background:{{ t.color }};">{{ e.titulo }}</div>
+        <div class="celda-evento {% if not e.oficial %}propio{% endif %}" style="background:{{ t.color }};">{{ e.titulo
+            }}</div>
         {% endfor %}
 
         {% if todos_dia | length > 2 %}

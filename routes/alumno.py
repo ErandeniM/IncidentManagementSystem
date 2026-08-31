@@ -8,7 +8,8 @@ pasa por la capa de repositorios.
 from datetime import date
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import calendar
+import calendar 
+
 
 
 from flask import (Blueprint, render_template, request, redirect,
@@ -95,6 +96,7 @@ def panel_alumno():
     logros      = [i for i in incidencias if _es_logro(i)]
     actividades = repo_academico.actividades_de(alumno_id)
 
+    
     return render_template('alumno.html',
         nombre           = session['nombre'],
         avisos_feed      = avisos_feed,
@@ -102,9 +104,11 @@ def panel_alumno():
         estados_map      = repo_tareas.ESTADOS_MAP,
         ultimo_logro     = logros[0] if logros else None,
         ultima_actividad = actividades[0] if actividades else None,
-        promedio         = repo_academico.promedio_general(alumno_id))
-
-
+        promedio         = repo_academico.promedio_general(alumno_id),
+        eventos_proximos = repo_eventos.proximos(3),
+        tipos_evento     = repo_eventos.TIPOS_MAP)
+    
+    
 # ═══════════════════════════════════════════════════════════
 #  SECCIONES DEL MENÚ
 # ═══════════════════════════════════════════════════════════
@@ -416,7 +420,7 @@ def exigir_aviso():
     if not _sesion_activa():
         return
 
-    permitidas = ('alumno.aviso_privacidad', 'alumno.aceptar_aviso')
+    permitidas = ('alumno.aviso_privacidad', 'alumno.aceptar_aviso', 'auth.logout')
     if request.endpoint in permitidas:
         return
 
